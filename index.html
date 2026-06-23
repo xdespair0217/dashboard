@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大樓廠區廠商物業管制中樞</title>
+    <style>
+        /* --- 經典鮮豔明亮配色變數：對接全新五大分類 --- */
+        :root {
+            --bg-main: #f4f6f9;
+            --bg-panel: #ffffff;
+            --bg-card: #ffffff;
+            --border-light: #e2e8f0;
+            --text-title: #1e293b;
+            --text-main: #475569;
+            --text-muted: #94a3b8;
+            
+            /* 五大類別高飽和鮮豔色 */
+            --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
+            --cate-fire: #10b981;      /* 湖水綠：消防公安 */
+            --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
+            --cate-admin: #3b82f6;     /* 寶石藍：行政支出 */
+            --cate-other: #64748b;     /* 沈穩灰：其他支出 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; letter-spacing: 0.02em; }
+
+        /* 左側大空間面板 (佔螢幕 35%，大空間不截斷) */
+        .left-panel {
+            width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
+            display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
+        }
+
+        .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 20px; }
+        .panel-header h1 { font-size: 1.3rem; color: var(--text-title); font-weight: 700; }
+        .system-time { font-size: 0.85rem; color: var(--cate-admin); margin-top: 4px; font-weight: 600; font-family: monospace; }
+        .detail-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+
+        .placeholder-text {
+            color: var(--text-muted); text-align: center; margin-top: 100px; font-size: 0.95rem; line-height: 1.8;
+            background: #fff; border: 2px dashed var(--border-light); padding: 30px 20px; border-radius: 8px;
+        }
+
+        /* 左側資訊圖卡 */
+        .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .vendor-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
+        
+        /* 動態產生左側大面板標籤的鮮豔底色背景 */
+        .badge-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid var(--cate-repair); }
+        .badge-fire { background-color: rgba(16, 185, 129, 0.15); color: var(--cate-fire); border: 1px solid var(--cate-fire); }
+        .badge-food { background-color: rgba(217, 70, 239, 0.15); color: var(--cate-food); border: 1px solid var(--cate-food); }
+        .badge-admin { background-color: rgba(59, 130, 246, 0.15); color: var(--cate-admin); border: 1px solid var(--cate-admin); }
+        .badge-other { background-color: rgba(100, 116, 139, 0.15); color: var(--cate-other); border: 1px solid var(--cate-other); }
+
+        .vendor-main-name { font-size: 1.25rem; color: var(--text-title); font-weight: 700; margin-bottom: 6px; }
+        .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #cbd5e1; margin-top: 8px; line-height: 1.4; }
+        .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 16px; font-weight: 600; line-height: 1.5; }
+        
+        .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 12px; border-left: 3px solid var(--cate-admin); padding-left: 8px; }
+        .file-checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .file-item { background: #ffffff; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px 14px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; }
+        .upload-status { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+        .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
+        .status-wait { background: rgba(255, 122, 0, 0.15); color: #ea580c; }
+
+        /* 右側面板與精緻微型小格子 (高度維持 68px，優化內部佈局) */
+        .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
+        .vendor-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        
+        .car-card {
+            background-color: var(--bg-card); border: 1px solid var(--border-light); border-left: 5px solid var(--text-muted);
+            border-radius: 6px; padding: 8px 12px; cursor: pointer; height: 68px; display: flex; flex-direction: column;
+            justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .car-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+
+        /* 右側卡片內部的精緻彩色小標籤 */
+        .card-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        
+        .mini-type-badge {
+            font-size: 0.7rem; padding: 1px 5px; border-radius: 3px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0px; white-space: nowrap; line-height: 1.2;
+        }
+        .mini-bg-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid rgba(255, 122, 0, 0.3); }
+        .mini-bg-fire   { background-color: rgba(16, 185, 129, 0.15); color: var(--cate-fire);   border: 1px solid rgba(16, 185, 129, 0.3); }
+        .mini-bg-food   { background-color: rgba(217, 70, 239, 0.15); color: var(--cate-food);   border: 1px solid rgba(217, 70, 239, 0.3); }
+        .mini-bg-admin  { background-color: rgba(59, 130, 246, 0.15); color: var(--cate-admin);  border: 1px solid rgba(59, 130, 246, 0.3); }
+        .mini-bg-other  { background-color: rgba(100, 116, 139, 0.15); color: var(--cate-other);  border: 1px solid rgba(100, 116, 139, 0.3); }
+
+        /* 五大類別側邊顏色分流 */
+        .card-repair { border-left-color: var(--cate-repair); }
+        .card-fire { border-left-color: var(--cate-fire); }
+        .card-food { border-left-color: var(--cate-food); }
+        .card-admin { border-left-color: var(--cate-admin); }
+        .card-other { border-left-color: var(--cate-other); }
+
+        /* 點選啟用時的反饋 */
+        .car-card.active.card-repair { background-color: rgba(255, 122, 0, 0.04); border-color: var(--cate-repair); box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.2); }
+        .car-card.active.card-fire { background-color: rgba(16, 185, 129, 0.04); border-color: var(--cate-fire); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        .car-card.active.card-food { background-color: rgba(217, 70, 239, 0.04); border-color: var(--cate-food); box-shadow: 0 0 0 2px rgba(217, 70, 239, 0.2); }
+        .car-card.active.card-admin { background-color: rgba(59, 130, 246, 0.04); border-color: var(--cate-admin); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .car-card.active.card-other { background-color: rgba(100, 116, 139, 0.04); border-color: var(--cate-other); box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2); }
+
+        .car-model { font-size: 0.9rem; font-weight: 700; color: var(--text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
+        .car-meta { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; font-family: monospace; width: 100%; }
+
+        .right-panel::-webkit-scrollbar { width: 6px; }
+        .right-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <div class="left-panel">
+        <div class="panel-header">
+            <h1>大樓廠區管制看板</h1>
+            <div class="system-time" id="live-clock">MONITOR LIVE</div>
+        </div>
+        <div class="detail-content" id="detail-panel">
+            <div class="placeholder-text">
+                <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
+                <strong>[ 數據同步就緒 ]</strong><br>
+                已成功連接試算表，請點擊右側格子檢視詳情。
+            </div>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="vendor-grid" id="vendor-container"></div>
+    </div>
+
+    <script>
+        // 🔗 已經完全綁定您剛剛發布的 Google 試算表 CSV 連結
+        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR2ZAna28KJv0Fm9quwS_PwaZJI8u8Dayq9OmqtNh7AcYmVgKysTd68zs62xdoCtS9u5HkiTHGhoz2r/pub?output=csv";
+
+        // 核心對應表：完美對接中文字稱與鮮豔底色
+        const categories = {
+            'repair': { name: '廠區修繕', color: 'var(--cate-repair)', bgClass: 'badge-repair', miniBgClass: 'mini-bg-repair' },
+            'fire':   { name: '消防公安', color: 'var(--cate-fire)',   bgClass: 'badge-fire',   miniBgClass: 'mini-bg-fire' },
+            'food':   { name: '食品支出', color: 'var(--cate-food)',   bgClass: 'badge-food',   miniBgClass: 'mini-bg-food' },
+            'admin':  { name: '行政支出', color: 'var(--cate-admin)',  bgClass: 'badge-admin',  miniBgClass: 'mini-bg-admin' },
+            'other':  { name: '其他支出', color: 'var(--cate-other)',  bgClass: 'badge-other',  miniBgClass: 'mini-bg-other' }
+        };
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const headers = lines[0].split(',').map(h => h.trim());
+            return lines.slice(1).map(line => {
+                const data = line.split(',').map(d => d.trim());
+                let obj = {};
+                headers.forEach((header, index) => { obj[header] = data[index]; });
+                return obj;
+            });
+        }
+
+        if(csvUrl) {
+            fetch(csvUrl)
+                .then(response => response.text())
+                .then(text => { renderGrid(parseCSV(text)); })
+                .catch(err => { document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 資料讀取失敗，請檢查網路或 CSV 網址是否正確。</div>`; });
+        }
+
+        function renderGrid(vendors) {
+            const container = document.getElementById('vendor-container');
+            container.innerHTML = "";
+
+            vendors.forEach(vendor => {
+                const tasksArray = vendor.tasks ? vendor.tasks.split('|') : [];
+                const card = document.createElement('div');
+                card.className = `car-card card-${vendor.type}`;
+                
+                const cate = categories[vendor.type] || { name: '其他支出', miniBgClass: 'mini-bg-other' };
+                
+                card.innerHTML = `
+                    <div class="card-top-row">
+                        <div class="car-model">${vendor.floor} - ${vendor.name}</div>
+                        <span class="mini-type-badge ${cate.miniBgClass}">${cate.name}</span>
+                    </div>
+                    <div class="car-meta">
+                        <span style="color: var(--text-muted); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${vendor.vendor_info || ''}
+                        </span>
+                        <span style="color: ${vendor.status === 'done' ? 'var(--cate-fire)' : 'var(--cate-repair)'}">
+                            ${vendor.status === 'done' ? '● 正常' : '○ 待辦'}
+                        </span>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.car-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    updateLeftPanel(vendor, tasksArray);
+                });
+                container.appendChild(card);
+            });
+        }
+
+        function updateLeftPanel(vendor, tasks) {
+            const detailPanel = document.getElementById('detail-panel');
+            const cateInfo = categories[vendor.type] || { name: '其他支出', color: 'var(--cate-other)', bgClass: 'badge-other' };
+            
+            let noticeBoxHTML = (vendor.type === 'repair' || vendor.type === 'fire') ? `
+                <div class="alert-notice-box" style="background-color: rgba(255, 122, 0, 0.06); border-left: 4px solid var(--cate-repair); color: #c2410c;">
+                    ⚠️ 【工程管制提示】此項目涉及特檢與廠務修繕。凡進入車間或涉及公共安全之工單，請落實完工雙軌簽收。
+                </div>` : `
+                <div class="alert-notice-box" style="background-color: rgba(217, 70, 239, 0.06); border-left: 4px solid var(--cate-food); color: #a21caf;">
+                    💡 【行政核銷提示】此項目為例行性費用與行政支出。請確認憑證與明細上傳完整度，以便進行月底對帳。
+                </div>`;
+
+            let tasksHTML = tasks.map((task, idx) => {
+                const isWait = (vendor.status === 'wait' && idx === tasks.length - 1);
+                return `
+                    <li class="file-item" style="${isWait ? 'border-left: 3px solid var(--cate-repair); background: rgba(255,122,0,0.02); font-weight:600;' : ''}">
+                        <span>${task}</span>
+                        <span class="upload-status ${isWait ? 'status-wait' : 'status-done'}">${isWait ? '待辦' : '已確認'}</span>
+                    </li>
+                `;
+            }).join('');
+
+            detailPanel.innerHTML = `
+                <div class="vendor-header-card">
+                    <span class="vendor-badge ${cateInfo.bgClass}">【${cateInfo.name}】</span>
+                    <div class="vendor-main-name">${vendor.name}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; font-weight: 600; margin-top: 4px;">
+                        <span>管制樓層/區域：${vendor.floor}</span>
+                    </div>
+                    <div class="vendor-info-box">
+                        <strong>🎯 廠商識別 / 項目內容：</strong><br>${vendor.vendor_info || '暫無描述'}
+                    </div>
+                </div>
+                ${noticeBoxHTML}
+                <div class="file-list-title">當前應辦與管制管制清單</div>
+                <ul class="file-checklist">${tasksHTML}</ul>
+            `;
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = `CLOCK // ${now.toLocaleTimeString()}`;
+        }, 1000);
+    </script>
+</body>
+</html>
