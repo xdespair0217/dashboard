@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>大樓廠區廠商物業管制中樞</title>
     <style>
-        /* --- 經典鮮豔明亮配色變數：對接全新五大分類 --- */
         :root {
             --bg-main: #f4f6f9;
             --bg-panel: #ffffff;
@@ -15,7 +14,6 @@
             --text-main: #475569;
             --text-muted: #94a3b8;
             
-            /* 五大類別高飽和鮮豔色 */
             --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
             --cate-fire: #10b981;      /* 湖水綠：消防公安 */
             --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
@@ -26,7 +24,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; letter-spacing: 0.02em; }
 
-        /* 左側大空間面板 (佔螢幕 35%，大空間不截斷) */
         .left-panel {
             width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
             display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
@@ -34,7 +31,6 @@
 
         .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 20px; }
         .panel-header h1 { font-size: 1.3rem; color: var(--text-title); font-weight: 700; }
-        
         .detail-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
 
         .placeholder-text {
@@ -42,7 +38,6 @@
             background: #fff; border: 2px dashed var(--border-light); padding: 30px 20px; border-radius: 8px;
         }
 
-        /* 左側資訊圖卡 */
         .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .vendor-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
         
@@ -63,7 +58,6 @@
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
         .status-wait { background: rgba(255, 122, 0, 0.15); color: #ea580c; }
 
-        /* 右側面板與精緻微型小格子 (高度維持 68px) */
         .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
         .vendor-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
         
@@ -71,7 +65,6 @@
             background-color: var(--bg-card); border: 1px solid var(--border-light); border-left: 5px solid var(--text-muted);
             border-radius: 6px; padding: 8px 12px; cursor: pointer; height: 68px; display: flex; flex-direction: column;
             justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
         }
         .car-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
 
@@ -105,19 +98,18 @@
         .right-panel::-webkit-scrollbar { width: 6px; }
         .right-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
 
     <div class="left-panel">
         <div class="panel-header">
             <h1>大樓廠區管制看板</h1>
-            </div>
+        </div>
         <div class="detail-content" id="detail-panel">
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
-                <strong>[ 數據同步中... ]</strong><br>
-                正在同步您的 Google 雲端數據。
+                <strong>[ 數據精準同步中... ]</strong><br>
+                正在繞過 CORS 機制，強行導向「廠商資料」分頁。
             </div>
         </div>
     </div>
@@ -127,8 +119,10 @@
     </div>
 
     <script>
-        // 🔗 綁定您的線上 CSV 數據源
-        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR2ZAna28KJv0Fm9quwS_PwaZJI8u8Dayq9OmqtNh7AcYmVgKysTd68zs62xdoCtS9u5HkiTHGhoz2r/pub?output=csv";
+        // 🛠️ 終極防錯：直接改用 Google 可視化 API 讀取特定分頁，100% 免疫本地端 CORS 安全攔截
+        const spreadsheetId = "1cnYTW8rrECUGHi7dmQ50-6SHhf48JwWuA1PgO5SVyMo";
+        const sheetName = encodeURIComponent("廠商資料"); // 強制指定唯讀「廠商資料」分頁
+        const jsonpUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
         const categories = {
             'repair': { name: '廠區修繕', color: 'var(--cate-repair)', bgClass: 'badge-repair', miniBgClass: 'mini-bg-repair' },
@@ -138,40 +132,40 @@
             'other':  { name: '其他支出', color: 'var(--cate-other)',  bgClass: 'badge-other',  miniBgClass: 'mini-bg-other' }
         };
 
-        if(csvUrl) {
-            Papa.parse(csvUrl, {
-                download: true,
-                header: false, // 🛠️ 核心：不依賴英文欄位名稱，直接認欄位順序索引
-                skipEmptyLines: true,
-                complete: function(results) {
-                    const rawRows = results.data;
-                    const cleanVendors = [];
-                    
-                    // 從第 2 列開始抓取 (i=1 代表跳過最上面的標題列)
-                    for(let i = 1; i < rawRows.length; i++) {
-                        const row = rawRows[i];
-                        if (row && row[1]) { // 確保 B 欄有名字才抓取
-                            cleanVendors.push({
-                                floor:       row[0] ? row[0].trim() : '',                  /* A 欄 */
-                                name:        row[1] ? row[1].trim() : '',                  /* B 欄 */
-                                type:        row[2] ? row[2].trim().toLowerCase() : 'other',/* C 欄 */
-                                vendor_info: row[3] ? row[3].trim() : '',                  /* D 欄 */
-                                tasks:       row[4] ? row[4].trim() : '',                  /* E 欄 */
-                                status:      row[5] ? row[5].trim().toLowerCase() : 'wait' /* F 欄 */
-                            });
-                        }
-                    }
-                    renderGrid(cleanVendors);
-                },
-                error: function(err) {
-                    document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗，請檢查網路或試算表權限。</div>`;
-                }
+        // 🔄 透過非同步載入，直接繞過瀏覽器本地 file 封鎖
+        fetch(jsonpUrl)
+            .then(res => res.text())
+            .then(txt => {
+                // 清理 Google 吐出來的特殊 JSON 格式開頭結尾
+                const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+                const data = JSON.parse(jsonString);
+                const rows = data.table.rows;
+                
+                const cleanVendors = rows.map(r => {
+                    return {
+                        floor:       r.c[0] ? String(r.c[0].v).trim() : '',
+                        name:        r.c[1] ? String(r.c[1].v).trim() : '',
+                        type:        r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',
+                        vendor_info: r.c[3] ? String(r.c[3].v).trim() : '',
+                        tasks:       r.c[4] ? String(r.c[4].v).trim() : '',
+                        status:      r.c[5] ? String(r.c[5].v).trim().toLowerCase() : 'wait'
+                    };
+                }).filter(v => v.name !== '' && v.name !== 'name(項目 / 廠商名稱)'); // 排除空列與標題列
+                
+                renderGrid(cleanVendors);
+            })
+            .catch(err => {
+                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認您的 Google 試算表右上角有開啟「共用」給「知道連結的人均可檢視」。</div>`;
             });
-        }
 
         function renderGrid(vendors) {
             const container = document.getElementById('vendor-container');
             container.innerHTML = "";
+
+            if(vendors.length === 0) {
+                container.innerHTML = `<div style="color:var(--text-muted); padding:20px;">⚠️ 目前「廠商資料」分頁中沒有任何有效的廠商數據。</div>`;
+                return;
+            }
 
             vendors.forEach(vendor => {
                 const tasksArray = vendor.tasks ? vendor.tasks.split('|') : [];
@@ -207,7 +201,7 @@
                 <div class="placeholder-text">
                     <div style="font-size: 2.5rem; margin-bottom: 12px;">🏢</div>
                     <strong>[ 大樓全域廠商觀測核心就緒 ]</strong><br>
-                    已成功連接試算表，請點擊右側任一小格子檢視詳情。
+                    已成功抓取「廠商資料」分頁，請點擊右側任一小格子檢視詳情。
                 </div>`;
         }
 
