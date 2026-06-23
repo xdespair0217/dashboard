@@ -14,6 +14,7 @@
             --text-main: #475569;
             --text-muted: #94a3b8;
             
+            /* 五大類別高飽和鮮豔色 */
             --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
             --cate-fire: #10b981;      /* 湖水綠：消防公安 */
             --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
@@ -24,6 +25,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; letter-spacing: 0.02em; }
 
+        /* 左側大空間面板 (佔螢幕 35%，黃金大空間不截斷) */
         .left-panel {
             width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
             display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
@@ -38,7 +40,8 @@
             background: #fff; border: 2px dashed var(--border-light); padding: 30px 20px; border-radius: 8px;
         }
 
-        .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        /* 左側資訊圖卡主架構 */
+        .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .vendor-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
         
         .badge-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid var(--cate-repair); }
@@ -47,8 +50,18 @@
         .badge-admin { background-color: rgba(59, 130, 246, 0.15); color: var(--cate-admin); border: 1px solid var(--cate-admin); }
         .badge-other { background-color: rgba(100, 116, 139, 0.15); color: var(--cate-other); border: 1px solid var(--cate-other); }
 
-        .vendor-main-name { font-size: 1.25rem; color: var(--text-title); font-weight: 700; margin-bottom: 6px; }
-        .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #cbd5e1; margin-top: 8px; line-height: 1.4; }
+        .vendor-main-name { font-size: 1.35rem; color: var(--text-title); font-weight: 700; margin-bottom: 8px; }
+        
+        /* ✨ 精雕：全新高質感「數位廠商聯絡名片區」 */
+        .contact-business-card {
+            background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 12px 14px; margin: 12px 0;
+            display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: var(--text-main);
+        }
+        .contact-row { display: flex; align-items: center; }
+        .contact-label { color: var(--text-muted); font-weight: 600; width: 75px; flex-shrink: 0; }
+        .contact-value { color: var(--text-title); font-weight: 700; font-family: monospace; }
+
+        .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f1f5f9; padding: 12px; border-radius: 6px; border-left: 4px solid #94a3b8; margin-top: 12px; line-height: 1.5; }
         .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 16px; font-weight: 600; line-height: 1.5; }
         
         .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 12px; border-left: 3px solid var(--cate-repair); padding-left: 8px; }
@@ -58,6 +71,7 @@
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
         .status-wait { background: rgba(255, 122, 0, 0.15); color: #ea580c; }
 
+        /* 右側面板與精緻微型小格子 (高度維持 68px) */
         .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
         .vendor-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
         
@@ -108,8 +122,8 @@
         <div class="detail-content" id="detail-panel">
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
-                <strong>[ 數據同步中... ]</strong><br>
-                正在鎖定「廠商資料」分頁載入實時數據。
+                <strong>[ 數據同步就緒 ]</strong><br>
+                廠商名片資訊與維修歷程已整合，請點擊格子檢視。
             </div>
         </div>
     </div>
@@ -142,29 +156,27 @@
                     const r = rows[i];
                     if (r && r.c && r.c[1] && r.c[1].v) { 
                         cleanVendors.push({
-                            floor:       r.c[0] ? String(r.c[0].v).trim() : '',
-                            name:        r.c[1] ? String(r.c[1].v).trim() : '',
-                            type:        r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',
-                            vendor_info: r.c[3] ? String(r.c[3].v).trim() : '',
-                            tasks:       r.c[4] ? String(r.c[4].v).trim() : '',
-                            status:      r.c[5] ? String(r.c[5].v).trim().toLowerCase() : 'wait'
+                            floor:        r.c[0] ? String(r.c[0].v).trim() : '',                  /* A 欄 */
+                            name:         r.c[1] ? String(r.c[1].v).trim() : '',                  /* B 欄 */
+                            type:         r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',/* C 欄 */
+                            vendor_info:  r.c[3] ? String(r.c[3].v).trim() : '',                  /* D 欄 */
+                            contact_name: r.c[4] ? String(r.c[4].v).trim() : '未填',               /* E 欄 */
+                            tel:          r.c[5] ? String(r.c[5].v).trim() : '未填',               /* F 欄 */
+                            phone:        r.c[6] ? String(r.c[6].v).trim() : '未填',               /* G 欄 */
+                            tasks:        r.c[7] ? String(r.c[7].v).trim() : '',                  /* H 欄 */
+                            status:       r.c[8] ? String(r.c[8].v).trim().toLowerCase() : 'wait' /* I 欄 */
                         });
                     }
                 }
                 renderGrid(cleanVendors);
             })
             .catch(err => {
-                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認您的 Google 試算表有開啟外部讀取權限。</div>`;
+                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認試算表權限。</div>`;
             });
 
         function renderGrid(vendors) {
             const container = document.getElementById('vendor-container');
             container.innerHTML = "";
-
-            if(vendors.length === 0) {
-                container.innerHTML = `<div style="color:var(--text-muted); padding:20px;">⚠️ 「廠商資料」分頁中沒有任何有效的廠商數據。</div>`;
-                return;
-            }
 
             vendors.forEach(vendor => {
                 const tasksArray = vendor.tasks ? vendor.tasks.split('|') : [];
@@ -200,7 +212,7 @@
                 <div class="placeholder-text">
                     <div style="font-size: 2.5rem; margin-bottom: 12px;">🏢</div>
                     <strong>[ 大樓全域廠商觀測核心就緒 ]</strong><br>
-                    已成功定位「廠商資料」分頁，請點擊右側項目檢視實實維修進度。
+                    已成功同步最新數據，請點擊右側項目查看名片聯絡電話與維修進度。
                 </div>`;
         }
 
@@ -216,7 +228,6 @@
                     💡 【行政核銷提示】此項目為例行性費用與行政支出。請確認憑證與明細上傳完整度，以便進行月底對帳。
                 </div>`;
 
-            // 🧠 智慧判斷：如果包含「待辦」或「未」字眼，燈號就自動切換為橘色提醒
             let tasksHTML = tasks.map((task) => {
                 const isWait = task.includes('待辦') || task.includes('未') || vendor.status === 'wait';
                 return `
@@ -231,11 +242,18 @@
                 <div class="vendor-header-card">
                     <span class="vendor-badge ${cateInfo.bgClass}">【${cateInfo.name}】</span>
                     <div class="vendor-main-name">${vendor.name}</div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; font-weight: 600; margin-top: 4px;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-top: 4px;">
                         <span>管制樓層/區域：${vendor.floor || '未填'}</span>
                     </div>
+                    
+                    <div class="contact-business-card">
+                        <div class="contact-row"><span class="contact-label">👤 聯絡窗口</span><span class="contact-value">${vendor.contact_name}</span></div>
+                        <div class="contact-row"><span class="contact-label">☎️ 室內電話</span><span class="contact-value">${vendor.tel}</span></div>
+                        <div class="contact-row"><span class="contact-label">📱 手機號碼</span><span class="contact-value">${vendor.phone}</span></div>
+                    </div>
+
                     <div class="vendor-info-box">
-                        <strong>🎯 廠商識別 / 主要合約內容：</strong><br>${vendor.vendor_info || '暫無描述'}
+                        <strong>🎯 主要合約內容：</strong><br>${vendor.vendor_info || '暫無描述'}
                     </div>
                 </div>
                 ${noticeBoxHTML}
