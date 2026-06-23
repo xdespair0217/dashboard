@@ -14,7 +14,6 @@
             --text-main: #475569;
             --text-muted: #94a3b8;
             
-            /* 五大類別高飽和鮮豔色 */
             --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
             --cate-fire: #10b981;      /* 湖水綠：消防公安 */
             --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
@@ -52,10 +51,10 @@
         .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #cbd5e1; margin-top: 8px; line-height: 1.4; }
         .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 16px; font-weight: 600; line-height: 1.5; }
         
-        .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 12px; border-left: 3px solid var(--cate-admin); padding-left: 8px; }
-        .file-checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-        .file-item { background: #ffffff; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px 14px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; }
-        .upload-status { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+        .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 12px; border-left: 3px solid var(--cate-repair); padding-left: 8px; }
+        .file-checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .file-item { background: #ffffff; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px 14px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .upload-status { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; white-space: nowrap; }
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
         .status-wait { background: rgba(255, 122, 0, 0.15); color: #ea580c; }
 
@@ -109,8 +108,8 @@
         <div class="detail-content" id="detail-panel">
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
-                <strong>[ 數據精準同步中... ]</strong><br>
-                正在鎖定「廠商資料」分頁讀取數據流。
+                <strong>[ 數據同步中... ]</strong><br>
+                正在鎖定「廠商資料」分頁載入實時數據。
             </div>
         </div>
     </div>
@@ -120,8 +119,8 @@
     </div>
 
     <script>
-        // 🛠️ 使用發布至網路的專屬 CSV URL
-        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR2ZAna28KJv0Fm9quwS_PwaZJI8u8Dayq9OmqtNh7AcYmVgKysTd68zs62xdoCtS9u5HkiTHGhoz2r/pub?gid=1638246250&single=true&output=csv";
+        // 🔒 定位到你的指定試算表分頁 GID (1638246250)
+        const jsonpUrl = "https://docs.google.com/spreadsheets/d/1cnYTW8rrECUGHi7dmQ50-6SHhf48JwWuA1PgO5SVyMo/gviz/tq?tqx=out:json&gid=1638246250";
 
         const categories = {
             'repair': { name: '廠區修繕', color: 'var(--cate-repair)', bgClass: 'badge-repair', miniBgClass: 'mini-bg-repair' },
@@ -131,62 +130,39 @@
             'other':  { name: '其他支出', color: 'var(--cate-other)',  bgClass: 'badge-other',  miniBgClass: 'mini-bg-other' }
         };
 
-        // 線上讀取與解析
-        if(csvUrl) {
-            fetch(csvUrl)
-                .then(res => res.text())
-                .then(text => {
-                    const lines = text.split('\n').filter(line => line.trim() !== '');
-                    const cleanVendors = [];
-                    
-                    // 從第 2 列開始抓取 (跳過第一列標題)
-                    for(let i = 1; i < lines.length; i++) {
-                        // 處理 CSV 逗號與雙引號欄位
-                        const row = parseCsvLine(lines[i]);
-                        if (row && row[1]) { 
-                            cleanVendors.push({
-                                floor:       row[0] ? row[0].trim() : '',
-                                name:        row[1] ? row[1].trim() : '',
-                                type:        row[2] ? row[2].trim().toLowerCase() : 'other',
-                                vendor_info: row[3] ? row[3].trim() : '',
-                                tasks:       row[4] ? row[4].trim() : '',
-                                status:      row[5] ? row[5].trim().toLowerCase() : 'wait'
-                            });
-                        }
+        fetch(jsonpUrl)
+            .then(res => res.text())
+            .then(txt => {
+                const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+                const data = JSON.parse(jsonString);
+                const rows = data.table.rows;
+                
+                const cleanVendors = [];
+                for(let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (r && r.c && r.c[1] && r.c[1].v) { 
+                        cleanVendors.push({
+                            floor:       r.c[0] ? String(r.c[0].v).trim() : '',
+                            name:        r.c[1] ? String(r.c[1].v).trim() : '',
+                            type:        r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',
+                            vendor_info: r.c[3] ? String(r.c[3].v).trim() : '',
+                            tasks:       r.c[4] ? String(r.c[4].v).trim() : '',
+                            status:      r.c[5] ? String(r.c[5].v).trim().toLowerCase() : 'wait'
+                        });
                     }
-                    renderGrid(cleanVendors);
-                })
-                .catch(err => {
-                    document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認您的 Google 試算表有開啟網路共用檢視。</div>`;
-                });
-        }
-
-        // 處理 CSV 特殊字元與換行的輔助程式碼
-        function parseCsvLine(line) {
-            let arr = [];
-            let current = '';
-            let inQuotes = false;
-            for (let i = 0; i < line.length; i++) {
-                let char = line[i];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    arr.push(current);
-                    current = '';
-                } else {
-                    current += char;
                 }
-            }
-            arr.push(current);
-            return arr;
-        }
+                renderGrid(cleanVendors);
+            })
+            .catch(err => {
+                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認您的 Google 試算表有開啟外部讀取權限。</div>`;
+            });
 
         function renderGrid(vendors) {
             const container = document.getElementById('vendor-container');
             container.innerHTML = "";
 
             if(vendors.length === 0) {
-                container.innerHTML = `<div style="color:var(--text-muted); padding:20px;">⚠️ 目前「廠商資料」分頁中沒有任何有效的數據。</div>`;
+                container.innerHTML = `<div style="color:var(--text-muted); padding:20px;">⚠️ 「廠商資料」分頁中沒有任何有效的廠商數據。</div>`;
                 return;
             }
 
@@ -224,7 +200,7 @@
                 <div class="placeholder-text">
                     <div style="font-size: 2.5rem; margin-bottom: 12px;">🏢</div>
                     <strong>[ 大樓全域廠商觀測核心就緒 ]</strong><br>
-                    已成功抓取「廠商資料」分頁，請點擊右側任一小格子檢視詳情。
+                    已成功定位「廠商資料」分頁，請點擊右側項目檢視實實維修進度。
                 </div>`;
         }
 
@@ -240,12 +216,13 @@
                     💡 【行政核銷提示】此項目為例行性費用與行政支出。請確認憑證與明細上傳完整度，以便進行月底對帳。
                 </div>`;
 
-            let tasksHTML = tasks.map((task, idx) => {
-                const isWait = (vendor.status === 'wait' && idx === tasks.length - 1);
+            // 🧠 智慧判斷：如果包含「待辦」或「未」字眼，燈號就自動切換為橘色提醒
+            let tasksHTML = tasks.map((task) => {
+                const isWait = task.includes('待辦') || task.includes('未') || vendor.status === 'wait';
                 return `
-                    <li class="file-item" style="${isWait ? 'border-left: 3px solid var(--cate-repair); background: rgba(255,122,0,0.02); font-weight:600;' : ''}">
-                        <span>${task}</span>
-                        <span class="upload-status ${isWait ? 'status-wait' : 'status-done'}">${isWait ? '待辦' : '已確認'}</span>
+                    <li class="file-item" style="${isWait ? 'border-left: 3px solid var(--cate-repair); background: rgba(255,122,0,0.02);' : ''}">
+                        <span style="line-height: 1.4;">${task}</span>
+                        <span class="upload-status ${isWait ? 'status-wait' : 'status-done'}">${isWait ? '執行中/待辦' : '歷程紀錄'}</span>
                     </li>
                 `;
             }).join('');
@@ -258,11 +235,11 @@
                         <span>管制樓層/區域：${vendor.floor || '未填'}</span>
                     </div>
                     <div class="vendor-info-box">
-                        <strong>🎯 廠商識別 / 項目內容：</strong><br>${vendor.vendor_info || '暫無描述'}
+                        <strong>🎯 廠商識別 / 主要合約內容：</strong><br>${vendor.vendor_info || '暫無描述'}
                     </div>
                 </div>
                 ${noticeBoxHTML}
-                <div class="file-list-title">當前應辦與管制管制清單</div>
+                <div class="file-list-title">🔧 實時維修進度與更換歷程</div>
                 <ul class="file-checklist">${tasksHTML}</ul>
             `;
         }
