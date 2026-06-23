@@ -14,6 +14,7 @@
             --text-main: #475569;
             --text-muted: #94a3b8;
             
+            /* 五大類別高飽和鮮豔色 */
             --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
             --cate-fire: #10b981;      /* 湖水綠：消防公安 */
             --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
@@ -109,7 +110,7 @@
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
                 <strong>[ 數據精準同步中... ]</strong><br>
-                正在繞過 CORS 機制，強行導向「廠商資料」分頁。
+                正在鎖定「廠商資料」分頁讀取數據流。
             </div>
         </div>
     </div>
@@ -119,10 +120,8 @@
     </div>
 
     <script>
-        // 🛠️ 終極防錯：直接改用 Google 可視化 API 讀取特定分頁，100% 免疫本地端 CORS 安全攔截
-        const spreadsheetId = "1cnYTW8rrECUGHi7dmQ50-6SHhf48JwWuA1PgO5SVyMo";
-        const sheetName = encodeURIComponent("廠商資料"); // 強制指定唯讀「廠商資料」分頁
-        const jsonpUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+        // 🛠️ 使用發布至網路的專屬 CSV URL
+        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR2ZAna28KJv0Fm9quwS_PwaZJI8u8Dayq9OmqtNh7AcYmVgKysTd68zs62xdoCtS9u5HkiTHGhoz2r/pub?gid=1638246250&single=true&output=csv";
 
         const categories = {
             'repair': { name: '廠區修繕', color: 'var(--cate-repair)', bgClass: 'badge-repair', miniBgClass: 'mini-bg-repair' },
@@ -132,38 +131,62 @@
             'other':  { name: '其他支出', color: 'var(--cate-other)',  bgClass: 'badge-other',  miniBgClass: 'mini-bg-other' }
         };
 
-        // 🔄 透過非同步載入，直接繞過瀏覽器本地 file 封鎖
-        fetch(jsonpUrl)
-            .then(res => res.text())
-            .then(txt => {
-                // 清理 Google 吐出來的特殊 JSON 格式開頭結尾
-                const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
-                const data = JSON.parse(jsonString);
-                const rows = data.table.rows;
-                
-                const cleanVendors = rows.map(r => {
-                    return {
-                        floor:       r.c[0] ? String(r.c[0].v).trim() : '',
-                        name:        r.c[1] ? String(r.c[1].v).trim() : '',
-                        type:        r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',
-                        vendor_info: r.c[3] ? String(r.c[3].v).trim() : '',
-                        tasks:       r.c[4] ? String(r.c[4].v).trim() : '',
-                        status:      r.c[5] ? String(r.c[5].v).trim().toLowerCase() : 'wait'
-                    };
-                }).filter(v => v.name !== '' && v.name !== 'name(項目 / 廠商名稱)'); // 排除空列與標題列
-                
-                renderGrid(cleanVendors);
-            })
-            .catch(err => {
-                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認您的 Google 試算表右上角有開啟「共用」給「知道連結的人均可檢視」。</div>`;
-            });
+        // 線上讀取與解析
+        if(csvUrl) {
+            fetch(csvUrl)
+                .then(res => res.text())
+                .then(text => {
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    const cleanVendors = [];
+                    
+                    // 從第 2 列開始抓取 (跳過第一列標題)
+                    for(let i = 1; i < lines.length; i++) {
+                        // 處理 CSV 逗號與雙引號欄位
+                        const row = parseCsvLine(lines[i]);
+                        if (row && row[1]) { 
+                            cleanVendors.push({
+                                floor:       row[0] ? row[0].trim() : '',
+                                name:        row[1] ? row[1].trim() : '',
+                                type:        row[2] ? row[2].trim().toLowerCase() : 'other',
+                                vendor_info: row[3] ? row[3].trim() : '',
+                                tasks:       row[4] ? row[4].trim() : '',
+                                status:      row[5] ? row[5].trim().toLowerCase() : 'wait'
+                            });
+                        }
+                    }
+                    renderGrid(cleanVendors);
+                })
+                .catch(err => {
+                    document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認您的 Google 試算表有開啟網路共用檢視。</div>`;
+                });
+        }
+
+        // 處理 CSV 特殊字元與換行的輔助程式碼
+        function parseCsvLine(line) {
+            let arr = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                let char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    arr.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            arr.push(current);
+            return arr;
+        }
 
         function renderGrid(vendors) {
             const container = document.getElementById('vendor-container');
             container.innerHTML = "";
 
             if(vendors.length === 0) {
-                container.innerHTML = `<div style="color:var(--text-muted); padding:20px;">⚠️ 目前「廠商資料」分頁中沒有任何有效的廠商數據。</div>`;
+                container.innerHTML = `<div style="color:var(--text-muted); padding:20px;">⚠️ 目前「廠商資料」分頁中沒有任何有效的數據。</div>`;
                 return;
             }
 
