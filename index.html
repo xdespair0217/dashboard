@@ -34,7 +34,7 @@
 
         .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 20px; }
         .panel-header h1 { font-size: 1.3rem; color: var(--text-title); font-weight: 700; }
-        .system-time { font-size: 0.85rem; color: var(--cate-admin); margin-top: 4px; font-weight: 600; font-family: monospace; }
+        
         .detail-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
 
         .placeholder-text {
@@ -46,7 +46,6 @@
         .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .vendor-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
         
-        /* 動態產生左側大面板標籤的鮮豔底色背景 */
         .badge-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid var(--cate-repair); }
         .badge-fire { background-color: rgba(16, 185, 129, 0.15); color: var(--cate-fire); border: 1px solid var(--cate-fire); }
         .badge-food { background-color: rgba(217, 70, 239, 0.15); color: var(--cate-food); border: 1px solid var(--cate-food); }
@@ -64,7 +63,7 @@
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
         .status-wait { background: rgba(255, 122, 0, 0.15); color: #ea580c; }
 
-        /* 右側面板與精緻微型小格子 (高度維持 68px，優化內部佈局) */
+        /* 右側面板與精緻微型小格子 (高度維持 68px) */
         .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
         .vendor-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
         
@@ -76,12 +75,11 @@
         }
         .car-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
 
-        /* 右側卡片內部的精緻彩色小標籤 */
         .card-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         
         .mini-type-badge {
             font-size: 0.7rem; padding: 1px 5px; border-radius: 3px; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0px; white-space: nowrap; line-height: 1.2;
+            white-space: nowrap; line-height: 1.2;
         }
         .mini-bg-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid rgba(255, 122, 0, 0.3); }
         .mini-bg-fire   { background-color: rgba(16, 185, 129, 0.15); color: var(--cate-fire);   border: 1px solid rgba(16, 185, 129, 0.3); }
@@ -89,14 +87,12 @@
         .mini-bg-admin  { background-color: rgba(59, 130, 246, 0.15); color: var(--cate-admin);  border: 1px solid rgba(59, 130, 246, 0.3); }
         .mini-bg-other  { background-color: rgba(100, 116, 139, 0.15); color: var(--cate-other);  border: 1px solid rgba(100, 116, 139, 0.3); }
 
-        /* 五大類別側邊顏色分流 */
         .card-repair { border-left-color: var(--cate-repair); }
         .card-fire { border-left-color: var(--cate-fire); }
         .card-food { border-left-color: var(--cate-food); }
         .card-admin { border-left-color: var(--cate-admin); }
         .card-other { border-left-color: var(--cate-other); }
 
-        /* 點選啟用時的反饋 */
         .car-card.active.card-repair { background-color: rgba(255, 122, 0, 0.04); border-color: var(--cate-repair); box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.2); }
         .car-card.active.card-fire { background-color: rgba(16, 185, 129, 0.04); border-color: var(--cate-fire); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
         .car-card.active.card-food { background-color: rgba(217, 70, 239, 0.04); border-color: var(--cate-food); box-shadow: 0 0 0 2px rgba(217, 70, 239, 0.2); }
@@ -109,19 +105,19 @@
         .right-panel::-webkit-scrollbar { width: 6px; }
         .right-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
 
     <div class="left-panel">
         <div class="panel-header">
             <h1>大樓廠區管制看板</h1>
-            <div class="system-time" id="live-clock">MONITOR LIVE</div>
-        </div>
+            </div>
         <div class="detail-content" id="detail-panel">
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
-                <strong>[ 數據同步就緒 ]</strong><br>
-                已成功連接試算表，請點擊右側格子檢視詳情。
+                <strong>[ 數據同步中... ]</strong><br>
+                正在同步您的 Google 雲端數據。
             </div>
         </div>
     </div>
@@ -131,10 +127,9 @@
     </div>
 
     <script>
-        // 🔗 已經完全綁定您剛剛發布的 Google 試算表 CSV 連結
+        // 🔗 綁定您的線上 CSV 數據源
         const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR2ZAna28KJv0Fm9quwS_PwaZJI8u8Dayq9OmqtNh7AcYmVgKysTd68zs62xdoCtS9u5HkiTHGhoz2r/pub?output=csv";
 
-        // 核心對應表：完美對接中文字稱與鮮豔底色
         const categories = {
             'repair': { name: '廠區修繕', color: 'var(--cate-repair)', bgClass: 'badge-repair', miniBgClass: 'mini-bg-repair' },
             'fire':   { name: '消防公安', color: 'var(--cate-fire)',   bgClass: 'badge-fire',   miniBgClass: 'mini-bg-fire' },
@@ -143,22 +138,35 @@
             'other':  { name: '其他支出', color: 'var(--cate-other)',  bgClass: 'badge-other',  miniBgClass: 'mini-bg-other' }
         };
 
-        function parseCSV(text) {
-            const lines = text.split('\n').filter(line => line.trim() !== '');
-            const headers = lines[0].split(',').map(h => h.trim());
-            return lines.slice(1).map(line => {
-                const data = line.split(',').map(d => d.trim());
-                let obj = {};
-                headers.forEach((header, index) => { obj[header] = data[index]; });
-                return obj;
-            });
-        }
-
         if(csvUrl) {
-            fetch(csvUrl)
-                .then(response => response.text())
-                .then(text => { renderGrid(parseCSV(text)); })
-                .catch(err => { document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 資料讀取失敗，請檢查網路或 CSV 網址是否正確。</div>`; });
+            Papa.parse(csvUrl, {
+                download: true,
+                header: false, // 🛠️ 核心：不依賴英文欄位名稱，直接認欄位順序索引
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const rawRows = results.data;
+                    const cleanVendors = [];
+                    
+                    // 從第 2 列開始抓取 (i=1 代表跳過最上面的標題列)
+                    for(let i = 1; i < rawRows.length; i++) {
+                        const row = rawRows[i];
+                        if (row && row[1]) { // 確保 B 欄有名字才抓取
+                            cleanVendors.push({
+                                floor:       row[0] ? row[0].trim() : '',                  /* A 欄 */
+                                name:        row[1] ? row[1].trim() : '',                  /* B 欄 */
+                                type:        row[2] ? row[2].trim().toLowerCase() : 'other',/* C 欄 */
+                                vendor_info: row[3] ? row[3].trim() : '',                  /* D 欄 */
+                                tasks:       row[4] ? row[4].trim() : '',                  /* E 欄 */
+                                status:      row[5] ? row[5].trim().toLowerCase() : 'wait' /* F 欄 */
+                            });
+                        }
+                    }
+                    renderGrid(cleanVendors);
+                },
+                error: function(err) {
+                    document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗，請檢查網路或試算表權限。</div>`;
+                }
+            });
         }
 
         function renderGrid(vendors) {
@@ -194,6 +202,13 @@
                 });
                 container.appendChild(card);
             });
+
+            document.getElementById('detail-panel').innerHTML = `
+                <div class="placeholder-text">
+                    <div style="font-size: 2.5rem; margin-bottom: 12px;">🏢</div>
+                    <strong>[ 大樓全域廠商觀測核心就緒 ]</strong><br>
+                    已成功連接試算表，請點擊右側任一小格子檢視詳情。
+                </div>`;
         }
 
         function updateLeftPanel(vendor, tasks) {
@@ -223,7 +238,7 @@
                     <span class="vendor-badge ${cateInfo.bgClass}">【${cateInfo.name}】</span>
                     <div class="vendor-main-name">${vendor.name}</div>
                     <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; font-weight: 600; margin-top: 4px;">
-                        <span>管制樓層/區域：${vendor.floor}</span>
+                        <span>管制樓層/區域：${vendor.floor || '未填'}</span>
                     </div>
                     <div class="vendor-info-box">
                         <strong>🎯 廠商識別 / 項目內容：</strong><br>${vendor.vendor_info || '暫無描述'}
@@ -234,11 +249,6 @@
                 <ul class="file-checklist">${tasksHTML}</ul>
             `;
         }
-
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = `CLOCK // ${now.toLocaleTimeString()}`;
-        }, 1000);
     </script>
 </body>
 </html>
