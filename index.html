@@ -14,7 +14,7 @@
             --text-main: #475569;
             --text-muted: #94a3b8;
             
-            /* 五大類別高飽和鮮豔色 (保持原樣，不受干擾) */
+            /* 五大類別高飽和鮮豔色 */
             --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
             --cate-fire: #10b981;      /* 湖水綠：消防公安 */
             --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
@@ -33,11 +33,14 @@
         .left-panel {
             width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
             display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
+            height: 100vh; /* 鎖定全高 */
         }
 
-        .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 20px; }
+        .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 16px; flex-shrink: 0; }
         .panel-header h1 { font-size: 1.3rem; color: var(--text-title); font-weight: 700; }
-        .detail-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        
+        /* 智慧滾動分流：上層非固定區，下層歷程固定區 */
+        .detail-content { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
         .placeholder-text {
             color: var(--text-muted); text-align: center; margin-top: 100px; font-size: 0.95rem; line-height: 1.8;
@@ -45,7 +48,7 @@
         }
 
         /* 左側資訊圖卡主架構 */
-        .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); flex-shrink: 0; }
         .vendor-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
         
         .badge-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid var(--cate-repair); }
@@ -56,26 +59,29 @@
 
         .vendor-main-name { font-size: 1.35rem; color: var(--text-title); font-weight: 700; margin-bottom: 8px; }
         
-        /* 數位廠商聯絡名片區 */
+        /* 📋 終極進化：數位廠商聯絡名片區 (採用 Table 模式確保絕對不擠壓斷行，維持一行一行) */
         .contact-business-card {
             background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 12px 14px; margin: 12px 0;
-            display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: var(--text-main);
+            display: table; width: 100%; border-collapse: separate; border-spacing: 0 6px;
         }
-        .contact-row { display: flex; align-items: center; }
-        .contact-label { color: var(--text-muted); font-weight: 600; width: 75px; flex-shrink: 0; }
-        .contact-value { color: var(--text-title); font-weight: 700; font-family: monospace; }
+        .contact-row { display: table-row; }
+        .contact-label { display: table-cell; color: var(--text-muted); font-weight: 600; width: 85px; white-space: nowrap; vertical-align: middle; }
+        .contact-value { display: table-cell; color: var(--text-title); font-weight: 700; font-family: monospace; font-size: 0.95rem; vertical-align: middle; }
 
         .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f1f5f9; padding: 12px; border-radius: 6px; border-left: 4px solid #94a3b8; margin-top: 12px; line-height: 1.5; }
-        .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 16px; font-weight: 600; line-height: 1.5; }
+        .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 12px; font-weight: 600; line-height: 1.5; flex-shrink: 0; }
         
-        .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 12px; border-left: 3px solid var(--cate-repair); padding-left: 8px; }
+        .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 10px; border-left: 3px solid var(--cate-repair); padding-left: 8px; flex-shrink: 0; }
+        
+        /* 🔒 終極進化：維修歷程獨立框架容器 (限制高度，開啟專屬滾動條，不破壞大版面) */
+        .history-timeline-container {
+            flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px;
+        }
         .file-checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
         .file-item { background: #ffffff; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px 14px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         
-        /* 狀態標籤樣式微雕 */
         .upload-status { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; white-space: nowrap; }
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
-        /* 🚨 進化：待辦完全切換為獨立「烈焰紅」不干擾其餘版面 */
         .status-wait { background: var(--alert-danger-bg); color: var(--alert-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
 
         /* 右側面板與精緻微型小格子 (高度維持 68px) */
@@ -116,8 +122,9 @@
         .car-model { font-size: 0.9rem; font-weight: 700; color: var(--text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
         .car-meta { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; font-family: monospace; width: 100%; }
 
-        .right-panel::-webkit-scrollbar { width: 6px; }
-        .right-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        /* 自訂美化滾動條 */
+        .right-panel::-webkit-scrollbar, .history-timeline-container::-webkit-scrollbar { width: 6px; }
+        .right-panel::-webkit-scrollbar-thumb, .history-timeline-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -130,7 +137,7 @@
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
                 <strong>[ 數據同步就緒 ]</strong><br>
-                終極紅燈警示機制已部署，請點擊格子檢視。
+                高階名片防擠壓與歷程時間倒序框架已部署。
             </div>
         </div>
     </div>
@@ -194,12 +201,14 @@
                     }
                 }
                 tasksArray = tasksArray.map(t => t.trim()).filter(t => t !== '');
+                
+                // ✨ 核心優化：將歷程陣列「徹底反轉 (Reverse)」，強制讓最新打的資料排列在最上面！
+                tasksArray.reverse();
 
                 const card = document.createElement('div');
                 card.className = `car-card card-${vendor.type}`;
                 const cate = categories[vendor.type] || { name: '其他支出', miniBgClass: 'mini-bg-other' };
                 
-                // 🚨 右側小格子：待辦狀態直接改亮起高辨識度「● 異常待辦 (紅燈)」
                 const statusHTML = vendor.status === 'done' 
                     ? `<span style="color: var(--cate-fire)">● 正常</span>` 
                     : `<span style="color: var(--alert-danger); font-weight:700;">● 異常待辦</span>`;
@@ -245,7 +254,6 @@
                     💡 【行政核銷提示】此項目為例行性費用與行政支出。請確認憑證與明細上傳完整度，以便進行月底對帳。
                 </div>`;
 
-            // 🚨 左側歷程清單：待辦行拉出「加粗烈焰紅垂直線」與「紅標籤」
             let tasksHTML = tasks.map((task) => {
                 const isWait = task.includes('待辦') || task.includes('未') || task.includes('處理中');
                 return `
@@ -265,9 +273,9 @@
                     </div>
                     
                     <div class="contact-business-card">
-                        <div class="contact-row"><span class="contact-label">👤 聯絡窗口</span><span class="contact-value">${vendor.contact_name}</span></div>
-                        <div class="contact-row"><span class="contact-label">☎️ 室內電話</span><span class="contact-value">${vendor.tel}</span></div>
-                        <div class="contact-row"><span class="contact-label">📱 手機號碼</span><span class="contact-value">${vendor.phone}</span></div>
+                        <div class="contact-row"><div class="contact-label">👤 聯絡窗口</div><div class="contact-value">${vendor.contact_name}</div></div>
+                        <div class="contact-row"><div class="contact-label">☎️ 室內電話</div><div class="contact-value">${vendor.tel}</div></div>
+                        <div class="contact-row"><div class="contact-label">📱 手機號碼</div><div class="contact-value">${vendor.phone}</div></div>
                     </div>
 
                     <div class="vendor-info-box">
@@ -276,7 +284,10 @@
                 </div>
                 ${noticeBoxHTML}
                 <div class="file-list-title">🔧 實時維修進度與更換歷程</div>
-                <ul class="file-checklist">${tasksHTML}</ul>
+                
+                <div class="history-timeline-container">
+                    <ul class="file-checklist">${tasksHTML}</ul>
+                </div>
             `;
         }
     </script>
