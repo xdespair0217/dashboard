@@ -21,7 +21,7 @@
             --cate-admin: #3b82f6;     /* 寶石藍：行政支出 */
             --cate-other: #64748b;     /* 沈穩灰：其他支出 */
 
-            /* 🚨 獨立宣告：終極高警示紅 */
+            /* 獨立宣告：終極高警示紅 */
             --alert-danger: #ef4444;   /* 烈焰紅 */
             --alert-danger-bg: rgba(239, 68, 68, 0.1);
         }
@@ -33,13 +33,12 @@
         .left-panel {
             width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
             display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
-            height: 100vh; /* 鎖定全高 */
+            height: 100vh;
         }
 
         .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 16px; flex-shrink: 0; }
         .panel-header h1 { font-size: 1.3rem; color: var(--text-title); font-weight: 700; }
         
-        /* 智慧滾動分流：上層非固定區，下層歷程固定區 */
         .detail-content { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
         .placeholder-text {
@@ -59,7 +58,7 @@
 
         .vendor-main-name { font-size: 1.35rem; color: var(--text-title); font-weight: 700; margin-bottom: 8px; }
         
-        /* 📋 終極進化：數位廠商聯絡名片區 (採用 Table 模式確保絕對不擠壓斷行，維持一行一行) */
+        /* 數位廠商聯絡名片區 */
         .contact-business-card {
             background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 12px 14px; margin: 12px 0;
             display: table; width: 100%; border-collapse: separate; border-spacing: 0 6px;
@@ -68,12 +67,21 @@
         .contact-label { display: table-cell; color: var(--text-muted); font-weight: 600; width: 85px; white-space: nowrap; vertical-align: middle; }
         .contact-value { display: table-cell; color: var(--text-title); font-weight: 700; font-family: monospace; font-size: 0.95rem; vertical-align: middle; }
 
+        /* 主要合約內容小方塊 */
         .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f1f5f9; padding: 12px; border-radius: 6px; border-left: 4px solid #94a3b8; margin-top: 12px; line-height: 1.5; }
+        
+        /* 📝 新增：廠商動態自由備註小方塊 (高度受限，支援滾動) */
+        .vendor-memo-box { 
+            font-size: 0.88rem; color: #1e293b; background: #fffbeb; padding: 12px; border-radius: 6px; 
+            border-left: 4px solid #f59e0b; margin-top: 10px; line-height: 1.5;
+            max-height: 90px; overflow-y: auto; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
+
         .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 12px; font-weight: 600; line-height: 1.5; flex-shrink: 0; }
         
         .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 10px; border-left: 3px solid var(--cate-repair); padding-left: 8px; flex-shrink: 0; }
         
-        /* 🔒 終極進化：維修歷程獨立框架容器 (限制高度，開啟專屬滾動條，不破壞大版面) */
+        /* 維修歷程獨立框架容器 */
         .history-timeline-container {
             flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px;
         }
@@ -84,7 +92,7 @@
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
         .status-wait { background: var(--alert-danger-bg); color: var(--alert-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
 
-        /* 右側面板與精緻微型小格子 (高度維持 68px) */
+        /* 右側面板與精緻微型小格子 */
         .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
         .vendor-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
         
@@ -122,9 +130,8 @@
         .car-model { font-size: 0.9rem; font-weight: 700; color: var(--text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
         .car-meta { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; font-family: monospace; width: 100%; }
 
-        /* 自訂美化滾動條 */
-        .right-panel::-webkit-scrollbar, .history-timeline-container::-webkit-scrollbar { width: 6px; }
-        .right-panel::-webkit-scrollbar-thumb, .history-timeline-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .right-panel::-webkit-scrollbar, .history-timeline-container::-webkit-scrollbar, .vendor-memo-box::-webkit-scrollbar { width: 6px; }
+        .right-panel::-webkit-scrollbar-thumb, .history-timeline-container::-webkit-scrollbar-thumb, .vendor-memo-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -137,7 +144,7 @@
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
                 <strong>[ 數據同步就緒 ]</strong><br>
-                高階名片防擠壓與歷程時間倒序框架已部署。
+                自由備註擴充機制（對應 J 欄）已部署，請點擊格子檢視。
             </div>
         </div>
     </div>
@@ -177,7 +184,9 @@
                             tel:          r.c[5] ? String(r.c[5].v).trim() : '未填',
                             phone:        r.c[6] ? String(r.c[6].v).trim() : '未填',
                             tasks:        r.c[7] ? String(r.c[7].v).trim() : '',
-                            status:       r.c[8] ? String(r.c[8].v).trim().toLowerCase() : 'wait'
+                            status:       r.c[8] ? String(r.c[8].v).trim().toLowerCase() : 'wait',
+                            // ✨ 核心擴充：讀取試算表第 10 欄 (J 欄) 作為自由備註內容
+                            memo:         r.c[9] ? String(r.c[9].v).trim() : '' 
                         });
                     }
                 }
@@ -201,8 +210,6 @@
                     }
                 }
                 tasksArray = tasksArray.map(t => t.trim()).filter(t => t !== '');
-                
-                // ✨ 核心優化：將歷程陣列「徹底反轉 (Reverse)」，強制讓最新打的資料排列在最上面！
                 tasksArray.reverse();
 
                 const card = document.createElement('div');
@@ -264,6 +271,11 @@
                 `;
             }).join('');
 
+            // ✨ 備註顯示邏輯：如果試算表有打字就顯示黃色便簽箱，沒打字就顯示「暫無備註」
+            let memoHTML = vendor.memo 
+                ? `<div class="vendor-memo-box"><strong>📌 廠務動態備註：</strong><br>${vendor.memo.replace(/\n/g, '<br>')}</div>`
+                : `<div class="vendor-memo-box" style="color:var(--text-muted); background:#f8fafc; border-left-color:#cbd5e1;"><strong>📌 廠務動態備註：</strong><br>暫無備註事項</div>`;
+
             detailPanel.innerHTML = `
                 <div class="vendor-header-card">
                     <span class="vendor-badge ${cateInfo.bgClass}">【${cateInfo.name}】</span>
@@ -281,6 +293,8 @@
                     <div class="vendor-info-box">
                         <strong>🎯 主要合約內容：</strong><br>${vendor.vendor_info || '暫無描述'}
                     </div>
+                    
+                    ${memoHTML}
                 </div>
                 ${noticeBoxHTML}
                 <div class="file-list-title">🔧 實時維修進度與更換歷程</div>
