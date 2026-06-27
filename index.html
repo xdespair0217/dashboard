@@ -14,18 +14,22 @@
             --text-main: #475569;
             --text-muted: #94a3b8;
             
-            /* 五大類別高飽和鮮豔色 */
+            /* 五大類別高飽和鮮豔色 (保持原樣，不受干擾) */
             --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
             --cate-fire: #10b981;      /* 湖水綠：消防公安 */
             --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
             --cate-admin: #3b82f6;     /* 寶石藍：行政支出 */
             --cate-other: #64748b;     /* 沈穩灰：其他支出 */
+
+            /* 🚨 獨立宣告：終極高警示紅 */
+            --alert-danger: #ef4444;   /* 烈焰紅 */
+            --alert-danger-bg: rgba(239, 68, 68, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; letter-spacing: 0.02em; }
 
-        /* 左側大空間面板 (佔螢幕 35%，黃金大空間不截斷) */
+        /* 左側大空間面板 (佔螢幕 35%) */
         .left-panel {
             width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
             display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
@@ -67,9 +71,12 @@
         .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 12px; border-left: 3px solid var(--cate-repair); padding-left: 8px; }
         .file-checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
         .file-item { background: #ffffff; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px 14px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        
+        /* 狀態標籤樣式微雕 */
         .upload-status { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; white-space: nowrap; }
         .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
-        .status-wait { background: rgba(255, 122, 0, 0.15); color: #ea580c; }
+        /* 🚨 進化：待辦完全切換為獨立「烈焰紅」不干擾其餘版面 */
+        .status-wait { background: var(--alert-danger-bg); color: var(--alert-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
 
         /* 右側面板與精緻微型小格子 (高度維持 68px) */
         .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
@@ -123,7 +130,7 @@
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
                 <strong>[ 數據同步就緒 ]</strong><br>
-                試算表內換行機制已啟用，請點擊格子檢視。
+                終極紅燈警示機制已部署，請點擊格子檢視。
             </div>
         </div>
     </div>
@@ -133,7 +140,6 @@
     </div>
 
     <script>
-        // 🔒 定位至「廠商資料」分頁 GID (1638246250)
         const jsonpUrl = "https://docs.google.com/spreadsheets/d/1cnYTW8rrECUGHi7dmQ50-6SHhf48JwWuA1PgO5SVyMo/gviz/tq?tqx=out:json&gid=1638246250";
 
         const categories = {
@@ -156,22 +162,22 @@
                     const r = rows[i];
                     if (r && r.c && r.c[1] && r.c[1].v) { 
                         cleanVendors.push({
-                            floor:        r.c[0] ? String(r.c[0].v).trim() : '',                  /* A 欄 */
-                            name:         r.c[1] ? String(r.c[1].v).trim() : '',                  /* B 欄 */
-                            type:         r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',/* C 欄 */
-                            vendor_info:  r.c[3] ? String(r.c[3].v).trim() : '',                  /* D 欄 */
-                            contact_name: r.c[4] ? String(r.c[4].v).trim() : '未填',               /* E 欄 */
-                            tel:          r.c[5] ? String(r.c[5].v).trim() : '未填',               /* F 欄 */
-                            phone:        r.c[6] ? String(r.c[6].v).trim() : '未填',               /* G 欄 */
-                            tasks:        r.c[7] ? String(r.c[7].v).trim() : '',                  /* H 欄 */
-                            status:       r.c[8] ? String(r.c[8].v).trim().toLowerCase() : 'wait' /* I 欄 */
+                            floor:        r.c[0] ? String(r.c[0].v).trim() : '',
+                            name:         r.c[1] ? String(r.c[1].v).trim() : '',
+                            type:         r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',
+                            vendor_info:  r.c[3] ? String(r.c[3].v).trim() : '',
+                            contact_name: r.c[4] ? String(r.c[4].v).trim() : '未填',
+                            tel:          r.c[5] ? String(r.c[5].v).trim() : '未填',
+                            phone:        r.c[6] ? String(r.c[6].v).trim() : '未填',
+                            tasks:        r.c[7] ? String(r.c[7].v).trim() : '',
+                            status:       r.c[8] ? String(r.c[8].v).trim().toLowerCase() : 'wait'
                         });
                     }
                 }
                 renderGrid(cleanVendors);
             })
             .catch(err => {
-                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認試算表外部檢視權限。</div>`;
+                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認試算表權限。</div>`;
             });
 
         function renderGrid(vendors) {
@@ -179,7 +185,6 @@
             container.innerHTML = "";
 
             vendors.forEach(vendor => {
-                // ✨ 核心升級：同時支援試算表內「實體換行符號(\n)」與原本的「|」符號拆分
                 let tasksArray = [];
                 if (vendor.tasks) {
                     if (vendor.tasks.includes('\n')) {
@@ -194,6 +199,11 @@
                 card.className = `car-card card-${vendor.type}`;
                 const cate = categories[vendor.type] || { name: '其他支出', miniBgClass: 'mini-bg-other' };
                 
+                // 🚨 右側小格子：待辦狀態直接改亮起高辨識度「● 異常待辦 (紅燈)」
+                const statusHTML = vendor.status === 'done' 
+                    ? `<span style="color: var(--cate-fire)">● 正常</span>` 
+                    : `<span style="color: var(--alert-danger); font-weight:700;">● 異常待辦</span>`;
+
                 card.innerHTML = `
                     <div class="card-top-row">
                         <div class="car-model">${vendor.floor} - ${vendor.name}</div>
@@ -203,9 +213,7 @@
                         <span style="color: var(--text-muted); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                             ${vendor.vendor_info || ''}
                         </span>
-                        <span style="color: ${vendor.status === 'done' ? 'var(--cate-fire)' : 'var(--cate-repair)'}">
-                            ${vendor.status === 'done' ? '● 正常' : '○ 待辦'}
-                        </span>
+                        ${statusHTML}
                     </div>
                 `;
                 
@@ -237,12 +245,13 @@
                     💡 【行政核銷提示】此項目為例行性費用與行政支出。請確認憑證與明細上傳完整度，以便進行月底對帳。
                 </div>`;
 
+            // 🚨 左側歷程清單：待辦行拉出「加粗烈焰紅垂直線」與「紅標籤」
             let tasksHTML = tasks.map((task) => {
-                const isWait = task.includes('待辦') || task.includes('未') || vendor.status === 'wait';
+                const isWait = task.includes('待辦') || task.includes('未') || task.includes('處理中');
                 return `
-                    <li class="file-item" style="${isWait ? 'border-left: 3px solid var(--cate-repair); background: rgba(255,122,0,0.02);' : ''}">
-                        <span style="line-height: 1.4;">${task}</span>
-                        <span class="upload-status ${isWait ? 'status-wait' : 'status-done'}">${isWait ? '執行中/待辦' : '歷程紀錄'}</span>
+                    <li class="file-item" style="${isWait ? 'border-left: 4px solid var(--alert-danger); background: rgba(239,68,68,0.02);' : ''}">
+                        <span style="line-height: 1.4; ${isWait ? 'color: #1e293b; font-weight:600;' : ''}">${task}</span>
+                        <span class="upload-status ${isWait ? 'status-wait' : 'status-done'}">${isWait ? '未完工/追蹤中' : '歷程紀錄'}</span>
                     </li>
                 `;
             }).join('');
