@@ -52,7 +52,7 @@
 
         .vendor-main-name { font-size: 1.35rem; color: var(--text-title); font-weight: 700; margin-bottom: 8px; }
         
-        /* ✨ 精雕：全新高質感「數位廠商聯絡名片區」 */
+        /* 數位廠商聯絡名片區 */
         .contact-business-card {
             background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 12px 14px; margin: 12px 0;
             display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: var(--text-main);
@@ -123,7 +123,7 @@
             <div class="placeholder-text">
                 <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
                 <strong>[ 數據同步就緒 ]</strong><br>
-                廠商名片資訊與維修歷程已整合，請點擊格子檢視。
+                試算表內換行機制已啟用，請點擊格子檢視。
             </div>
         </div>
     </div>
@@ -133,7 +133,7 @@
     </div>
 
     <script>
-        // 🔒 定位到你的指定試算表分頁 GID (1638246250)
+        // 🔒 定位至「廠商資料」分頁 GID (1638246250)
         const jsonpUrl = "https://docs.google.com/spreadsheets/d/1cnYTW8rrECUGHi7dmQ50-6SHhf48JwWuA1PgO5SVyMo/gviz/tq?tqx=out:json&gid=1638246250";
 
         const categories = {
@@ -171,7 +171,7 @@
                 renderGrid(cleanVendors);
             })
             .catch(err => {
-                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認試算表權限。</div>`;
+                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認試算表外部檢視權限。</div>`;
             });
 
         function renderGrid(vendors) {
@@ -179,10 +179,19 @@
             container.innerHTML = "";
 
             vendors.forEach(vendor => {
-                const tasksArray = vendor.tasks ? vendor.tasks.split('|') : [];
+                // ✨ 核心升級：同時支援試算表內「實體換行符號(\n)」與原本的「|」符號拆分
+                let tasksArray = [];
+                if (vendor.tasks) {
+                    if (vendor.tasks.includes('\n')) {
+                        tasksArray = vendor.tasks.split('\n');
+                    } else {
+                        tasksArray = vendor.tasks.split('|');
+                    }
+                }
+                tasksArray = tasksArray.map(t => t.trim()).filter(t => t !== '');
+
                 const card = document.createElement('div');
                 card.className = `car-card card-${vendor.type}`;
-                
                 const cate = categories[vendor.type] || { name: '其他支出', miniBgClass: 'mini-bg-other' };
                 
                 card.innerHTML = `
