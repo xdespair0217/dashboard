@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>尚鵬汽車 — 行動庫存與風險控管 App</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --card-bg: #1e293b;
+            --card-hover: #334155;
+            --border-color: #334155;
+            --teal-accent: #0f766e;
+            --teal-bright: #2dd4bf;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 12px;
+            padding-bottom: 40px;
+        }
+
+        /* 標頭與狀態 */
+        .mobile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+        .app-title { font-size: 1.15rem; font-weight: bold; color: #f8fafc; margin: 0; }
+        .live-dot { font-size: 0.75rem; color: #34d399; font-weight: 500; }
+
+        /* 頂部搜尋框 */
+        .search-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-main);
+            padding-vertical: 6px;
+            margin-bottom: 12px;
+        }
+        .search-input {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .search-input:focus { border-color: var(--teal-bright); }
+
+        /* 痛點膠囊快捷篩選按鈕 (Chips) */
+        .chip-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+        }
+        .chip-bar::-webkit-scrollbar { display: none; }
+        
+        .chip {
+            background: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .chip.active { background: var(--teal-accent); color: #fff; border-color: var(--teal-bright); }
+        .chip-red.active { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
+        .chip-purple.active { background: #4c1d95; color: #ddd6fe; border-color: #8b5cf6; }
+
+        /* 數量統計標籤 */
+        .count-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* 手機卡片清單 (Card List) */
+        .card-list { display: flex; flex-direction: column; gap: 10px; }
+        
+        .item-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.15s;
+            position: relative;
+        }
+        .item-card:active { transform: scale(0.98); background: var(--card-hover); }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .part-no { font-size: 1.05rem; font-weight: bold; color: #38bdf8; }
+        .part-name { font-size: 0.95rem; font-weight: 600; color: #f8fafc; margin-bottom: 8px; line-height: 1.3; }
+        
+        .card-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .stat-box { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); }
+        .stat-val { font-size: 0.9rem; font-weight: bold; margin-top: 2px; }
+
+        /* 徽章 (Badges) */
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        .badge-red { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+        .badge-yellow { background: #78350f; color: #fde047; border: 1px solid #f59e0b; }
+        .badge-green { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+        .badge-purple { background: #4c1d95; color: #ddd6fe; border: 1px solid #8b5cf6; }
+
+        /* 手機底部彈出抽屜 (Bottom Sheet Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            justify-content: flex-end;
+            flex-direction: column;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-sheet {
+            background: #1e293b;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.25s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .sheet-handle { width: 40px; height: 5px; background: var(--border-color); border-radius: 3px; margin: 0 auto 15px auto; }
+        .sheet-title { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 4px; }
+        .sheet-subtitle { font-size: 0.9rem; color: #38bdf8; font-weight: bold; margin-bottom: 15px; }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        .detail-label { color: var(--text-muted); }
+        .detail-val { font-weight: bold; color: #fff; text-align: right; }
+
+        .close-btn {
+            width: 100%;
+            background: var(--teal-accent);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        /* 目標簡卡 */
+        .target-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+        .target-row { display: flex; justify-content: space-between; font-size: 0.88rem; margin-top: 6px; }
+    </style>
+</head>
+<body>
+
+    <!-- 標頭 -->
+    <div class="mobile-header">
+        <div>
+            <h1 class="app-title">尚鵬汽車 — 行動庫存與風險控管</h1>
+        </div>
+        <div class="live-dot">● 雲端同步中</div>
+    </div>
+
+    <!-- 頂部即時快查搜尋欄 -->
+    <div class="search-container">
+        <input type="text" id="mobile-search" class="search-input" placeholder="🔍 快速輸入料號、名稱或儲位..." oninput="onSearchInput()">
+    </div>
+
+    <!-- 痛點快切膠囊 (Chips) -->
+    <div class="chip-bar">
+        <div class="chip active" id="chip-all" onclick="filterCategory('all')">全域檢索</div>
+        <div class="chip chip-red" id="chip-alert" onclick="filterCategory('alert')">🚨 嚴重缺料</div>
+        <div class="chip chip-purple" id="chip-stagnant" onclick="filterCategory('stagnant')">🧊 呆滯風險</div>
+        <div class="chip" id="chip-target" onclick="filterCategory('target')">🎯 採購目標</div>
+    </div>
+
+    <div class="count-info">
+        <span id="current-mode-label">正在顯示：全域品項</span>
+        <span id="item-count-label">共 -- 筆</span>
+    </div>
+
+    <!-- 主卡片清單區域 -->
+    <div class="card-list" id="card-list">
+        <div style="text-align:center; padding:40px; color:var(--text-muted);">🔄 雲端數據連線中...</div>
+    </div>
+
+    <!-- 底部彈出抽屜 (Modal) -->
+    <div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div id="modal-part-no" class="sheet-subtitle">PART NO</div>
+            <div id="modal-part-name" class="sheet-title">零件名稱</div>
+            <div id="modal-badge-container" style="margin-bottom: 15px;"></div>
+
+            <div class="detail-row"><span class="detail-label">實體儲位 / 層架</span><span class="detail-val" id="m-bin">--</span></div>
+            <div class="detail-row"><span class="detail-label">預估可用庫存</span><span class="detail-val" id="m-avail" style="color:#38bdf8;">--</span></div>
+            <div class="detail-row"><span class="detail-label">系統總庫存 / 扣押數</span><span class="detail-val" id="m-stock-details">--</span></div>
+            <div class="detail-row"><span class="detail-label">日均銷量 (近60日)</span><span class="detail-val" id="m-daily">--</span></div>
+            <div class="detail-row"><span class="detail-label">叫貨等待期預計消耗 (7天)</span><span class="detail-val" id="m-lead-consume">--</span></div>
+            <div class="detail-row"><span class="detail-label">當前安全緩衝個數</span><span class="detail-val" id="m-buffer">--</span></div>
+            <div class="detail-row"><span class="detail-label">建議採購數量 (Auto)</span><span class="detail-val" id="m-order-qty" style="color:#34d399;">--</span></div>
+            
+            <div id="deadstock-section" style="display:none; margin-top:15px; background:rgba(76,29,149,0.3); padding:10px; border-radius:8px; border:1px solid #8b5cf6;">
+                <div class="detail-row" style="border:none;"><span class="detail-label" style="color:#ddd6fe;">近3個月總銷量</span><span class="detail-val" id="m-sales-3m">--</span></div>
+                <div class="detail-row" style="border:none;"><span class="detail-label" style="color:#ddd6fe;">呆滯診斷建議水位</span><span class="detail-val" id="m-audit-buffer" style="color:#fde047;">--</span></div>
+            </div>
+
+            <button class="close-btn" onclick="closeModalDirect()">關閉視窗</button>
+        </div>
+    </div>
+
+    <script>
+        // 完全串接您已發布的 Google Sheets 5 大 CSV 管道
+        const csvUrls = {
+            dash: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=924197170&single=true&output=csv",
+            custom: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=2067466362&single=true&output=csv",
+            target: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1442502573&single=true&output=csv"
+        };
+
+        let rawDashData = [];
+        let rawCustomData = [];
+        let rawTargetData = [];
+        let currentCategory = 'all';
+
+        function parseCSV(text) {
+            let lines = text.split(/\r\n|\n/);
+            return lines.map(line => {
+                let row = [];
+                let inQuotes = false;
+                let currentCell = '';
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"') { inQuotes = !inQuotes; }
+                    else if (char === ',' && !inQuotes) {
+                        row.push(currentCell.trim().replace(/^"|"$/g, ''));
+                        currentCell = '';
+                    } else { currentCell += char; }
+                }
+                row.push(currentCell.trim().replace(/^"|"$/g, ''));
+                return row;
+            }).filter(row => row.some(cell => cell !== ''));
+        }
+
+        async function initMobileData() {
+            try {
+                const [resDash, resCustom, resTarget] = await Promise.all([
+                    fetch(csvUrls.dash).then(r => r.text()),
+                    fetch(csvUrls.custom).then(r => r.text()),
+                    fetch(csvUrls.target).then(r => r.text())
+                ]);
+
+                rawDashData = parseCSV(resDash);
+                rawCustomData = parseCSV(resCustom);
+                rawTargetData = parseCSV(resTarget);
+
+                filterCategory('all');
+            } catch (err) {
+                document.getElementById('card-list').innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">❌ 雲端連線失敗，請檢查網路。</div>';
+            }
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            
+            if (cat === 'all') document.getElementById('chip-all').classList.add('active');
+            if (cat === 'alert') document.getElementById('chip-alert').classList.add('active');
+            if (cat === 'stagnant') document.getElementById('chip-stagnant').classList.add('active');
+            if (cat === 'target') document.getElementById('chip-target').classList.add('active');
+
+            renderMobileCards();
+        }
+
+        function onSearchInput() { renderMobileCards(); }
+
+        function renderMobileCards() {
+            const query = document.getElementById('mobile-search').value.toLowerCase();
+            const listContainer = document.getElementById('card-list');
+            listContainer.innerHTML = '';
+
+            // 模式 1: 採購目標
+            if (currentCategory === 'target') {
+                document.getElementById('current-mode-label').innerText = "顯示：7-12月 採購目標進度";
+                renderTargetCards(query);
+                return;
+            }
+
+            // 模式 2: Dashboard & 自訂呆滯
+            let sourceRows = (currentCategory === 'stagnant') ? rawCustomData : rawDashData;
+            
+            // 尋找 Header
+            let headerIdx = 0;
+            for (let i = 0; i < Math.min(15, sourceRows.length); i++) {
+                if (sourceRows[i].some(c => c.includes("特定料號") || c.includes("料號"))) {
+                    headerIdx = i; break;
+                }
+            }
+
+            let dataRows = sourceRows.slice(headerIdx + 1);
+            let filtered = [];
+
+            dataRows.forEach(row => {
+                let rowText = row.join(' ').toLowerCase();
+                if (query && !rowText.includes(query)) return;
+
+                let statusText = row.join(' ');
+                if (currentCategory === 'alert' && !statusText.includes("嚴重缺料") && !statusText.includes("建議備貨")) return;
+                if (currentCategory === 'stagnant' && !statusText.includes("呆滯風險") && !statusText.includes("消耗過慢")) return;
+
+                filtered.push(row);
+            });
+
+            document.getElementById('current-mode-label').innerText = 
+                currentCategory === 'alert' ? "關注焦點：🚨 缺料/備貨警示" :
+                currentCategory === 'stagnant' ? "關注焦點：🧊 呆滯資金風險" : "搜尋檢索：全域在庫零件";
+            
+            document.getElementById('item-count-label').innerText = `共 ${filtered.length} 筆`;
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">無符合條件的零件資料</div>';
+                return;
+            }
+
+            filtered.forEach(row => {
+                let pNo = row[2] || row[1] || "--";
+                let pName = row[3] || row[2] || "未命名零件";
+                let pBin = row[4] || row[3] || "未設定";
+                let pDaily = row[6] || row[5] || "0";
+                let pAvail = row[7] || row[6] || "0";
+                let pOrderQty = row[9] || row[8] || "0";
+                let pStatus = row[10] || row[9] || row[11] || "🟢 庫存正常";
+
+                // Badge Render
+                let badgeHtml = '<span class="badge badge-green">🟢 庫存正常</span>';
+                if (pStatus.includes("嚴重缺料")) badgeHtml = '<span class="badge badge-red">🚨 嚴重缺料</span>';
+                else if (pStatus.includes("建議備貨")) badgeHtml = '<span class="badge badge-yellow">⚠️ 建議備貨</span>';
+                else if (pStatus.includes("呆滯風險")) badgeHtml = '<span class="badge badge-purple">🧊 呆滯風險</span>';
+                else if (pStatus.includes("消耗過慢")) badgeHtml = '<span class="badge badge-yellow">📉 消耗過慢</span>';
+
+                let card = document.createElement('div');
+                card.className = 'item-card';
+                card.onclick = () => openModal(row);
+                card.innerHTML = `
+                    <div class="card-top">
+                        <span class="part-no">${pNo}</span>
+                        ${badgeHtml}
+                    </div>
+                    <div class="part-name">${pName}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">儲位：${pBin}</div>
+                    <div class="card-stats">
+                        <div class="stat-box"><span class="stat-label">預估可用</span><span class="stat-val" style="color:#38bdf8;">${pAvail}</span></div>
+                        <div class="stat-box"><span class="stat-label">日均銷量</span><span class="stat-val">${pDaily}</span></div>
+                        <div class="stat-box"><span class="stat-label">建議採購</span><span class="stat-val" style="color:#34d399;">${pOrderQty}</span></div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function renderTargetCards(query) {
+            const listContainer = document.getElementById('card-list');
+            let headerIdx = 0;
+            for (let i = 0; i < Math.min(10, rawTargetData.length); i++) {
+                if (rawTargetData[i].some(c => c.includes("月份"))) { headerIdx = i; break; }
+            }
+
+            let rows = rawTargetData.slice(headerIdx + 1);
+            document.getElementById('item-count-label').innerText = `共 ${rows.length} 個月份`;
+
+            rows.forEach(row => {
+                let month = row[1] || "--";
+                let ngTarget = row[5] || "--";
+                let ngActual = row[6] || "--";
+                let ngRate = row[7] || "--";
+                let ngStatus = row[8] || "--";
+
+                if (query && !month.includes(query)) return;
+
+                let badge = ngStatus.includes("已達成") ? 
+                    '<span class="badge badge-green">🎉 已達成</span>' : 
+                    '<span class="badge badge-red">❌ 未達成</span>';
+
+                let card = document.createElement('div');
+                card.className = 'target-card';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:1.1rem; font-weight:bold; color:#fff;">${month}</span>
+                        ${badge}
+                    </div>
+                    <div class="target-row"><span style="color:var(--text-muted);">南港目標金額：</span><span style="font-weight:bold; color:#fff;">$${ngTarget}</span></div>
+                    <div class="target-row"><span style="color:var(--text-muted);">南港實際採購：</span><span style="font-weight:bold; color:#38bdf8;">$${ngActual}</span></div>
+                    <div class="target-row"><span style="color:var(--text-muted);">目標達成率：</span><span style="font-weight:bold; color:#34d399;">${ngRate}</span></div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        // 彈出 Bottom Sheet 詳情
+        function openModal(row) {
+            let pNo = row[2] || row[1] || "--";
+            let pName = row[3] || row[2] || "未命名零件";
+            let pBin = row[4] || row[3] || "未設定";
+            let p60d = row[5] || "0";
+            let pDaily = row[6] || row[5] || "0";
+            let pAvail = row[7] || row[6] || "0";
+            let pBuffer = row[8] || row[7] || "5";
+            let pOrderQty = row[9] || row[8] || "0";
+            let pStatus = row[10] || row[9] || "🟢 庫存正常";
+
+            document.getElementById('modal-part-no').innerText = pNo;
+            document.getElementById('modal-part-name').innerText = pName;
+            document.getElementById('m-bin').innerText = pBin;
+            document.getElementById('m-avail').innerText = `${pAvail} 個`;
+            document.getElementById('m-daily').innerText = `${pDaily} 個/天`;
+            document.getElementById('m-lead-consume').innerText = `約 ${(parseFloat(pDaily)*7).toFixed(1)} 個`;
+            document.getElementById('m-buffer').innerText = `${pBuffer} 個`;
+            document.getElementById('m-order-qty').innerText = `${pOrderQty} 個`;
+
+            let badgeHtml = '<span class="badge badge-green">🟢 庫存正常</span>';
+            if (pStatus.includes("嚴重缺料")) badgeHtml = '<span class="badge badge-red">🚨 嚴重缺料</span>';
+            else if (pStatus.includes("建議備貨")) badgeHtml = '<span class="badge badge-yellow">⚠️ 建議備貨</span>';
+            else if (pStatus.includes("呆滯風險")) badgeHtml = '<span class="badge badge-purple">🧊 呆滯風險</span>';
+
+            document.getElementById('modal-badge-container').innerHTML = badgeHtml;
+
+            // 呆滯補充資訊
+            let deadSection = document.getElementById('deadstock-section');
+            if (row.length >= 15) {
+                deadSection.style.display = 'block';
+                document.getElementById('m-sales-3m').innerText = `${row[13] || 0} 個`;
+                document.getElementById('m-audit-buffer').innerText = `${row[16] || 0} 個`;
+            } else {
+                deadSection.style.display = 'none';
+            }
+
+            document.getElementById('detail-modal').classList.add('active');
+        }
+
+        function closeModal(e) { if (e.target.id === 'detail-modal') closeModalDirect(); }
+        function closeModalDirect() { document.getElementById('detail-modal').classList.remove('active'); }
+
+        // 啟動載入
+        initMobileData();
+    </script>
+</body>
+</html>
