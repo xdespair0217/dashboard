@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尚鵬汽車 — 全自動採購與呆滯診斷 Web 戰情室</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --teal-primary: #0f766e;
+            --teal-light: #115e59;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .header-title { font-size: 1.5rem; font-weight: bold; color: #f8fafc; margin: 0; }
+        .header-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .status-indicator { font-size: 0.85rem; color: #34d399; font-weight: bold; }
+
+        /* KPI Card Section */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .kpi-title { font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 6px; }
+        .kpi-value { font-size: 1.8rem; font-weight: bold; color: #38bdf8; }
+
+        /* Navigation Bar */
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            color: var(--text-muted);
+            border: none;
+            padding: 12px 22px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover { background: #334155; color: #fff; }
+        .tab-btn.active {
+            background: var(--teal-primary);
+            color: #ffffff;
+            border-bottom: 3px solid #2dd4bf;
+        }
+
+        /* Controls Section */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            width: 280px;
+        }
+
+        .search-box:focus { outline: none; border-color: #38bdf8; }
+
+        /* Table Design */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            max-height: 70vh;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th {
+            background: var(--teal-light);
+            color: #ffffff;
+            padding: 14px 16px;
+            font-weight: 600;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
+        tr:hover { background-color: #334155; }
+
+        /* Status Badges */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.82rem;
+            display: inline-block;
+            text-align: center;
+        }
+        .badge-red { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+        .badge-yellow { background: #78350f; color: #fde047; border: 1px solid #f59e0b; }
+        .badge-green { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+        .badge-purple { background: #4c1d95; color: #ddd6fe; border: 1px solid #8b5cf6; }
+
+        .loading-spinner { text-align: center; padding: 40px; color: var(--text-muted); font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1 class="header-title">尚鵬汽車 — 全自動採購與呆滯診斷 Web 戰情室</h1>
+            <div class="header-subtitle">EXECUTIVE DUAL-TRACK PROCUREMENT & DEAD STOCK DIAGNOSIS DASHBOARD</div>
+        </div>
+        <div class="status-indicator">● Google 雲端即時連線中</div>
+    </div>
+
+    <!-- KPI 卡片區域 -->
+    <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-title">叫貨到貨前置天數</div><div class="kpi-value">7 天</div></div>
+        <div class="kpi-card"><div class="kpi-title">全域預設安全緩衝</div><div class="kpi-value">5 個</div></div>
+        <div class="kpi-card"><div class="kpi-title">🚨 嚴重缺料警示數</div><div class="kpi-value" id="kpi-alert-count" style="color:#f87171;">--</div></div>
+        <div class="kpi-card"><div class="kpi-title">🧊 呆滯風險件數</div><div class="kpi-value" id="kpi-stagnant-count" style="color:#c084fc;">--</div></div>
+    </div>
+
+    <!-- 頁籤選單 -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('dash')">Dashboard 綜合總覽</button>
+        <button class="tab-btn" onclick="switchTab('top100')">Top100 促銷爆款</button>
+        <button class="tab-btn" onclick="switchTab('custom')">自訂追蹤與呆滯診斷</button>
+        <button class="tab-btn" onclick="switchTab('target')">7-12月採購目標進度</button>
+        <button class="tab-btn" onclick="switchTab('manual')">📖 官方系統手冊</button>
+    </div>
+
+    <!-- 控制列：搜尋 -->
+    <div class="controls-bar">
+        <input type="text" id="search-input" class="search-box" placeholder="🔍 搜尋特定料號、零件名稱或儲位..." onkeyup="filterTable()">
+        <div id="row-count-display" style="font-size: 0.85rem; color: var(--text-muted);">顯示筆數：--</div>
+    </div>
+
+    <!-- 數據表格容器 -->
+    <div class="table-container">
+        <table id="data-table">
+            <thead>
+                <tr id="table-headers"></tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="15" class="loading-spinner">🔄 正在連線讀取 Google 雲端數據，請稍候...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 已精準套用您提供的 5 個 Google Sheets CSV 網址
+        const csvUrls = {
+            dash: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=924197170&single=true&output=csv",
+            top100: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=992058063&single=true&output=csv",
+            custom: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=2067466362&single=true&output=csv",
+            target: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1442502573&single=true&output=csv",
+            manual: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=314474430&single=true&output=csv"
+        };
+
+        let currentData = [];
+
+        // CSV 解析器（處理引號與逗號）
+        function parseCSV(text) {
+            let lines = text.split(/\r\n|\n/);
+            return lines.map(line => {
+                let row = [];
+                let inQuotes = false;
+                let currentCell = '';
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"') { inQuotes = !inQuotes; }
+                    else if (char === ',' && !inQuotes) {
+                        row.push(currentCell.trim());
+                        currentCell = '';
+                    } else {
+                        currentCell += char;
+                    }
+                }
+                row.push(currentCell.trim());
+                return row;
+            }).filter(row => row.some(cell => cell !== ''));
+        }
+
+        // 載入與渲染 CSV 資料
+        async function fetchAndRenderCSV(tabId) {
+            const tableHeaders = document.getElementById('table-headers');
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '<tr><td colspan="15" class="loading-spinner">🔄 正在載入雲端數據...</td></tr>';
+
+            try {
+                const response = await fetch(csvUrls[tabId]);
+                const csvText = await response.text();
+                const data = parseCSV(csvText);
+
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:30px;">⚠️ 無數據資料</td></tr>';
+                    return;
+                }
+
+                // Header Processing
+                let headerRowIdx = 0;
+                for (let i = 0; i < Math.min(20, data.length); i++) {
+                    if (data[i].some(cell => cell.includes("料號") || cell.includes("月份") || cell.includes("章節主題") || cell.includes("來源分類"))) {
+                        headerRowIdx = i;
+                        break;
+                    }
+                }
+
+                const headers = data[headerRowIdx];
+                tableHeaders.innerHTML = headers.map(h => `<th>${h}</th>`).join('');
+
+                // Rows Processing
+                const rows = data.slice(headerRowIdx + 1);
+                currentData = rows;
+                renderRows(rows);
+
+                // Update Counts
+                document.getElementById('row-count-display').innerText = `共 ${rows.length} 筆資料`;
+
+            } catch (error) {
+                console.error("Error loading CSV:", error);
+                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#f87171; padding:30px;">❌ 資料載入失敗，請確認網路連線或 CSV 發布權限。</td></tr>';
+            }
+        }
+
+        function renderRows(rows) {
+            const tableBody = document.getElementById('table-body');
+            let alertCount = 0;
+            let stagnantCount = 0;
+
+            let html = rows.map(row => {
+                let cellsHtml = row.map(cell => {
+                    let formatted = cell.replace(/^"|"$/g, '');
+                    
+                    // Render Status Badges
+                    if (formatted.includes("嚴重缺料")) {
+                        alertCount++;
+                        return `<td><span class="badge badge-red">${formatted}</span></td>`;
+                    } else if (formatted.includes("建議備貨")) {
+                        return `<td><span class="badge badge-yellow">${formatted}</span></td>`;
+                    } else if (formatted.includes("庫存正常") || formatted.includes("已達成") || formatted.includes("週轉正常")) {
+                        return `<td><span class="badge badge-green">${formatted}</span></td>`;
+                    } else if (formatted.includes("呆滯風險")) {
+                        stagnantCount++;
+                        return `<td><span class="badge badge-purple">${formatted}</span></td>`;
+                    } else if (formatted.includes("未達成")) {
+                        return `<td><span class="badge badge-red">${formatted}</span></td>`;
+                    }
+                    
+                    return `<td>${formatted}</td>`;
+                }).join('');
+
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+
+            tableBody.innerHTML = html;
+
+            // Update KPI Dashboard
+            if (alertCount > 0) document.getElementById('kpi-alert-count').innerText = `${alertCount} 項`;
+            if (stagnantCount > 0) document.getElementById('kpi-stagnant-count').innerText = `${stagnantCount} 項`;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            fetchAndRenderCSV(tabId);
+        }
+
+        function filterTable() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filteredRows = currentData.filter(row => row.some(cell => cell.toLowerCase().includes(query)));
+            renderRows(filteredRows);
+            document.getElementById('row-count-display').innerText = `搜尋結果：${filteredRows.length} 筆`;
+        }
+
+        // Initial Load
+        fetchAndRenderCSV('dash');
+    </script>
+</body>
+</html>
