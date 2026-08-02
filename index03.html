@@ -33,10 +33,58 @@
             align-items: center;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border-color);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .app-title { font-size: 1.15rem; font-weight: bold; color: #f8fafc; margin: 0; }
         .live-dot { font-size: 0.75rem; color: #34d399; font-weight: 500; }
+
+        /* 頂部摺疊說明書元件 */
+        .manual-container {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .manual-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(15, 118, 110, 0.15);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--teal-bright);
+            user-select: none;
+        }
+        .manual-header:active { background: rgba(15, 118, 110, 0.3); }
+        .manual-arrow {
+            transition: transform 0.25s ease;
+            font-size: 0.75rem;
+        }
+        .manual-arrow.open { transform: rotate(180deg); }
+        
+        .manual-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease-out, padding 0.25s ease;
+            padding: 0 14px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+        .manual-body.open {
+            max-height: 500px; /* 允許展開的高度上限 */
+            padding: 12px 14px;
+            border-top: 1px solid var(--border-color);
+        }
+        .manual-section { margin-bottom: 10px; }
+        .manual-section:last-child { margin-bottom: 0; }
+        .manual-title { font-weight: bold; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+        .manual-list { margin: 4px 0 0 16px; padding: 0; }
+        .manual-list li { margin-bottom: 3px; }
 
         /* 頂部搜尋框 */
         .search-container {
@@ -245,6 +293,34 @@
         <div class="live-dot">● 雲端同步中</div>
     </div>
 
+    <!-- 頂部點擊展開說明書 -->
+    <div class="manual-container">
+        <div class="manual-header" onclick="toggleManual()">
+            <span>📖 系統操作與功能說明書</span>
+            <span class="manual-arrow" id="manual-arrow">▼</span>
+        </div>
+        <div class="manual-body" id="manual-body">
+            <div class="manual-section">
+                <div class="manual-title">💡 快捷分類按鈕 (Chips) 功能：</div>
+                <ul class="manual-list">
+                    <li><b>全域檢索</b>：顯示雲端試算表內的所有在庫零件。</li>
+                    <li><b>🚨 嚴重缺料</b>：快速篩選出需要立即補貨或已低於安全水位的急件品項。</li>
+                    <li><b>🧊 呆滯風險</b>：列出週轉過慢、高積壓金額的資金風險零件。</li>
+                    <li><b>⭐ 指定重點</b>：精準調閱標記為重點關注與追蹤的特定零件。</li>
+                    <li><b>🎯 南港/內湖目標</b>：切換至 7-12 月南港與內湖兩廠的採購進度與達成率。</li>
+                </ul>
+            </div>
+            <div class="manual-section">
+                <div class="manual-title">🔍 搜尋與卡片互動：</div>
+                <ul class="manual-list">
+                    <li>可在搜尋欄直接輸入<b>料號、名稱或儲位</b>進行即時動態比對。</li>
+                    <li>點擊任意零件卡片，可開啟底部的<b>詳細數據面板</b>。</li>
+                    <li>面板右上角設有 <b>📋 複製狀態</b> 按鈕，點擊即可一鍵複製格式化的零件現況文字，方便傳送到群組通報。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- 頂部即時快查搜尋欄 -->
     <div class="search-container">
         <input type="text" id="mobile-search" class="search-input" placeholder="🔍 快速輸入料號、名稱或儲位..." oninput="onSearchInput()">
@@ -315,6 +391,14 @@
         let rawTargetData = [];
         let currentCategory = 'all';
         let currentActiveRow = null; // 紀錄目前打開的零件資料
+
+        // 說明書展開/收合控制
+        function toggleManual() {
+            const body = document.getElementById('manual-body');
+            const arrow = document.getElementById('manual-arrow');
+            body.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
 
         function parseCSV(text) {
             let lines = text.split(/\r\n|\n/);
