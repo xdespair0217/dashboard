@@ -88,6 +88,7 @@
         .chip.active { background: var(--teal-accent); color: #fff; border-color: var(--teal-bright); }
         .chip-red.active { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
         .chip-purple.active { background: #4c1d95; color: #ddd6fe; border-color: #8b5cf6; }
+        .chip-yellow.active, #chip-focus.active { background: #78350f; color: #fde047; border-color: #f59e0b; }
 
         /* 數量統計標籤 */
         .count-info {
@@ -254,6 +255,7 @@
         <div class="chip active" id="chip-all" onclick="filterCategory('all')">全域檢索</div>
         <div class="chip chip-red" id="chip-alert" onclick="filterCategory('alert')">🚨 嚴重缺料</div>
         <div class="chip chip-purple" id="chip-stagnant" onclick="filterCategory('stagnant')">🧊 呆滯風險</div>
+        <div class="chip" id="chip-focus" style="border-color:#f59e0b; color:#fde047;" onclick="filterCategory('focus')">⭐ 指定重點</div>
         <div class="chip" id="chip-target" onclick="filterCategory('target')">🎯 南港/內湖目標</div>
     </div>
 
@@ -358,6 +360,7 @@
             if (cat === 'all') document.getElementById('chip-all').classList.add('active');
             if (cat === 'alert') document.getElementById('chip-alert').classList.add('active');
             if (cat === 'stagnant') document.getElementById('chip-stagnant').classList.add('active');
+            if (cat === 'focus') document.getElementById('chip-focus').classList.add('active');
             if (cat === 'target') document.getElementById('chip-target').classList.add('active');
 
             renderMobileCards();
@@ -395,13 +398,15 @@
                 let statusText = row.join(' ');
                 if (currentCategory === 'alert' && !statusText.includes("嚴重缺料") && !statusText.includes("建議備貨")) return;
                 if (currentCategory === 'stagnant' && !statusText.includes("呆滯風險") && !statusText.includes("消耗過慢")) return;
+                if (currentCategory === 'focus' && !statusText.includes("指定重點") && !statusText.includes("重點")) return;
 
                 filtered.push(row);
             });
 
             document.getElementById('current-mode-label').innerText = 
                 currentCategory === 'alert' ? "關注焦點：🚨 缺料/備貨警示" :
-                currentCategory === 'stagnant' ? "關注焦點：🧊 呆滯資金風險" : "搜尋檢索：全域在庫零件";
+                currentCategory === 'stagnant' ? "關注焦點：🧊 呆滯資金風險" :
+                currentCategory === 'focus' ? "關注焦點：⭐ 指定重點追蹤" : "搜尋檢索：全域在庫零件";
             
             document.getElementById('item-count-label').innerText = `共 ${filtered.length} 筆`;
 
@@ -424,6 +429,7 @@
                 else if (pStatus.includes("建議備貨")) badgeHtml = '<span class="badge badge-yellow">⚠️ 建議備貨</span>';
                 else if (pStatus.includes("呆滯風險")) badgeHtml = '<span class="badge badge-purple">🧊 呆滯風險</span>';
                 else if (pStatus.includes("消耗過慢")) badgeHtml = '<span class="badge badge-yellow">📉 消耗過慢</span>';
+                else if (pStatus.includes("指定重點") || pStatus.includes("重點")) badgeHtml = '<span class="badge badge-yellow">⭐ 指定重點</span>';
 
                 let card = document.createElement('div');
                 card.className = 'item-card';
@@ -530,6 +536,7 @@
             if (pStatus.includes("嚴重缺料")) badgeHtml = '<span class="badge badge-red">🚨 嚴重缺料</span>';
             else if (pStatus.includes("建議備貨")) badgeHtml = '<span class="badge badge-yellow">⚠️ 建議備貨</span>';
             else if (pStatus.includes("呆滯風險")) badgeHtml = '<span class="badge badge-purple">🧊 呆滯風險</span>';
+            else if (pStatus.includes("指定重點") || pStatus.includes("重點")) badgeHtml = '<span class="badge badge-yellow">⭐ 指定重點</span>';
 
             document.getElementById('modal-badge-container').innerHTML = badgeHtml;
 
