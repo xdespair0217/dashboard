@@ -1,309 +1,190 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大樓廠區廠商物業管制中樞</title>
-    <style>
-        :root {
-            --bg-main: #f4f6f9;
-            --bg-panel: #ffffff;
-            --bg-card: #ffffff;
-            --border-light: #e2e8f0;
-            --text-title: #1e293b;
-            --text-main: #475569;
-            --text-muted: #94a3b8;
-            
-            /* 五大類別高飽和鮮豔色 */
-            --cate-repair: #ff7a00;    /* 鮮豔橙：廠區修繕 */
-            --cate-fire: #10b981;      /* 湖水綠：消防公安 */
-            --cate-food: #d946ef;      /* 亮麗粉：食品支出 */
-            --cate-admin: #3b82f6;     /* 寶石藍：行政支出 */
-            --cate-other: #64748b;     /* 沈穩灰：其他支出 */
-
-            /* 獨立宣告：終極高警示紅 */
-            --alert-danger: #ef4444;   /* 烈焰紅 */
-            --alert-danger-bg: rgba(239, 68, 68, 0.1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; letter-spacing: 0.02em; }
-
-        /* 左側大空間面板 (佔螢幕 35%) */
-        .left-panel {
-            width: 35vw; min-width: 520px; background-color: var(--bg-panel); border-right: 1px solid var(--border-light);
-            display: flex; flex-direction: column; padding: 24px; box-shadow: 4px 0 20px rgba(15, 23, 42, 0.05); z-index: 10; flex-shrink: 0;
-            height: 100vh;
-        }
-
-        .panel-header { padding-bottom: 16px; border-bottom: 2px solid var(--bg-main); margin-bottom: 16px; flex-shrink: 0; }
-        .panel-header h1 { font-size: 1.3rem; color: var(--text-title); font-weight: 700; }
-        
-        .detail-content { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-
-        .placeholder-text {
-            color: var(--text-muted); text-align: center; margin-top: 100px; font-size: 0.95rem; line-height: 1.8;
-            background: #fff; border: 2px dashed var(--border-light); padding: 30px 20px; border-radius: 8px;
-        }
-
-        /* 左側資訊圖卡主架構 */
-        .vendor-header-card { background: #ffffff; border: 1px solid var(--border-light); border-radius: 8px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); flex-shrink: 0; }
-        .vendor-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
-        
-        .badge-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid var(--cate-repair); }
-        .badge-fire { background-color: rgba(16, 185, 129, 0.15); color: var(--cate-fire); border: 1px solid var(--cate-fire); }
-        .badge-food { background-color: rgba(217, 70, 239, 0.15); color: var(--cate-food); border: 1px solid var(--cate-food); }
-        .badge-admin { background-color: rgba(59, 130, 246, 0.15); color: var(--cate-admin); border: 1px solid var(--cate-admin); }
-        .badge-other { background-color: rgba(100, 116, 139, 0.15); color: var(--cate-other); border: 1px solid var(--cate-other); }
-
-        .vendor-main-name { font-size: 1.35rem; color: var(--text-title); font-weight: 700; margin-bottom: 8px; }
-        
-        /* 數位廠商聯絡名片區 */
-        .contact-business-card {
-            background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 12px 14px; margin: 12px 0;
-            display: table; width: 100%; border-collapse: separate; border-spacing: 0 6px;
-        }
-        .contact-row { display: table-row; }
-        .contact-label { display: table-cell; color: var(--text-muted); font-weight: 600; width: 85px; white-space: nowrap; vertical-align: middle; }
-        .contact-value { display: table-cell; color: var(--text-title); font-weight: 700; font-family: monospace; font-size: 0.95rem; vertical-align: middle; }
-
-        /* 主要合約內容小方塊 */
-        .vendor-info-box { font-size: 0.9rem; color: var(--text-main); background: #f1f5f9; padding: 12px; border-radius: 6px; border-left: 4px solid #94a3b8; margin-top: 12px; line-height: 1.5; }
-        
-        /* 📝 新增：廠商動態自由備註小方塊 (高度受限，支援滾動) */
-        .vendor-memo-box { 
-            font-size: 0.88rem; color: #1e293b; background: #fffbeb; padding: 12px; border-radius: 6px; 
-            border-left: 4px solid #f59e0b; margin-top: 10px; line-height: 1.5;
-            max-height: 90px; overflow-y: auto; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-        }
-
-        .alert-notice-box { padding: 12px; font-size: 0.85rem; border-radius: 4px; margin-bottom: 12px; font-weight: 600; line-height: 1.5; flex-shrink: 0; }
-        
-        .file-list-title { font-size: 0.95rem; color: var(--text-title); font-weight: 700; margin-bottom: 10px; border-left: 3px solid var(--cate-repair); padding-left: 8px; flex-shrink: 0; }
-        
-        /* 維修歷程獨立框架容器 */
-        .history-timeline-container {
-            flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px;
-        }
-        .file-checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .file-item { background: #ffffff; border: 1px solid var(--border-light); border-radius: 6px; padding: 12px 14px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        
-        .upload-status { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; white-space: nowrap; }
-        .status-done { background: rgba(16, 185, 129, 0.15); color: #047857; }
-        .status-wait { background: var(--alert-danger-bg); color: var(--alert-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-
-        /* 右側面板與精緻微型小格子 */
-        .right-panel { flex: 1; padding: 24px; overflow-y: auto; min-width: 0; }
-        .vendor-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-        
-        .car-card {
-            background-color: var(--bg-card); border: 1px solid var(--border-light); border-left: 5px solid var(--text-muted);
-            border-radius: 6px; padding: 8px 12px; cursor: pointer; height: 68px; display: flex; flex-direction: column;
-            justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .car-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-
-        .card-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        
-        .mini-type-badge {
-            font-size: 0.7rem; padding: 1px 5px; border-radius: 3px; font-weight: 800; text-transform: uppercase;
-            white-space: nowrap; line-height: 1.2;
-        }
-        .mini-bg-repair { background-color: rgba(255, 122, 0, 0.15); color: var(--cate-repair); border: 1px solid rgba(255, 122, 0, 0.3); }
-        .mini-bg-fire   { background-color: rgba(16, 185, 129, 0.15); color: var(--cate-fire);   border: 1px solid rgba(16, 185, 129, 0.3); }
-        .mini-bg-food   { background-color: rgba(217, 70, 239, 0.15); color: var(--cate-food);   border: 1px solid rgba(217, 70, 239, 0.3); }
-        .mini-bg-admin  { background-color: rgba(59, 130, 246, 0.15); color: var(--cate-admin);  border: 1px solid rgba(59, 130, 246, 0.3); }
-        .mini-bg-other  { background-color: rgba(100, 116, 139, 0.15); color: var(--cate-other);  border: 1px solid rgba(100, 116, 139, 0.3); }
-
-        .card-repair { border-left-color: var(--cate-repair); }
-        .card-fire { border-left-color: var(--cate-fire); }
-        .card-food { border-left-color: var(--cate-food); }
-        .card-admin { border-left-color: var(--cate-admin); }
-        .card-other { border-left-color: var(--cate-other); }
-
-        .car-card.active.card-repair { background-color: rgba(255, 122, 0, 0.04); border-color: var(--cate-repair); box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.2); }
-        .car-card.active.card-fire { background-color: rgba(16, 185, 129, 0.04); border-color: var(--cate-fire); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-        .car-card.active.card-food { background-color: rgba(217, 70, 239, 0.04); border-color: var(--cate-food); box-shadow: 0 0 0 2px rgba(217, 70, 239, 0.2); }
-        .car-card.active.card-admin { background-color: rgba(59, 130, 246, 0.04); border-color: var(--cate-admin); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-        .car-card.active.card-other { background-color: rgba(100, 116, 139, 0.04); border-color: var(--cate-other); box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2); }
-
-        .car-model { font-size: 0.9rem; font-weight: 700; color: var(--text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
-        .car-meta { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; font-family: monospace; width: 100%; }
-
-        .right-panel::-webkit-scrollbar, .history-timeline-container::-webkit-scrollbar, .vendor-memo-box::-webkit-scrollbar { width: 6px; }
-        .right-panel::-webkit-scrollbar-thumb, .history-timeline-container::-webkit-scrollbar-thumb, .vendor-memo-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星聯 & 尚鵬 售服體系人事戰情看板</title>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent-blue: #38bdf8;
+      --tag-direct: #10b981;
+      --tag-indirect: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); padding: 24px; }
+    .header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .title h1 { font-size: 22px; font-weight: 700; color: #fff; }
+    .title p { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; }
+    .search-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px 14px; border-radius: 6px; color: #fff; width: 220px; outline: none; }
+    .filter-btn { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-sub); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .filter-btn.active, .filter-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 16px; border-radius: 8px; }
+    .stat-label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; }
+    .stat-val { font-size: 24px; font-weight: 700; color: var(--accent-blue); margin-top: 6px; }
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .staff-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    .staff-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .staff-name { font-size: 16px; font-weight: 700; color: #fff; }
+    .staff-title { font-size: 13px; color: var(--accent-blue); margin-top: 2px; }
+    .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+    .tag-dir { background: rgba(16, 185, 129, 0.15); color: var(--tag-direct); border: 1px solid var(--tag-direct); }
+    .tag-indir { background: rgba(245, 158, 11, 0.15); color: var(--tag-indirect); border: 1px solid var(--tag-indirect); }
+    .staff-body { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+    .staff-footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; }
+    .email-link { color: var(--accent-blue); text-decoration: none; word-break: break-all; }
+  </style>
 </head>
 <body>
 
-    <div class="left-panel">
-        <div class="panel-header">
-            <h1>大樓廠區管制看板</h1>
-        </div>
-        <div class="detail-content" id="detail-panel">
-            <div class="placeholder-text">
-                <div style="font-size: 2.5rem; margin-bottom: 12px;">📊</div>
-                <strong>[ 數據同步就緒 ]</strong><br>
-                自由備註擴充機制（對應 J 欄）已部署，請點擊格子檢視。
+  <div class="header">
+    <div class="title">
+      <h1>售服體系・組織編制與人事監控</h1>
+      <p>涵蓋南港、內湖、板橋、北投、松江各廠在職名冊與直間接人員配置</p>
+    </div>
+    <div class="controls">
+      <input type="text" id="searchInput" class="search-box" placeholder="搜尋姓名 / 職稱 / 廠區..." oninput="render()">
+    </div>
+  </div>
+
+  <div class="controls" style="margin-bottom: 20px;">
+    <button class="filter-btn active" onclick="setPlant('ALL', this)">全部廠區</button>
+    <button class="filter-btn" onclick="setPlant('南港廠', this)">南港廠</button>
+    <button class="filter-btn" onclick="setPlant('內湖廠', this)">內湖廠</button>
+    <button class="filter-btn" onclick="setPlant('板橋廠', this)">板橋廠</button>
+    <button class="filter-btn" onclick="setPlant('北投廠', this)">北投廠</button>
+    <button class="filter-btn" onclick="setPlant('松江廠', this)">松江廠</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">當前顯示編制</div>
+      <div class="stat-val" id="totalCount">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">直接生產人力 (技術/鈑烤)</div>
+      <div class="stat-val" id="directCount" style="color: var(--tag-direct);">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">間接管理/支援 (接待/零件/出納)</div>
+      <div class="stat-val" id="indirectCount" style="color: var(--tag-indirect);">0</div>
+    </div>
+  </div>
+
+  <div class="grid-container" id="cardContainer"></div>
+
+  <script>
+    // 整合自 Excel「售服全部」與「當期人資_在職」
+    const staffData = [
+      // 南港廠
+      { plant: "南港廠", name: "謝或翰", title: "廠長", type: "間", subType: "廠", email: "huohan@starunited.tw", empId: "SU00007" },
+      { plant: "南港廠", name: "葉佳俊", title: "組長", type: "間", subType: "零", email: "snake_yeh@starunited.tw", empId: "SU00009" },
+      { plant: "南港廠", name: "劉安莉", title: "專員", type: "間", subType: "出", email: "anly_liu@starunited.tw", empId: "SU00018" },
+      { plant: "南港廠", name: "許俊皇", title: "技師長", type: "直", subType: "引", email: "jyunhuang_syu@starunited.tw", empId: "SU00008" },
+      { plant: "南港廠", name: "張安慶", title: "引電技師", type: "直", subType: "引", email: "anching_chang@starunited.tw", empId: "SU00010" },
+      { plant: "南港廠", name: "鄭博文", title: "引電技師-A級", type: "直", subType: "引", email: "bowen_cheng@starunited.tw", empId: "SU00011" },
+      { plant: "南港廠", name: "吳瑀森", title: "引電技師", type: "直", subType: "引", email: "yusen_wu@starunited.tw", empId: "SU00012" },
+      { plant: "南港廠", name: "張啓宏", title: "引電技師", type: "直", subType: "引", email: "eddie_chang@starunited.tw", empId: "SU00013" },
+      { plant: "南港廠", name: "劉建昌", title: "鈑金技師", type: "直", subType: "鈑", email: "jianchang_liou@starunited.tw", empId: "SU00014" },
+      // 內湖廠
+      { plant: "內湖廠", name: "陳宥鈺", title: "專員", type: "間", subType: "出", email: "yuyu_chen@starunited.tw", empId: "SU00083" },
+      { plant: "內湖廠", name: "周永盛", title: "專員", type: "間", subType: "接", email: "yongsheng_chou@starunited.tw", empId: "SU00084" },
+      { plant: "內湖廠", name: "張博凱", title: "專員", type: "間", subType: "接", email: "bokai_chang@starunited.tw", empId: "SU00085" },
+      { plant: "內湖廠", name: "賴建良", title: "主任", type: "間", subType: "接", email: "jianliang_lai@starunited.tw", empId: "SU00086" },
+      { plant: "內湖廠", name: "黃宗南", title: "技師長", type: "直", subType: "引", email: "zongnan_huang@starunited.tw", empId: "SU00087" },
+      { plant: "內湖廠", name: "陳哲峰", title: "領班", type: "直", subType: "鈑", email: "zhefeng_chen@starunited.tw", empId: "SU00088" },
+      { plant: "內湖廠", name: "許晉益", title: "技師", type: "直", subType: "鈑", email: "jinyi_syu@starunited.tw", empId: "SU00089" },
+      { plant: "內湖廠", name: "張元信", title: "技師", type: "直", subType: "鈑", email: "yuanxin_chang@starunited.tw", empId: "SU00090" },
+      { plant: "內湖廠", name: "潘世宗", title: "技師", type: "直", subType: "烤", email: "shihzong_pan@starunited.tw", empId: "SU00091" },
+      // 板橋廠
+      { plant: "板橋廠", name: "余詩超", title: "廠長", type: "間", subType: "廠", email: "shihchao_yu@starunited.tw", empId: "SU00034" },
+      { plant: "板橋廠", name: "陳澤鍇", title: "專員", type: "間", subType: "接", email: "tzekai_chen@starunited.tw", empId: "SU00035" },
+      { plant: "板橋廠", name: "陳建瑋", title: "專員", type: "間", subType: "零", email: "jianwei_chen@starunited.tw", empId: "SU00036" },
+      { plant: "板橋廠", name: "張詠婕", title: "資深專員", type: "間", subType: "出", email: "yongjie_chang@starunited.tw", empId: "SU00037" },
+      { plant: "板橋廠", name: "林冠廷", title: "專員", type: "間", subType: "接", email: "guanting_lin@starunited.tw", empId: "SU00038" },
+      { plant: "板橋廠", name: "黃若瑜", title: "專員", type: "間", subType: "接", email: "ruoyu_huang@starunited.tw", empId: "SU00039" },
+      { plant: "板橋廠", name: "周桓慶", title: "引電技師-B級", type: "直", subType: "引", email: "huanching_chou@starunited.tw", empId: "SU00040" },
+      { plant: "板橋廠", name: "高培華", title: "引電技師-A級", type: "直", subType: "引", email: "peihua_kao@starunited.tw", empId: "SU00041" },
+      { plant: "板橋廠", name: "陳政威", title: "技師長", type: "直", subType: "引", email: "chengwei_chen@starunited.tw", empId: "SU00042" },
+      // 北投廠
+      { plant: "北投廠", name: "陳俊逸", title: "主任 (代理廠長)", type: "間", subType: "廠", email: "junyi_chen@starunited.tw", empId: "SU00065" },
+      { plant: "北投廠", name: "莊鉅昌", title: "專員", type: "間", subType: "零", email: "jyuchang_jhuang@starunited.tw", empId: "SU00066" },
+      { plant: "北投廠", name: "林嘉勤", title: "專員", type: "間", subType: "出", email: "jiachin_lin@starunited.tw", empId: "SU00067" },
+      { plant: "北投廠", name: "劉尚聞", title: "專員", type: "間", subType: "接", email: "shangwen_liu@starunited.tw", empId: "SU00068" },
+      { plant: "北投廠", name: "江連正", title: "技師長", type: "直", subType: "引", email: "lianzheng_jiang@starunited.tw", empId: "SU00069" },
+      { plant: "北投廠", name: "詹以雄", title: "引電技師", type: "直", subType: "引", email: "yihsiung_chan@starunited.tw", empId: "SU00070" },
+      { plant: "北投廠", name: "詹添仁", title: "引電技師-A級", type: "直", subType: "引", email: "tianren_jhan@starunited.tw", empId: "SU00071" },
+      { plant: "北投廠", name: "張志和", title: "引電技師-B級", type: "直", subType: "引", email: "chihho_chang@starunited.tw", empId: "SU00072" },
+      { plant: "北投廠", name: "李逸垣", title: "實習生", type: "直", subType: "引", email: "yiyuan_li@starunited.tw", empId: "SU00073" },
+      // 松江廠
+      { plant: "松江廠", name: "王子寧", title: "專員", type: "間", subType: "零", email: "zining_wang@starunited.tw", empId: "SU00074" },
+      { plant: "松江廠", name: "許雅萍", title: "專員", type: "間", subType: "出", email: "yaping_hsu@starunited.tw", empId: "SU00075" },
+      { plant: "松江廠", name: "林暐哲", title: "引電技師", type: "直", subType: "引", email: "weizhe_lin@starunited.tw", empId: "SU00076" },
+      { plant: "松江廠", name: "陳奕翔", title: "實習生", type: "直", subType: "引", email: "yisiang_chen@starunited.tw", empId: "SU00077" }
+    ];
+
+    let currentPlant = 'ALL';
+
+    function setPlant(p, btn) {
+      currentPlant = p;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function render() {
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      const filtered = staffData.filter(s => {
+        const matchPlant = currentPlant === 'ALL' || s.plant === currentPlant;
+        const matchKey = !keyword || s.name.toLowerCase().includes(keyword) || s.title.toLowerCase().includes(keyword) || s.plant.toLowerCase().includes(keyword) || (s.empId && s.empId.toLowerCase().includes(keyword));
+        return matchPlant && matchKey;
+      });
+
+      const container = document.getElementById('cardContainer');
+      container.innerHTML = '';
+
+      let direct = 0, indirect = 0;
+
+      filtered.forEach(s => {
+        if (s.type === '直') direct++; else indirect++;
+        const isDirect = s.type === '直';
+        const tagClass = isDirect ? 'tag-dir' : 'tag-indir';
+        const tagLabel = isDirect ? `直接人力 (${s.subType})` : `間接管理 (${s.subType})`;
+
+        const card = document.createElement('div');
+        card.className = 'staff-card';
+        card.innerHTML = `
+          <div>
+            <div class="staff-header">
+              <div>
+                <div class="staff-name">${s.name}</div>
+                <div class="staff-title">${s.plant} · ${s.title}</div>
+              </div>
+              <span class="tag ${tagClass}">${tagLabel}</span>
             </div>
-        </div>
-    </div>
+            <div class="staff-body">
+              <div>員工編號：${s.empId || '-'}</div>
+            </div>
+          </div>
+          <div class="staff-footer">
+            <a class="email-link" href="mailto:${s.email}">${s.email || '-'}</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
 
-    <div class="right-panel">
-        <div class="vendor-grid" id="vendor-container"></div>
-    </div>
+      document.getElementById('totalCount').innerText = filtered.length;
+      document.getElementById('directCount').innerText = direct;
+      document.getElementById('indirectCount').innerText = indirect;
+    }
 
-    <script>
-        const jsonpUrl = "https://docs.google.com/spreadsheets/d/1cnYTW8rrECUGHi7dmQ50-6SHhf48JwWuA1PgO5SVyMo/gviz/tq?tqx=out:json&gid=1638246250";
-
-        const categories = {
-            'repair': { name: '廠區修繕', color: 'var(--cate-repair)', bgClass: 'badge-repair', miniBgClass: 'mini-bg-repair' },
-            'fire':   { name: '消防公安', color: 'var(--cate-fire)',   bgClass: 'badge-fire',   miniBgClass: 'mini-bg-fire' },
-            'food':   { name: '食品支出', color: 'var(--cate-food)',   bgClass: 'badge-food',   miniBgClass: 'mini-bg-food' },
-            'admin':  { name: '行政支出', color: 'var(--cate-admin)',  bgClass: 'badge-admin',  miniBgClass: 'mini-bg-admin' },
-            'other':  { name: '其他支出', color: 'var(--cate-other)',  bgClass: 'badge-other',  miniBgClass: 'mini-bg-other' }
-        };
-
-        fetch(jsonpUrl)
-            .then(res => res.text())
-            .then(txt => {
-                const jsonString = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
-                const data = JSON.parse(jsonString);
-                const rows = data.table.rows;
-                
-                const cleanVendors = [];
-                for(let i = 1; i < rows.length; i++) {
-                    const r = rows[i];
-                    if (r && r.c && r.c[1] && r.c[1].v) { 
-                        cleanVendors.push({
-                            floor:        r.c[0] ? String(r.c[0].v).trim() : '',
-                            name:         r.c[1] ? String(r.c[1].v).trim() : '',
-                            type:         r.c[2] ? String(r.c[2].v).trim().toLowerCase() : 'other',
-                            vendor_info:  r.c[3] ? String(r.c[3].v).trim() : '',
-                            contact_name: r.c[4] ? String(r.c[4].v).trim() : '未填',
-                            tel:          r.c[5] ? String(r.c[5].v).trim() : '未填',
-                            phone:        r.c[6] ? String(r.c[6].v).trim() : '未填',
-                            tasks:        r.c[7] ? String(r.c[7].v).trim() : '',
-                            status:       r.c[8] ? String(r.c[8].v).trim().toLowerCase() : 'wait',
-                            // ✨ 核心擴充：讀取試算表第 10 欄 (J 欄) 作為自由備註內容
-                            memo:         r.c[9] ? String(r.c[9].v).trim() : '' 
-                        });
-                    }
-                }
-                renderGrid(cleanVendors);
-            })
-            .catch(err => {
-                document.getElementById('detail-panel').innerHTML = `<div class="placeholder-text">❌ 讀取失敗。請確認試算表權限。</div>`;
-            });
-
-        function renderGrid(vendors) {
-            const container = document.getElementById('vendor-container');
-            container.innerHTML = "";
-
-            vendors.forEach(vendor => {
-                let tasksArray = [];
-                if (vendor.tasks) {
-                    if (vendor.tasks.includes('\n')) {
-                        tasksArray = vendor.tasks.split('\n');
-                    } else {
-                        tasksArray = vendor.tasks.split('|');
-                    }
-                }
-                tasksArray = tasksArray.map(t => t.trim()).filter(t => t !== '');
-                tasksArray.reverse();
-
-                const card = document.createElement('div');
-                card.className = `car-card card-${vendor.type}`;
-                const cate = categories[vendor.type] || { name: '其他支出', miniBgClass: 'mini-bg-other' };
-                
-                const statusHTML = vendor.status === 'done' 
-                    ? `<span style="color: var(--cate-fire)">● 正常</span>` 
-                    : `<span style="color: var(--alert-danger); font-weight:700;">● 異常待辦</span>`;
-
-                card.innerHTML = `
-                    <div class="card-top-row">
-                        <div class="car-model">${vendor.floor} - ${vendor.name}</div>
-                        <span class="mini-type-badge ${cate.miniBgClass}">${cate.name}</span>
-                    </div>
-                    <div class="car-meta">
-                        <span style="color: var(--text-muted); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            ${vendor.vendor_info || ''}
-                        </span>
-                        ${statusHTML}
-                    </div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.car-card').forEach(c => c.classList.remove('active'));
-                    card.classList.add('active');
-                    updateLeftPanel(vendor, tasksArray);
-                });
-                container.appendChild(card);
-            });
-
-            document.getElementById('detail-panel').innerHTML = `
-                <div class="placeholder-text">
-                    <div style="font-size: 2.5rem; margin-bottom: 12px;">🏢</div>
-                    <strong>[ 大樓全域廠商觀測核心就緒 ]</strong><br>
-                    已成功同步最新數據，請點擊右側項目查看名片聯絡電話與維修進度。
-                </div>`;
-        }
-
-        function updateLeftPanel(vendor, tasks) {
-            const detailPanel = document.getElementById('detail-panel');
-            const cateInfo = categories[vendor.type] || { name: '其他支出', color: 'var(--cate-other)', bgClass: 'badge-other' };
-            
-            let noticeBoxHTML = (vendor.type === 'repair' || vendor.type === 'fire') ? `
-                <div class="alert-notice-box" style="background-color: rgba(255, 122, 0, 0.06); border-left: 4px solid var(--cate-repair); color: #c2410c;">
-                    ⚠️ 【工程管制提示】此項目涉及特檢與廠務修繕。凡進入車間或涉及公共安全之工單，請落實完工雙軌簽收。
-                </div>` : `
-                <div class="alert-notice-box" style="background-color: rgba(217, 70, 239, 0.06); border-left: 4px solid var(--cate-food); color: #a21caf;">
-                    💡 【行政核銷提示】此項目為例行性費用與行政支出。請確認憑證與明細上傳完整度，以便進行月底對帳。
-                </div>`;
-
-            let tasksHTML = tasks.map((task) => {
-                const isWait = task.includes('待辦') || task.includes('未') || task.includes('處理中');
-                return `
-                    <li class="file-item" style="${isWait ? 'border-left: 4px solid var(--alert-danger); background: rgba(239,68,68,0.02);' : ''}">
-                        <span style="line-height: 1.4; ${isWait ? 'color: #1e293b; font-weight:600;' : ''}">${task}</span>
-                        <span class="upload-status ${isWait ? 'status-wait' : 'status-done'}">${isWait ? '未完工/追蹤中' : '歷程紀錄'}</span>
-                    </li>
-                `;
-            }).join('');
-
-            // ✨ 備註顯示邏輯：如果試算表有打字就顯示黃色便簽箱，沒打字就顯示「暫無備註」
-            let memoHTML = vendor.memo 
-                ? `<div class="vendor-memo-box"><strong>📌 廠務動態備註：</strong><br>${vendor.memo.replace(/\n/g, '<br>')}</div>`
-                : `<div class="vendor-memo-box" style="color:var(--text-muted); background:#f8fafc; border-left-color:#cbd5e1;"><strong>📌 廠務動態備註：</strong><br>暫無備註事項</div>`;
-
-            detailPanel.innerHTML = `
-                <div class="vendor-header-card">
-                    <span class="vendor-badge ${cateInfo.bgClass}">【${cateInfo.name}】</span>
-                    <div class="vendor-main-name">${vendor.name}</div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-top: 4px;">
-                        <span>管制樓層/區域：${vendor.floor || '未填'}</span>
-                    </div>
-                    
-                    <div class="contact-business-card">
-                        <div class="contact-row"><div class="contact-label">👤 聯絡窗口</div><div class="contact-value">${vendor.contact_name}</div></div>
-                        <div class="contact-row"><div class="contact-label">☎️ 室內電話</div><div class="contact-value">${vendor.tel}</div></div>
-                        <div class="contact-row"><div class="contact-label">📱 手機號碼</div><div class="contact-value">${vendor.phone}</div></div>
-                    </div>
-
-                    <div class="vendor-info-box">
-                        <strong>🎯 主要合約內容：</strong><br>${vendor.vendor_info || '暫無描述'}
-                    </div>
-                    
-                    ${memoHTML}
-                </div>
-                ${noticeBoxHTML}
-                <div class="file-list-title">🔧 實時維修進度與更換歷程</div>
-                
-                <div class="history-timeline-container">
-                    <ul class="file-checklist">${tasksHTML}</ul>
-                </div>
-            `;
-        }
-    </script>
+    render();
+  </script>
 </body>
 </html>
