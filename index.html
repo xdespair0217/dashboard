@@ -6,65 +6,289 @@
   <title>星聯 & 尚鵬 售服體系人事戰情看板</title>
   <style>
     :root {
-      --bg-main: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
+      --bg-main: #0b0f19;
+      --card-bg: #151e32;
+      --card-border: #23324d;
+      --text-main: #f1f5f9;
+      --text-sub: #8ea0be;
       --accent-blue: #38bdf8;
       --tag-direct: #10b981;
       --tag-indirect: #f59e0b;
+      --tag-intern: #ec4899;
+      --badge-bg: #1e293b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); padding: 24px; }
-    .header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .title h1 { font-size: 22px; font-weight: 700; color: #fff; }
-    .title p { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
-    .controls { display: flex; gap: 12px; flex-wrap: wrap; }
-    .search-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px 14px; border-radius: 6px; color: #fff; width: 220px; outline: none; }
-    .filter-btn { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-sub); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
-    .filter-btn.active, .filter-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 16px; border-radius: 8px; }
-    .stat-label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; }
-    .stat-val { font-size: 24px; font-weight: 700; color: var(--accent-blue); margin-top: 6px; }
-    .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .staff-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
-    .staff-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .staff-name { font-size: 16px; font-weight: 700; color: #fff; }
-    .staff-title { font-size: 13px; color: var(--accent-blue); margin-top: 2px; }
-    .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
-    .tag-dir { background: rgba(16, 185, 129, 0.15); color: var(--tag-direct); border: 1px solid var(--tag-direct); }
-    .tag-indir { background: rgba(245, 158, 11, 0.15); color: var(--tag-indirect); border: 1px solid var(--tag-indirect); }
-    .staff-body { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
-    .staff-footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; }
-    .email-link { color: var(--accent-blue); text-decoration: none; word-break: break-all; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      padding: 24px;
+    }
+    .header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .title h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+    .title p {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+    
+    .search-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: #fff;
+      width: 260px;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .search-box:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    .filter-section {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .filter-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .filter-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      min-width: 80px;
+    }
+    .filter-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-sub);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover {
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+    .filter-btn.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+    .filter-btn.active-role {
+      background: #0284c7;
+      color: #fff;
+      border-color: #0284c7;
+    }
+    .filter-btn.active-intern {
+      background: var(--tag-intern);
+      color: #fff;
+      border-color: var(--tag-intern);
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.4);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: 10px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+    .stat-val {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      margin-top: 4px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .staff-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .staff-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .staff-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .staff-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .staff-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .emp-id-badge {
+      background: var(--badge-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .staff-title {
+      font-size: 13px;
+      color: var(--accent-blue);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+    
+    .tags-container {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .tag-dir {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--tag-direct);
+      border: 1px solid var(--tag-direct);
+    }
+    .tag-indir {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--tag-indirect);
+      border: 1px solid var(--tag-indirect);
+    }
+    .tag-intern {
+      background: rgba(236, 72, 153, 0.2);
+      color: var(--tag-intern);
+      border: 1px solid var(--tag-intern);
+    }
+
+    .staff-body {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.8;
+    }
+    .staff-row-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .staff-footer {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .email-link {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-size: 12px;
+      word-break: break-all;
+    }
+    .email-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
 
   <div class="header">
     <div class="title">
-      <h1>售服體系・組織編制與人事監控</h1>
-      <p>涵蓋南港、內湖、板橋、北投、松江各廠在職名冊與直間接人員配置</p>
+      <h1>星聯 & 尚鵬 售服體系人事戰情看板</h1>
+      <p>南港、內湖、板橋、北投、松江 五大廠區現場編制與技術梯隊（100% 原始數據對齊）</p>
     </div>
-    <div class="controls">
-      <input type="text" id="searchInput" class="search-box" placeholder="搜尋姓名 / 職稱 / 廠區..." oninput="render()">
-    </div>
+    <input type="text" id="searchInput" class="search-box" placeholder="搜尋姓名 / 員編 / 職稱..." oninput="render()">
   </div>
 
-  <div class="controls" style="margin-bottom: 20px;">
-    <button class="filter-btn active" onclick="setPlant('ALL', this)">全部廠區</button>
-    <button class="filter-btn" onclick="setPlant('南港廠', this)">南港廠</button>
-    <button class="filter-btn" onclick="setPlant('內湖廠', this)">內湖廠</button>
-    <button class="filter-btn" onclick="setPlant('板橋廠', this)">板橋廠</button>
-    <button class="filter-btn" onclick="setPlant('北投廠', this)">北投廠</button>
-    <button class="filter-btn" onclick="setPlant('松江廠', this)">松江廠</button>
+  <div class="filter-section">
+    <div class="filter-row">
+      <span class="filter-label">廠區切換：</span>
+      <button class="filter-btn active" onclick="setPlant('ALL', this)">全部廠區</button>
+      <button class="filter-btn" onclick="setPlant('南港廠', this)">南港廠</button>
+      <button class="filter-btn" onclick="setPlant('內湖廠', this)">內湖廠</button>
+      <button class="filter-btn" onclick="setPlant('板橋廠', this)">板橋廠</button>
+      <button class="filter-btn" onclick="setPlant('北投廠', this)">北投廠</button>
+      <button class="filter-btn" onclick="setPlant('松江廠', this)">松江廠</button>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label">職務分類：</span>
+      <button class="filter-btn active-role" onclick="setCategory('ALL', this)">全部職能</button>
+      <button class="filter-btn" onclick="setCategory('引擎/引電技師', this)">引擎 / 引電技師</button>
+      <button class="filter-btn" onclick="setCategory('鈑金技師', this)">鈑金技師</button>
+      <button class="filter-btn" onclick="setCategory('烤漆技師', this)">烤漆技師</button>
+      <button class="filter-btn" onclick="setCategory('服務接待', this)">服務接待</button>
+      <button class="filter-btn" onclick="setCategory('零件專員', this)">零件管理</button>
+      <button class="filter-btn" onclick="setCategory('出納/行政', this)">出納 / 行政</button>
+      <button class="filter-btn" onclick="setCategory('廠長/主管', this)">廠長 / 主管</button>
+      <button class="filter-btn" onclick="setCategory('實習生', this)" style="border-color: var(--tag-intern); color: var(--tag-intern);">🎓 實習生專區</button>
+    </div>
   </div>
 
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-label">當前顯示編制</div>
+      <div class="stat-label">當前篩選人數</div>
       <div class="stat-val" id="totalCount">0</div>
     </div>
     <div class="stat-card">
@@ -72,90 +296,132 @@
       <div class="stat-val" id="directCount" style="color: var(--tag-direct);">0</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">間接管理/支援 (接待/零件/出納)</div>
+      <div class="stat-label">間接管理/後勤 (接待/零/出)</div>
       <div class="stat-val" id="indirectCount" style="color: var(--tag-indirect);">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">技術實習生梯隊</div>
+      <div class="stat-val" id="internCount" style="color: var(--tag-intern);">0</div>
     </div>
   </div>
 
   <div class="grid-container" id="cardContainer"></div>
 
   <script>
-    // 整合自 Excel「售服全部」與「當期人資_在職」
+    // 嚴格對齊 Excel「售服全部」與「在職名冊」之 56 位售服同仁真實數據
     const staffData = [
-      // 南港廠
-      { plant: "南港廠", name: "謝或翰", title: "廠長", type: "間", subType: "廠", email: "huohan@starunited.tw", empId: "SU00007" },
-      { plant: "南港廠", name: "葉佳俊", title: "組長", type: "間", subType: "零", email: "snake_yeh@starunited.tw", empId: "SU00009" },
-      { plant: "南港廠", name: "劉安莉", title: "專員", type: "間", subType: "出", email: "anly_liu@starunited.tw", empId: "SU00018" },
-      { plant: "南港廠", name: "許俊皇", title: "技師長", type: "直", subType: "引", email: "jyunhuang_syu@starunited.tw", empId: "SU00008" },
-      { plant: "南港廠", name: "張安慶", title: "引電技師", type: "直", subType: "引", email: "anching_chang@starunited.tw", empId: "SU00010" },
-      { plant: "南港廠", name: "鄭博文", title: "引電技師-A級", type: "直", subType: "引", email: "bowen_cheng@starunited.tw", empId: "SU00011" },
-      { plant: "南港廠", name: "吳瑀森", title: "引電技師", type: "直", subType: "引", email: "yusen_wu@starunited.tw", empId: "SU00012" },
-      { plant: "南港廠", name: "張啓宏", title: "引電技師", type: "直", subType: "引", email: "eddie_chang@starunited.tw", empId: "SU00013" },
-      { plant: "南港廠", name: "劉建昌", title: "鈑金技師", type: "直", subType: "鈑", email: "jianchang_liou@starunited.tw", empId: "SU00014" },
-      // 內湖廠
-      { plant: "內湖廠", name: "陳宥鈺", title: "專員", type: "間", subType: "出", email: "yuyu_chen@starunited.tw", empId: "SU00083" },
-      { plant: "內湖廠", name: "周永盛", title: "專員", type: "間", subType: "接", email: "yongsheng_chou@starunited.tw", empId: "SU00084" },
-      { plant: "內湖廠", name: "張博凱", title: "專員", type: "間", subType: "接", email: "bokai_chang@starunited.tw", empId: "SU00085" },
-      { plant: "內湖廠", name: "賴建良", title: "主任", type: "間", subType: "接", email: "jianliang_lai@starunited.tw", empId: "SU00086" },
-      { plant: "內湖廠", name: "黃宗南", title: "技師長", type: "直", subType: "引", email: "zongnan_huang@starunited.tw", empId: "SU00087" },
-      { plant: "內湖廠", name: "陳哲峰", title: "領班", type: "直", subType: "鈑", email: "zhefeng_chen@starunited.tw", empId: "SU00088" },
-      { plant: "內湖廠", name: "許晉益", title: "技師", type: "直", subType: "鈑", email: "jinyi_syu@starunited.tw", empId: "SU00089" },
-      { plant: "內湖廠", name: "張元信", title: "技師", type: "直", subType: "鈑", email: "yuanxin_chang@starunited.tw", empId: "SU00090" },
-      { plant: "內湖廠", name: "潘世宗", title: "技師", type: "直", subType: "烤", email: "shihzong_pan@starunited.tw", empId: "SU00091" },
-      // 板橋廠
-      { plant: "板橋廠", name: "余詩超", title: "廠長", type: "間", subType: "廠", email: "shihchao_yu@starunited.tw", empId: "SU00034" },
-      { plant: "板橋廠", name: "陳澤鍇", title: "專員", type: "間", subType: "接", email: "tzekai_chen@starunited.tw", empId: "SU00035" },
-      { plant: "板橋廠", name: "陳建瑋", title: "專員", type: "間", subType: "零", email: "jianwei_chen@starunited.tw", empId: "SU00036" },
-      { plant: "板橋廠", name: "張詠婕", title: "資深專員", type: "間", subType: "出", email: "yongjie_chang@starunited.tw", empId: "SU00037" },
-      { plant: "板橋廠", name: "林冠廷", title: "專員", type: "間", subType: "接", email: "guanting_lin@starunited.tw", empId: "SU00038" },
-      { plant: "板橋廠", name: "黃若瑜", title: "專員", type: "間", subType: "接", email: "ruoyu_huang@starunited.tw", empId: "SU00039" },
-      { plant: "板橋廠", name: "周桓慶", title: "引電技師-B級", type: "直", subType: "引", email: "huanching_chou@starunited.tw", empId: "SU00040" },
-      { plant: "板橋廠", name: "高培華", title: "引電技師-A級", type: "直", subType: "引", email: "peihua_kao@starunited.tw", empId: "SU00041" },
-      { plant: "板橋廠", name: "陳政威", title: "技師長", type: "直", subType: "引", email: "chengwei_chen@starunited.tw", empId: "SU00042" },
-      // 北投廠
-      { plant: "北投廠", name: "陳俊逸", title: "主任 (代理廠長)", type: "間", subType: "廠", email: "junyi_chen@starunited.tw", empId: "SU00065" },
-      { plant: "北投廠", name: "莊鉅昌", title: "專員", type: "間", subType: "零", email: "jyuchang_jhuang@starunited.tw", empId: "SU00066" },
-      { plant: "北投廠", name: "林嘉勤", title: "專員", type: "間", subType: "出", email: "jiachin_lin@starunited.tw", empId: "SU00067" },
-      { plant: "北投廠", name: "劉尚聞", title: "專員", type: "間", subType: "接", email: "shangwen_liu@starunited.tw", empId: "SU00068" },
-      { plant: "北投廠", name: "江連正", title: "技師長", type: "直", subType: "引", email: "lianzheng_jiang@starunited.tw", empId: "SU00069" },
-      { plant: "北投廠", name: "詹以雄", title: "引電技師", type: "直", subType: "引", email: "yihsiung_chan@starunited.tw", empId: "SU00070" },
-      { plant: "北投廠", name: "詹添仁", title: "引電技師-A級", type: "直", subType: "引", email: "tianren_jhan@starunited.tw", empId: "SU00071" },
-      { plant: "北投廠", name: "張志和", title: "引電技師-B級", type: "直", subType: "引", email: "chihho_chang@starunited.tw", empId: "SU00072" },
-      { plant: "北投廠", name: "李逸垣", title: "實習生", type: "直", subType: "引", email: "yiyuan_li@starunited.tw", empId: "SU00073" },
-      // 松江廠
-      { plant: "松江廠", name: "王子寧", title: "專員", type: "間", subType: "零", email: "zining_wang@starunited.tw", empId: "SU00074" },
-      { plant: "松江廠", name: "許雅萍", title: "專員", type: "間", subType: "出", email: "yaping_hsu@starunited.tw", empId: "SU00075" },
-      { plant: "松江廠", name: "林暐哲", title: "引電技師", type: "直", subType: "引", email: "weizhe_lin@starunited.tw", empId: "SU00076" },
-      { plant: "松江廠", name: "陳奕翔", title: "實習生", type: "直", subType: "引", email: "yisiang_chen@starunited.tw", empId: "SU00077" }
+      {"plant": "南港廠", "name": "謝或翰", "title": "廠長", "type": "間", "subType": "廠", "category": "廠長/主管", "empId": "SU00007", "email": "huohan@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠"},
+      {"plant": "南港廠", "name": "葉佳俊", "title": "組長", "type": "間", "subType": "零", "category": "零件專員", "empId": "SU00009", "email": "snake_yeh@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠接待部"},
+      {"plant": "南港廠", "name": "劉安莉", "title": "專員", "type": "間", "subType": "出", "category": "出納/行政", "empId": "SU00018", "email": "anly_liu@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠接待部"},
+      {"plant": "南港廠", "name": "許俊皇", "title": "技師長", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00008", "email": "jyunhuang_syu@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠維修部"},
+      {"plant": "南港廠", "name": "張安慶", "title": "引電技師", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00010", "email": "anching_chang@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠維修部"},
+      {"plant": "南港廠", "name": "鄭博文", "title": "引電技師-A級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00011", "email": "bowen_cheng@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠維修部"},
+      {"plant": "南港廠", "name": "吳瑀森", "title": "引電技師", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00012", "email": "yusen_wu@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠維修部"},
+      {"plant": "南港廠", "name": "張啓宏", "title": "引電技師", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00013", "email": "eddie_chang@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠維修部"},
+      {"plant": "南港廠", "name": "劉建昌", "title": "鈑金技師", "type": "直", "subType": "鈑", "category": "鈑金技師", "empId": "SU00014", "email": "ken_liu@starunited.tw", "hireDate": "2025/02/01", "dept": "南港廠維修部"},
+      {"plant": "南港廠", "name": "徐漢威", "title": "組長", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00058", "email": "eric_hsu@starunited.tw", "hireDate": "2025/04/22", "dept": "南港廠接待部"},
+      {"plant": "南港廠", "name": "林偲育", "title": "專員", "type": "間", "subType": "保", "category": "保固專員", "empId": "SU00100", "email": "hanes_lin@starunited.tw", "hireDate": "2025/08/12", "dept": "南港廠接待部"},
+      {"plant": "南港廠", "name": "趙少崋", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00130", "email": "eugeniya_chao@starunited.tw", "hireDate": "2025/11/11", "dept": "南港廠接待部"},
+      {"plant": "南港廠", "name": "陳嘉駒", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00136", "email": "jiaju_chen@starunited.tw", "hireDate": "2025/12/09", "dept": "南港廠接待部"},
+      {"plant": "南港廠", "name": "林傳傑", "title": "引電技師-A級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00138", "email": "jerry_lin@starunited.tw", "hireDate": "2026/01/13", "dept": "南港廠維修部"},
+      {"plant": "內湖廠", "name": "陳宥鈺", "title": "專員", "type": "間", "subType": "出", "category": "出納/行政", "empId": "SP00012", "email": "tps.nkcrm01@sunpekmotors.com", "hireDate": "2026/05/01", "dept": "內湖廠接待部"},
+      {"plant": "內湖廠", "name": "周永盛", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SP00015", "email": "shine.chou@sunpekmotors.com", "hireDate": "2026/05/01", "dept": "內湖廠接待部"},
+      {"plant": "內湖廠", "name": "張博凱", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SP00030", "email": "kai_chang@starunited.tw", "hireDate": "2026/07/21", "dept": "內湖廠接待部"},
+      {"plant": "內湖廠", "name": "賴建良", "title": "主任", "type": "間", "subType": "接", "category": "服務接待", "empId": "SP00007", "email": "", "hireDate": "2026/05/01", "dept": "內湖廠維修部"},
+      {"plant": "內湖廠", "name": "黃宗南", "title": "技師長", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SP00021", "email": "michael_huang@sunpekmotors.com", "hireDate": "2026/05/05", "dept": "內湖廠維修部"},
+      {"plant": "內湖廠", "name": "陳哲峰", "title": "領班", "type": "直", "subType": "鈑", "category": "鈑金技師", "empId": "SP00006", "email": "chefeng_chen@sunpekmotors.com", "hireDate": "2026/05/01", "dept": "內湖廠維修部鈑金科"},
+      {"plant": "內湖廠", "name": "許晉益", "title": "技師", "type": "直", "subType": "鈑", "category": "鈑金技師", "empId": "SP00013", "email": "jinyi_hsu@sunpekmotors.com", "hireDate": "2026/05/01", "dept": "內湖廠維修部鈑金科"},
+      {"plant": "內湖廠", "name": "張元信", "title": "技師", "type": "直", "subType": "鈑", "category": "鈑金技師", "empId": "SP00014", "email": "jim_chang@sunpekmotors.com", "hireDate": "2026/05/01", "dept": "內湖廠維修部鈑金科"},
+      {"plant": "內湖廠", "name": "潘世宗", "title": "技師", "type": "直", "subType": "烤", "category": "烤漆技師", "empId": "SP00009", "email": "shihzong_pan@sunpekmotors.com", "hireDate": "2026/05/01", "dept": "內湖廠維修部烤漆科"},
+      {"plant": "內湖廠", "name": "林哲弘", "title": "烤漆技師", "type": "直", "subType": "烤", "category": "烤漆技師", "empId": "SP00022", "email": "edison_lin@sunpekmotors.com", "hireDate": "2026/05/26", "dept": "內湖廠維修部烤漆科"},
+      {"plant": "內湖廠", "name": "黃俊隆", "title": "烤漆技師", "type": "直", "subType": "烤", "category": "烤漆技師", "empId": "SP00024", "email": "condom_huang@sunpekmotors.com", "hireDate": "2026/06/02", "dept": "內湖廠維修部烤漆科"},
+      {"plant": "內湖廠", "name": "蕭兆廷", "title": "引電技師-A級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SP00027", "email": "chaoting__hsiao@starunited.tw", "hireDate": "2026/06/16", "dept": "內湖廠維修部引擎修護"},
+      {"plant": "內湖廠", "name": "李維晉", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SP00028", "email": "weichin_lee@starunited.tw", "hireDate": "2026/07/21", "dept": "內湖廠維修部引擎修護"},
+      {"plant": "內湖廠", "name": "吳韋翰", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SP00029", "email": "william_wu@starunited.tw", "hireDate": "2026/07/21", "dept": "內湖廠維修部引擎修護"},
+      {"plant": "內湖廠", "name": "吳俊賢", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SU00152", "email": "yunxian_wu@starunited.tw", "hireDate": "2026/07/01", "dept": "內湖廠維修部烤漆科"},
+      {"plant": "板橋廠", "name": "余詩超", "title": "廠長", "type": "間", "subType": "廠", "category": "廠長/主管", "empId": "SU00153", "email": "timmy_yu@starunited.tw", "hireDate": "2026/07/21", "dept": "板橋廠"},
+      {"plant": "板橋廠", "name": "陳澤鍇", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00042", "email": "kane_chen@starunited.tw", "hireDate": "2025/03/18", "dept": "板橋廠接待部"},
+      {"plant": "板橋廠", "name": "陳建瑋", "title": "專員", "type": "間", "subType": "零", "category": "零件專員", "empId": "SU00073", "email": "wei_chen@starunited.tw", "hireDate": "2025/06/03", "dept": "板橋廠接待部"},
+      {"plant": "板橋廠", "name": "張詠婕", "title": "資深專員", "type": "間", "subType": "出", "category": "出納/行政", "empId": "SU00089", "email": "elle_chang@starunited.tw", "hireDate": "2025/07/01", "dept": "板橋廠接待部"},
+      {"plant": "板橋廠", "name": "林冠廷", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00114", "email": "jacky_lin@starunited.tw", "hireDate": "2025/10/07", "dept": "板橋廠接待部"},
+      {"plant": "板橋廠", "name": "黃若瑜", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00154", "email": "daisy_huang@starunited.tw", "hireDate": "2026/07/21", "dept": "板橋廠接待部"},
+      {"plant": "板橋廠", "name": "周桓慶", "title": "引電技師-B級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00043", "email": "leo_chou@starunited.tw", "hireDate": "2025/03/18", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "高培華", "title": "引電技師-A級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00044", "email": "tony_kao@starunited.tw", "hireDate": "2025/03/18", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "陳政威", "title": "技師長", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00045", "email": "alex_chen@starunited.tw", "hireDate": "2025/03/25", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "劉子豪", "title": "引電技師", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00070", "email": "zihhao_liou@starunited.tw", "hireDate": "2025/05/20", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "周郁喬", "title": "引電技師-B級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00107", "email": "yuchiao_chou@starunited.tw", "hireDate": "2025/08/19", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "周舒翊", "title": "引電技師-B級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00147", "email": "rex_chou@starunited.tw", "hireDate": "2026/05/12", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "朱志輝", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SU00150", "email": "hui_zhu@starunited.tw", "hireDate": "2026/07/01", "dept": "板橋廠維修部"},
+      {"plant": "板橋廠", "name": "李浩揚", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SU00155", "email": "hugo_li@starunited.tw", "hireDate": "2026/08/03", "dept": "板橋廠維修部"},
+      {"plant": "北投廠", "name": "莊鉅昌", "title": "專員", "type": "間", "subType": "零", "category": "零件專員", "empId": "SU00023", "email": "snow_chuang@starunited.tw", "hireDate": "2025/02/01", "dept": "北投廠接待部"},
+      {"plant": "北投廠", "name": "林嘉勤", "title": "專員", "type": "間", "subType": "出", "category": "出納/行政", "empId": "SU00024", "email": "polly_lin@starunited.tw", "hireDate": "2025/02/01", "dept": "北投廠接待部"},
+      {"plant": "北投廠", "name": "江連正", "title": "技師長", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00020", "email": "joe_chiang@starunited.tw", "hireDate": "2025/02/01", "dept": "北投廠維修部"},
+      {"plant": "北投廠", "name": "詹以雄", "title": "引電技師", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00021", "email": "eric_zhang@starunited.tw", "hireDate": "2025/02/01", "dept": "北投廠維修部"},
+      {"plant": "北投廠", "name": "陳俊逸", "title": "主任", "type": "間", "subType": "廠", "category": "廠長/主管", "empId": "SU00059", "email": "matt_chen@starunited.tw", "hireDate": "2025/04/22", "dept": "北投廠"},
+      {"plant": "北投廠", "name": "劉尚聞", "title": "專員", "type": "間", "subType": "接", "category": "服務接待", "empId": "SU00126", "email": "shangwen_liu@starunited.tw", "hireDate": "2025/11/04", "dept": "北投廠接待部"},
+      {"plant": "北投廠", "name": "詹添仁", "title": "引電技師-A級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00049", "email": "andy_chan@starunited.tw", "hireDate": "2025/04/08", "dept": "北投廠維修部"},
+      {"plant": "北投廠", "name": "張志和", "title": "引電技師-B級", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00117", "email": "chihho_chang@starunited.tw", "hireDate": "2025/10/07", "dept": "北投廠維修部"},
+      {"plant": "北投廠", "name": "李逸垣", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SU00151", "email": "ys_lee@starunited.tw", "hireDate": "2026/07/01", "dept": "北投廠維修部"},
+      {"plant": "松江廠", "name": "王子寧", "title": "專員", "type": "間", "subType": "零", "category": "零件專員", "empId": "SU00116", "email": "alvin_wang@starunited.tw", "hireDate": "2025/10/07", "dept": "松江廠接待部"},
+      {"plant": "松江廠", "name": "許雅萍", "title": "專員", "type": "間", "subType": "出", "category": "出納/行政", "empId": "SU00148", "email": "yami_hsu@starunited.tw", "hireDate": "2026/07/01", "dept": "松江廠接待部"},
+      {"plant": "松江廠", "name": "林暐哲", "title": "引電技師", "type": "直", "subType": "引", "category": "引擎/引電技師", "empId": "SU00099", "email": "lineba_lin@starunited.tw", "hireDate": "2025/07/22", "dept": "松江廠維修部"},
+      {"plant": "松江廠", "name": "陳奕翔", "title": "實習生", "type": "直", "subType": "引", "category": "實習生", "empId": "SU00156", "email": "casper_chen@starunited.tw", "hireDate": "2026/08/03", "dept": "松江廠維修部"}
     ];
 
     let currentPlant = 'ALL';
+    let currentCategory = 'ALL';
 
     function setPlant(p, btn) {
       currentPlant = p;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      render();
+    }
+
+    function setCategory(cat, btn) {
+      currentCategory = cat;
+      btn.parentElement.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('active-role');
+        b.classList.remove('active-intern');
+      });
+      if (cat === '實習生') {
+        btn.classList.add('active-intern');
+      } else {
+        btn.classList.add('active-role');
+      }
       render();
     }
 
     function render() {
       const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      
       const filtered = staffData.filter(s => {
-        const matchPlant = currentPlant === 'ALL' || s.plant === currentPlant;
-        const matchKey = !keyword || s.name.toLowerCase().includes(keyword) || s.title.toLowerCase().includes(keyword) || s.plant.toLowerCase().includes(keyword) || (s.empId && s.empId.toLowerCase().includes(keyword));
-        return matchPlant && matchKey;
+        const matchPlant = (currentPlant === 'ALL' || s.plant === currentPlant);
+        const matchCat = (currentCategory === 'ALL' || s.category === currentCategory);
+        const matchKey = !keyword || 
+          s.name.toLowerCase().includes(keyword) || 
+          s.title.toLowerCase().includes(keyword) || 
+          s.plant.toLowerCase().includes(keyword) || 
+          s.empId.toLowerCase().includes(keyword) ||
+          s.dept.toLowerCase().includes(keyword);
+        
+        return matchPlant && matchCat && matchKey;
       });
 
       const container = document.getElementById('cardContainer');
       container.innerHTML = '';
 
-      let direct = 0, indirect = 0;
+      let direct = 0, indirect = 0, interns = 0;
 
       filtered.forEach(s => {
         if (s.type === '直') direct++; else indirect++;
+        if (s.category === '實習生') interns++;
+
         const isDirect = s.type === '直';
-        const tagClass = isDirect ? 'tag-dir' : 'tag-indir';
-        const tagLabel = isDirect ? `直接人力 (${s.subType})` : `間接管理 (${s.subType})`;
+        const isIntern = s.category === '實習生';
+        
+        const tagTypeClass = isDirect ? 'tag-dir' : 'tag-indir';
+        const tagTypeLabel = isDirect ? `直接人力 (${s.subType})` : `間接管理 (${s.subType})`;
 
         const card = document.createElement('div');
         card.className = 'staff-card';
@@ -163,17 +429,25 @@
           <div>
             <div class="staff-header">
               <div>
-                <div class="staff-name">${s.name}</div>
+                <div class="staff-name-wrap">
+                  <span class="staff-name">${s.name}</span>
+                  <span class="emp-id-badge">${s.empId || '無員編'}</span>
+                </div>
                 <div class="staff-title">${s.plant} · ${s.title}</div>
               </div>
-              <span class="tag ${tagClass}">${tagLabel}</span>
+              <div class="tags-container">
+                <span class="tag ${tagTypeClass}">${tagTypeLabel}</span>
+                ${isIntern ? '<span class="tag tag-intern">🎓 實習生</span>' : ''}
+              </div>
             </div>
             <div class="staff-body">
-              <div>員工編號：${s.empId || '-'}</div>
+              <div class="staff-row-info">📍 部門：${s.dept || s.plant}</div>
+              <div class="staff-row-info">📅 到職：${s.hireDate || '資料未建'}</div>
             </div>
           </div>
           <div class="staff-footer">
-            <a class="email-link" href="mailto:${s.email}">${s.email || '-'}</a>
+            <span>✉️</span>
+            ${s.email ? `<a class="email-link" href="mailto:${s.email}">${s.email}</a>` : '<span style="color:#64748b;">未提供信箱</span>'}
           </div>
         `;
         container.appendChild(card);
@@ -182,8 +456,10 @@
       document.getElementById('totalCount').innerText = filtered.length;
       document.getElementById('directCount').innerText = direct;
       document.getElementById('indirectCount').innerText = indirect;
+      document.getElementById('internCount').innerText = interns;
     }
 
+    // 初始化渲染
     render();
   </script>
 </body>
