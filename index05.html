@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>車輛事先授權（善意保固／特案審查）送件、審核與結案標準作業程序 - 流程圖</title>
+<style>
+  :root {
+    --bg-main: #0b0f19;
+    --bg-card: #151d30;
+    --bg-card-header: #1e293b;
+    --border-card: #2d3b55;
+    --border-accent: #38bdf8;
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent-orange: #f59e0b;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-purple: #8b5cf6;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+    padding: 40px 20px 80px 20px;
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.07) 0%, transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.07) 0%, transparent 40%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Header Section */
+  .header-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid var(--border-accent);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to bottom, #38bdf8, #8b5cf6);
+  }
+
+  .main-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #ffffff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .main-title-badge {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    font-weight: 600;
+  }
+
+  /* Core Principles Banner */
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .principle-box {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-card);
+    border-radius: 8px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--accent-orange);
+  }
+
+  .principle-title {
+    font-weight: 700;
+    color: #f8fafc;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .principle-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  /* Flowchart Timeline Layout */
+  .flow-track {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin-top: 20px;
+  }
+
+  .flow-track::before {
+    content: "";
+    position: absolute;
+    top: 40px;
+    bottom: 40px;
+    left: 28px;
+    width: 3px;
+    background: linear-gradient(to bottom, #38bdf8 0%, #8b5cf6 50%, #10b981 100%);
+    z-index: 1;
+  }
+
+  .flow-node {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    z-index: 2;
+  }
+
+  .node-indicator {
+    flex-shrink: 0;
+    width: 58px;
+    height: 58px;
+    background: #0f172a;
+    border: 2px solid var(--border-accent);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+  }
+
+  .node-step-num {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .node-step-label {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .node-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .node-card:hover {
+    border-color: #38bdf8;
+    transform: translateY(-2px);
+  }
+
+  .node-card-header {
+    background: var(--bg-card-header);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-card);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .node-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .node-card-body {
+    padding: 20px;
+  }
+
+  /* Branching & Inner Cards */
+  .branch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .branch-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .branch-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 4px;
+  }
+
+  /* Content Elements */
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    color: var(--text-main);
+  }
+
+  li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: #38bdf8;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  li.sub-li {
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  li.sub-li::before {
+    content: "◦";
+    color: #94a3b8;
+  }
+
+  .checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .check-item {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px dashed #475569;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e2e8f0;
+  }
+
+  .check-box-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #38bdf8;
+    border-radius: 3px;
+  }
+
+  .dms-stage {
+    background: rgba(30, 41, 59, 0.5);
+    border-left: 3px solid #8b5cf6;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .dms-stage-title {
+    font-weight: 700;
+    color: #c084fc;
+    font-size: 13.5px;
+    margin-bottom: 2px;
+  }
+
+  .dms-stage-desc {
+    font-size: 13px;
+    color: var(--text-main);
+  }
+
+  /* Footer Sign Off */
+  .footer-sign {
+    margin-top: 40px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px 24px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 15px;
+    color: #ffffff;
+    border-right: 6px solid #38bdf8;
+  }
+
+  @media (max-width: 768px) {
+    .flow-track::before {
+      left: 19px;
+    }
+    .node-indicator {
+      width: 42px;
+      height: 42px;
+    }
+    .node-step-label {
+      font-size: 14px;
+    }
+    .flow-node {
+      gap: 14px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header & Topic -->
+  <div class="header-card">
+    <div class="main-title">
+      車輛事先授權（善意保固／特案審查）送件、審核與結案標準作業程序
+      <span class="main-title-badge">SOP 流程架構</span>
+    </div>
+
+    <!-- Section 1: Core Principles -->
+    <div style="margin-top: 16px;">
+      <div style="font-weight: 700; color: #f8fafc; font-size: 15px; margin-bottom: 8px;">一、 核心原則與送件時效</div>
+      <div class="principles-grid">
+        <div class="principle-box">
+          <div class="principle-title">即刻送件</div>
+          <div class="principle-desc">凡符合送審條件之案件，確認問題必須立即完成送件程序，嚴禁延宕。</div>
+        </div>
+        <div class="principle-box">
+          <div class="principle-title">嚴謹求證，杜絕盲猜</div>
+          <div class="principle-desc">所有申請項目必須具備完整因果邏輯鏈，嚴禁填寫與本次故障無關之零件或進行臆測性更換。</div>
+        </div>
+        <div class="principle-box" style="border-left-color: #ef4444;">
+          <div class="principle-title">一次性申請原則（嚴禁事後追加）</div>
+          <div class="principle-desc">
+            事先授權為「一次性審核」機制，一案一審。<br>
+            技師送件前務必全盤評估，完整且精確告知零件室同仁本次維修所需之全部零件清單。<br>
+            一旦案件送審或核准後，原廠一律不接受後續追加零件，若漏報需由相關人員自行負責。
+          </div>
+        </div>
+        <div class="principle-box" style="border-left-color: #64748b;">
+          <div class="principle-title">費用範圍限制</div>
+          <div class="principle-desc">事先授權項目明確不包含拖吊費（拖吊費用無法列入事先授權核賠範圍）。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flowchart Timeline -->
+  <div class="flow-track">
+
+    <!-- Node 1: Classification & Criteria -->
+    <div class="flow-node">
+      <div class="node-indicator">
+        <span class="node-step-num">STAGE</span>
+        <span class="node-step-label">01</span>
+      </div>
+      <div class="node-card">
+        <div class="node-card-header">
+          <span class="node-card-title">二、 適用案件分類與判定基準</span>
+        </div>
+        <div class="node-card-body">
+          <div class="branch-grid">
+            <div class="branch-card">
+              <div class="branch-title">（一） 新車保固常態案件（3 年／10 萬公里規範）</div>
+              <ul>
+                <li><strong>已過 3 年或 10 萬公里：</strong>針對剛過保固期之重大機件故障，若過往定期保養履歷完整且具爭取空間，主動送事先授權向總代理爭取專案善意核賠。</li>
+              </ul>
+            </div>
+            <div class="branch-card">
+              <div class="branch-title">（二） 獨立零件保固／特殊通案／爭議案件（非 3 年 10 萬公里常態）</div>
+              <ul>
+                <li><strong>電瓶案件（獨立保固 1 年／2 萬公里）：</strong>
+                  <ul>
+                    <li class="sub-li">電瓶屬消耗性零件，保固期為 1 年或 2 萬公里。</li>
+                    <li class="sub-li">剛過保固即損壞或車主認知落差產生爭執時，列入糾紛預防個案，主動送事先授權爭取（須先向車主說明為爭取性質，不保證核准）。</li>
+                  </ul>
+                </li>
+                <li><strong>車窗／擋風玻璃自爆（無外力判定困難）：</strong>
+                  <ul>
+                    <li class="sub-li">車主反映自爆且現場無從明確判定外力撞擊點者，為避免法律與責任爭議，備齊佐證照片送事先授權由原廠判定。</li>
+                  </ul>
+                </li>
+                <li><strong>車身漆面問題（強制事先授權）：</strong>
+                  <ul>
+                    <li class="sub-li">凡涉及車身漆面（起泡、掉漆、色差、瑕疵等），一律強制走事先授權程序，未獲原廠核准前嚴禁私自承諾施工。</li>
+                  </ul>
+                </li>
+                <li><strong>車燈／燈具修復更換：</strong>
+                  <ul>
+                    <li class="sub-li">針對進水、霧氣異常、內部燈珠故障或開裂案件，比照漆面嚴格採集數據與外觀特寫送審。</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node 2: Diagnostic & Data Requirements -->
+    <div class="flow-node">
+      <div class="node-indicator">
+        <span class="node-step-num">STAGE</span>
+        <span class="node-step-label">02</span>
+      </div>
+      <div class="node-card">
+        <div class="node-card-header">
+          <span class="node-card-title">三、 診斷數據與佐證資料要求</span>
+        </div>
+        <div class="node-card-body">
+          <ul>
+            <li><strong>故障碼與數值：</strong>完整讀取相關故障代碼（DTC），擷取即時數據；電瓶需附儀器量測單據（使用原廠檢測儀）。</li>
+            <li><strong>實體照片佐證：</strong>損壞、漏油、破裂、漆面或燈具瑕疵之多角度清晰特寫及遠景照。</li>
+            <li><strong>邏輯一致性：</strong>「故障代碼／檢測數值」＋「即時數據」＋「實體外觀照片」 三者必須相互呼應、邏輯。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node 3: DMS 3-Stage Narrative -->
+    <div class="flow-node">
+      <div class="node-indicator">
+        <span class="node-step-num">STAGE</span>
+        <span class="node-step-label">03</span>
+      </div>
+      <div class="node-card">
+        <div class="node-card-header">
+          <span class="node-card-title">四、 DMS 工單標準三段式敘述（供日後填寫 DIDI）</span>
+        </div>
+        <div class="node-card-body">
+          <p style="margin-bottom: 12px; font-size: 13.5px; color: var(--text-muted);">完成診斷後，務必於 DMS 工單內清楚載明以下三段陳述：</p>
+          
+          <div class="dms-stage">
+            <div class="dms-stage-title">第一段【故障現象與客戶陳述】</div>
+            <div class="dms-stage-desc">描述異常發生情境、車主訴求、儀表燈號、異音或破損外觀。</div>
+          </div>
+
+          <div class="dms-stage">
+            <div class="dms-stage-title">第二段【診斷依據與檢測數值】</div>
+            <div class="dms-stage-desc">條列檢測到的故障碼、儀器數值、漆面 / 燈具無外力撞擊佐證。</div>
+          </div>
+
+          <div class="dms-stage">
+            <div class="dms-stage-title">第三段【維修對策與更換項目】</div>
+            <div class="dms-stage-desc">明確說明判定原因，以及預計進行之零件更換、漆面烤漆或修復程序（項目須與送審清單一致）。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node 4: Submission Checklist -->
+    <div class="flow-node">
+      <div class="node-indicator">
+        <span class="node-step-num">STAGE</span>
+        <span class="node-step-label">04</span>
+      </div>
+      <div class="node-card">
+        <div class="node-card-header">
+          <span class="node-card-title">五、 送件必備檢附文件清單</span>
+        </div>
+        <div class="node-card-body">
+          <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 10px;">技師與接待送審前務必逐一核對並備齊以下資料：</p>
+          <div class="checklist">
+            <div class="check-item"><span class="check-box-icon"></span> [ ] 保固工單</div>
+            <div class="check-item"><span class="check-box-icon"></span> [ ] CIF 表單</div>
+            <div class="check-item"><span class="check-box-icon"></span> [ ] 完整診斷／檢測報告（含故障碼清單、關鍵數據流截圖或檢測單據）</div>
+            <div class="check-item"><span class="check-box-icon"></span> [ ] 損壞佐證照片／影片（漆面、燈具、玻璃需附清晰特寫）</div>
+            <div class="check-item"><span class="check-box-icon"></span> [ ] 車輛完整定期保養履歷（原廠審核善意保固之核心關鍵）</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node 5: Review & Ordering Operations -->
+    <div class="flow-node">
+      <div class="node-indicator">
+        <span class="node-step-num">STAGE</span>
+        <span class="node-step-label">05</span>
+      </div>
+      <div class="node-card">
+        <div class="node-card-header">
+          <span class="node-card-title">六、 事先授權送審與訂料作業規範</span>
+        </div>
+        <div class="node-card-body">
+          <div class="branch-grid">
+            <div class="branch-card">
+              <div class="branch-title">送件與填單</div>
+              <ul>
+                <li>技師備齊資料並確認完整零件清單後送交零件室，由零件室人員填寫事先授權單據送總代理／國外原廠審核。</li>
+                <li>原廠審核週期大約需 2 週。</li>
+              </ul>
+            </div>
+
+            <div class="branch-card">
+              <div class="branch-title">雙向同步訂料（高明確度案件）</div>
+              <ul>
+                <li>若故障原因與更換料件判定極為明確，為縮短待料工時，建議採取「一邊送審事先授權，一邊同步下單訂料」，兩者並行不衝突。</li>
+              </ul>
+            </div>
+
+            <div class="branch-card">
+              <div class="branch-title">費用屬性與判定</div>
+              <ul>
+                <li><strong>無費用案件：</strong>原廠全額核准善意／專案保固，車主無須負擔費用。</li>
+                <li><strong>潛在費用案件：</strong>部分案件依原廠審定狀態，可能僅核准部分比例負擔（車主需負擔部分料件或工資）。若對費用屬性有疑問，請於送審前向零件室確認。</li>
+              </ul>
+            </div>
+
+            <div class="branch-card">
+              <div class="branch-title">授權結果回報與客戶溝通</div>
+              <ul>
+                <li>保固專員回覆授權碼與核賠金額後，由零件室人員主動通知接待同仁。</li>
+                <li><strong>有自費金額案件：</strong>接待同仁第一時間聯繫車主說明原廠核准狀態與自費金額，徵得車主同意後始得進行後續維修與訂料。</li>
+                <li><strong>無自費金額案件：</strong>接待同仁第一時間回報車主已全額核准，並告知已安排訂料，待料件抵達後主動邀約進廠。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node 6: Completion & Closeout -->
+    <div class="flow-node">
+      <div class="node-indicator" style="border-color: #10b981; color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);">
+        <span class="node-step-num">STAGE</span>
+        <span class="node-step-label">06</span>
+      </div>
+      <div class="node-card" style="border-color: #10b981;">
+        <div class="node-card-header" style="background: #064e3b;">
+          <span class="node-card-title" style="color: #6ee7b7;">七、 完工交車與結案歸檔</span>
+        </div>
+        <div class="node-card-body">
+          <ul>
+            <li><strong>進廠施工：</strong>零件到料或施工排程確認後邀約車主進廠更換。</li>
+            <li><strong>簽名確認：</strong>完工後列印保固工單與保固結帳工單，交由車主確認並簽名。</li>
+            <li><strong>結案核銷：</strong>簽署完成之所有工單與送審資料，全數轉交至零件室辦理最終結案與核銷。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sign-off Footer -->
+  <div class="footer-sign">
+    尚鵬內湖廠長 謝或翰
+  </div>
+
+</div>
+
+</body>
+</html>
