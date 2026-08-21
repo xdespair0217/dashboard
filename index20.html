@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全品牌保險理賠與水險/運輸險作業控制台 (原廠協議 / 六和保代全車系 / 水險運輸險)</title>
+    <title>全品牌保險理賠與水險/運輸險作業控制台 (完整 45 款車種協議無缺漏版)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -83,12 +83,13 @@
             background: var(--bg-card-header);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 5px 12px;
+            padding: 5px 11px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
             font-size: 12px;
             transition: all 0.2s;
+            margin-bottom: 2px;
         }
 
         .tab-btn:hover, .tab-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
@@ -168,7 +169,7 @@
         <div>
             <h1><i class="fa-solid fa-car-burst text-cyan"></i> 全品牌保險理賠與水險/運輸險作業控制台</h1>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-                整合 ALFA ROMEO、PEUGEOT、CITROËN 原廠一般協議 / 六和保代 (六-01, 02, 03) / 水險運輸險
+                整合 ALFA ROMEO、PEUGEOT、CITROËN 原廠一般協議 / 六和保代 (六-01, 02, 03 全26款) / 水險運輸險
             </div>
         </div>
         <div id="modeStatusBadge" class="mode-badge general"><i class="fa-solid fa-shield-halved"></i> 一般車險理賠模式</div>
@@ -183,7 +184,7 @@
                     <i class="fa-solid fa-file-invoice-dollar"></i> 1. 一般產險/原廠協議 (A01/A02/ALFA)
                 </button>
                 <button class="type-btn liuhe" onclick="switchClaimMode('LIUHE')">
-                    <i class="fa-solid fa-building-columns"></i> 2. 六和保代專屬協議 (六-01/02/03 全車系)
+                    <i class="fa-solid fa-building-columns"></i> 2. 六和保代專屬協議 (六-01/02/03 全26款車型)
                 </button>
                 <button class="type-btn marine" onclick="switchClaimMode('MARINE')">
                     <i class="fa-solid fa-ship"></i> 3. 水險 / 新車運輸險 (W01/W02)
@@ -195,10 +196,11 @@
             </div>
         </div>
 
-        <!-- 品牌與車型篩選列 -->
+        <!-- 品牌篩選列 -->
         <div class="filter-row" style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
             <div class="btn-group" id="brandBtnGroup"></div>
         </div>
+        <!-- 車型篩選列 (完整展開無缺漏) -->
         <div class="filter-row" style="border-top: 1px dashed #22272e; padding-top: 6px;">
             <div class="btn-group" id="modelBtnGroup"></div>
         </div>
@@ -347,15 +349,15 @@
             { id: 31, name: "車頂天線拆裝塗裝", work: "車頂鯊魚鰭/天線更換塗裝", prices: { "2008": null, "3008": null, "508_SW": null, "5008": null, "408": null, "BERLINGO": null, "C5A": null, "GUILIA_SPRINT": { p: 1000, l: 1250 }, "GUILIA_QV": { p: 1000, l: 1250 }, "STELVIO_SPRINT": { p: 1000, l: 1250 } } }
         ];
 
-        // 2. 六和保代資料庫 (六-01 CITROEN 5款 + 六-02 PEUGEOT 16款 + 六-03 PEUGEOT 5款 = 26款)
+        // 2. 六和保代資料庫 (六-01 CITROEN 5款 + 六-02 PEUGEOT 16款 + 六-03 PEUGEOT 5款 = 26款完整車種)
         const LIUHE_MODELS = {
-            // 六-01 (CITROEN)
+            // 六-01 CITROEN (5款)
             'LIU_BERLINGO': { name: "BERLINGO K94 '18~", brand: 'CITROEN', booth: 2400 },
             'LIU_C4P': { name: "C4 Picasso '14~20", brand: 'CITROEN', booth: 2400 },
             'LIU_GC4P': { name: "Grand C4 Picasso '14~20", brand: 'CITROEN', booth: 2400 },
             'LIU_C5A': { name: "C5A '18~", brand: 'CITROEN', booth: 2400 },
             'LIU_DS3': { name: "DS3 3D '14~19", brand: 'CITROEN', booth: 2400 },
-            // 六-02 (PEUGEOT 16款)
+            // 六-02 PEUGEOT (16款)
             'LIU_208_5D': { name: "208 5D A91 '12~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_208_3D': { name: "208 3D A91 '12~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_2008_A94': { name: "2008 A94 '14~19", brand: 'PEUGEOT', booth: 2400 },
@@ -372,7 +374,7 @@
             'LIU_508_SW_R8': { name: "508 SW R8 '20~", brand: 'PEUGEOT', booth: 2400 },
             'LIU_5008_T87': { name: "5008 T87 '10~18", brand: 'PEUGEOT', booth: 2400 },
             'LIU_5008_P87': { name: "5008 P87 '18~", brand: 'PEUGEOT', booth: 2400 },
-            // 六-03 (PEUGEOT 5款新增)
+            // 六-03 PEUGEOT (5款)
             'LIU_301': { name: "301 '16~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_RIFTER': { name: "Rifter '18~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_TRAVELLER': { name: "TRAVELLER '18~21 (領航家)", brand: 'PEUGEOT', booth: 2400 },
@@ -512,7 +514,7 @@
                 document.getElementById('boothFeeRow').style.display = 'flex';
             } else if (mode === 'LIUHE') {
                 badge.className = 'mode-badge liuhe';
-                badge.innerHTML = '<i class="fa-solid fa-building-columns"></i> 六和保代專屬協議模式 (六-01 / 02 / 03 全26款車型)';
+                badge.innerHTML = '<i class="fa-solid fa-building-columns"></i> 六和保代專屬協議模式 (六-01 / 02 / 03 全26款車型完整版)';
                 typeBtns[1].classList.add('active');
                 document.getElementById('generalExtraOptions').style.display = 'none';
                 document.getElementById('laborSumRow').style.display = 'flex';
@@ -540,10 +542,10 @@
             if (currentMode === 'GENERAL') {
                 brandContainer.innerHTML = `
                     <span class="group-label">品牌切換：</span>
-                    <button class="tab-btn active" onclick="setFilter('ALL')">全部品牌對照</button>
-                    <button class="tab-btn alfa" onclick="setFilter('ALFA_ALL')">ALFA ROMEO</button>
-                    <button class="tab-btn" onclick="setFilter('PE_ALL')">PEUGEOT</button>
-                    <button class="tab-btn citroen" onclick="setFilter('CI_ALL')">CITROËN</button>
+                    <button class="tab-btn active" onclick="setFilter('ALL')">全部品牌對照 (10款)</button>
+                    <button class="tab-btn alfa" onclick="setFilter('ALFA_ALL')">ALFA ROMEO (3款)</button>
+                    <button class="tab-btn" onclick="setFilter('PE_ALL')">PEUGEOT (5款)</button>
+                    <button class="tab-btn citroen" onclick="setFilter('CI_ALL')">CITROËN (2款)</button>
                 `;
                 modelContainer.innerHTML = `
                     <span class="group-label">單一車型：</span>
@@ -561,30 +563,16 @@
             } else if (currentMode === 'LIUHE') {
                 brandContainer.innerHTML = `
                     <span class="group-label">六和品牌：</span>
-                    <button class="tab-btn liuhe active" onclick="setFilter('ALL')">六和全車型對照 (26款)</button>
+                    <button class="tab-btn liuhe active" onclick="setFilter('ALL')">六和全車型對照 (完整26款)</button>
                     <button class="tab-btn" onclick="setFilter('LIU_PE_ALL')">六和 PEUGEOT (21款)</button>
                     <button class="tab-btn citroen" onclick="setFilter('LIU_CI_ALL')">六和 CITROËN (5款)</button>
                 `;
-                modelContainer.innerHTML = `
-                    <span class="group-label">熱門車型：</span>
-                    <button class="tab-btn citroen" onclick="setFilter('LIU_BERLINGO')">布丁狗 K94</button>
-                    <button class="tab-btn citroen" onclick="setFilter('LIU_C4P')">C4 Picasso</button>
-                    <button class="tab-btn citroen" onclick="setFilter('LIU_C5A')">C5A '18~</button>
-                    <button class="tab-btn citroen" onclick="setFilter('LIU_DS3')">DS3 3D</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_2008_P24')">2008 P24</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_3008_P8')">3008 P8</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_5008_P87')">5008 P87</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_508_SW_R8')">508 SW R8</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_301')">301 '16~20</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_RIFTER')">Rifter '18~20</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_TRAVELLER')">TRAVELLER 領航家</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_RCZ')">RCZ '18~21</button>
-                    <button class="tab-btn" onclick="setFilter('LIU_408_P54')">408 P54 '23~</button>
-                `;
+                // 依據當前 filter 動態產生全部車種按鈕
+                renderLiuheModelButtons();
             } else {
                 brandContainer.innerHTML = `
                     <span class="group-label">水險品牌：</span>
-                    <button class="tab-btn active" onclick="setFilter('ALL')">全部水險對照</button>
+                    <button class="tab-btn active" onclick="setFilter('ALL')">全部水險對照 (9款)</button>
                     <button class="tab-btn alfa" onclick="setFilter('ALFA_MARINE_ALL')">ALFA 水險 (W02)</button>
                     <button class="tab-btn" onclick="setFilter('PE_TRANS_ALL')">PEUGEOT 運輸險 (W01)</button>
                     <button class="tab-btn citroen" onclick="setFilter('CI_TRANS_ALL')">CITROËN 運輸險 (W01)</button>
@@ -605,6 +593,25 @@
             }
         }
 
+        function renderLiuheModelButtons() {
+            const modelContainer = document.getElementById('modelBtnGroup');
+            let keys = Object.keys(LIUHE_MODELS);
+            if (currentFilter === 'LIU_CI_ALL') {
+                keys = keys.filter(k => LIUHE_MODELS[k].brand === 'CITROEN');
+            } else if (currentFilter === 'LIU_PE_ALL') {
+                keys = keys.filter(k => LIUHE_MODELS[k].brand === 'PEUGEOT');
+            }
+
+            let html = `<span class="group-label">車型列表 (${keys.length}款)：</span>`;
+            keys.forEach(k => {
+                const isCi = LIUHE_MODELS[k].brand === 'CITROEN';
+                const cls = isCi ? 'tab-btn citroen' : 'tab-btn';
+                const activeCls = currentFilter === k ? ' active' : '';
+                html += `<button class="${cls}${activeCls}" onclick="setFilter('${k}')">${LIUHE_MODELS[k].name}</button>`;
+            });
+            modelContainer.innerHTML = html;
+        }
+
         function populateCalcSelect() {
             const select = document.getElementById('calcModel');
             select.innerHTML = '';
@@ -622,10 +629,31 @@
 
         function setFilter(filter) {
             currentFilter = filter;
-            document.querySelectorAll('#brandBtnGroup .tab-btn, #modelBtnGroup .tab-btn').forEach(btn => {
+
+            document.querySelectorAll('#brandBtnGroup .tab-btn').forEach(btn => {
                 btn.classList.remove('active');
+                if (filter === 'ALL' && btn.innerText.includes('全部')) btn.classList.add('active');
+                else if (filter === 'ALFA_ALL' && btn.innerText.includes('ALFA')) btn.classList.add('active');
+                else if (filter === 'PE_ALL' && btn.innerText.includes('PEUGEOT')) btn.classList.add('active');
+                else if (filter === 'CI_ALL' && btn.innerText.includes('CITROËN')) btn.classList.add('active');
+                else if (filter === 'LIU_PE_ALL' && btn.innerText.includes('PEUGEOT')) btn.classList.add('active');
+                else if (filter === 'LIU_CI_ALL' && btn.innerText.includes('CITROËN')) btn.classList.add('active');
+                else if (filter === 'ALFA_MARINE_ALL' && btn.innerText.includes('ALFA')) btn.classList.add('active');
+                else if (filter === 'PE_TRANS_ALL' && btn.innerText.includes('PEUGEOT')) btn.classList.add('active');
+                else if (filter === 'CI_TRANS_ALL' && btn.innerText.includes('CITROËN')) btn.classList.add('active');
+                else if (filter === 'GENERAL_REPAIR_ALL' && btn.innerText.includes('通用')) btn.classList.add('active');
             });
-            event.target.classList.add('active');
+
+            if (currentMode === 'LIUHE') {
+                renderLiuheModelButtons();
+            } else {
+                document.querySelectorAll('#modelBtnGroup .tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${filter}'`)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
 
             let modelMap = GENERAL_MODELS;
             if (currentMode === 'LIUHE') modelMap = LIUHE_MODELS;
@@ -666,7 +694,7 @@
             } else if (currentMode === 'LIUHE') {
                 if (currentFilter === 'ALL') return Object.keys(LIUHE_MODELS);
                 if (currentFilter === 'LIU_CI_ALL') return ['LIU_BERLINGO', 'LIU_C4P', 'LIU_GC4P', 'LIU_C5A', 'LIU_DS3'];
-                if (currentFilter === 'LIU_PE_ALL') return Object.keys(LIUHE_MODELS).filter(k => k.startsWith('LIU_') && !['LIU_BERLINGO', 'LIU_C4P', 'LIU_GC4P', 'LIU_C5A', 'LIU_DS3'].includes(k));
+                if (currentFilter === 'LIU_PE_ALL') return Object.keys(LIUHE_MODELS).filter(k => LIUHE_MODELS[k].brand === 'PEUGEOT');
                 return [currentFilter];
             } else {
                 if (currentFilter === 'ALL') return Object.keys(MARINE_MODELS);
@@ -736,7 +764,7 @@
                         </td>
                     </tr>`;
                 });
-                tableBody.innerHTML = bodyHTML || '<tr><td colspan="35" style="text-align:center;padding:20px;">無符合條件的項目</td></tr>';
+                tableBody.innerHTML = bodyHTML || '<tr><td colspan="55" style="text-align:center;padding:20px;">無符合條件的項目</td></tr>';
             } else {
                 let headHTML = '<tr><th style="width:35px;">序</th><th>水險 / 運輸險項目</th><th>備註說明</th>';
                 models.forEach(m => {
@@ -1058,7 +1086,7 @@
             });
         }
 
-        // 系統啟動
+        // 初始化
         switchClaimMode('GENERAL');
     </script>
 </body>
