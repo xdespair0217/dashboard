@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全品牌保險理賠與水險/運輸險作業控制台 (完整 45 款車種協議無缺漏版)</title>
+    <title>全品牌保險理賠與水險/運輸險作業控制台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -22,6 +22,7 @@
             --accent-alfa: #c51d24;
             --accent-marine: #00bcd4;
             --hover-bg: #1f242c;
+            --selected-row-bg: rgba(57, 197, 187, 0.08);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
@@ -153,12 +154,41 @@
         th { background: var(--bg-card-header); color: var(--text-bright); padding: 10px 12px; font-weight: 600; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
         td { padding: 8px 12px; border-bottom: 1px solid #22272e; color: var(--text-main); }
         tr:hover td { background: var(--hover-bg); }
+        tr.row-selected td { background: var(--selected-row-bg) !important; }
 
         .price-paint { color: #f0883e; font-weight: 600; }
         .price-labor { color: #58a6ff; font-weight: 600; }
         .price-total { color: var(--accent-green); font-weight: 600; }
-        .btn-add { background: #238636; color: #fff; border: none; padding: 4px 9px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-add:hover { background: #2ea043; }
+
+        /* 防誤觸按鈕樣式 */
+        .btn-add {
+            background: #238636;
+            color: #fff;
+            border: 1px solid #2ea043;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-add:hover { background: #2ea043; transform: translateY(-1px); }
+
+        .btn-add.added {
+            background: #21262d;
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            box-shadow: 0 0 6px rgba(57, 197, 187, 0.3);
+        }
+        .btn-add.added:hover {
+            background: #30363d;
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
         .work-desc { font-size: 12px; color: var(--text-muted); max-width: 280px; line-height: 1.4; }
         .note-tag { background: rgba(210, 153, 34, 0.2); color: var(--accent-orange); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
     </style>
@@ -200,7 +230,7 @@
         <div class="filter-row" style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
             <div class="btn-group" id="brandBtnGroup"></div>
         </div>
-        <!-- 車型篩選列 (完整展開無缺漏) -->
+        <!-- 車型篩選列 -->
         <div class="filter-row" style="border-top: 1px dashed #22272e; padding-top: 6px;">
             <div class="btn-group" id="modelBtnGroup"></div>
         </div>
@@ -310,7 +340,7 @@
     </div>
 
     <script>
-        let currentMode = 'GENERAL'; // 'GENERAL', 'LIUHE', 'MARINE'
+        let currentMode = 'GENERAL';
         let currentFilter = 'ALL';
         let selectedItemIds = new Set();
 
@@ -349,15 +379,13 @@
             { id: 31, name: "車頂天線拆裝塗裝", work: "車頂鯊魚鰭/天線更換塗裝", prices: { "2008": null, "3008": null, "508_SW": null, "5008": null, "408": null, "BERLINGO": null, "C5A": null, "GUILIA_SPRINT": { p: 1000, l: 1250 }, "GUILIA_QV": { p: 1000, l: 1250 }, "STELVIO_SPRINT": { p: 1000, l: 1250 } } }
         ];
 
-        // 2. 六和保代資料庫 (六-01 CITROEN 5款 + 六-02 PEUGEOT 16款 + 六-03 PEUGEOT 5款 = 26款完整車種)
+        // 2. 六和保代資料庫 (26款)
         const LIUHE_MODELS = {
-            // 六-01 CITROEN (5款)
             'LIU_BERLINGO': { name: "BERLINGO K94 '18~", brand: 'CITROEN', booth: 2400 },
             'LIU_C4P': { name: "C4 Picasso '14~20", brand: 'CITROEN', booth: 2400 },
             'LIU_GC4P': { name: "Grand C4 Picasso '14~20", brand: 'CITROEN', booth: 2400 },
             'LIU_C5A': { name: "C5A '18~", brand: 'CITROEN', booth: 2400 },
             'LIU_DS3': { name: "DS3 3D '14~19", brand: 'CITROEN', booth: 2400 },
-            // 六-02 PEUGEOT (16款)
             'LIU_208_5D': { name: "208 5D A91 '12~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_208_3D': { name: "208 3D A91 '12~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_2008_A94': { name: "2008 A94 '14~19", brand: 'PEUGEOT', booth: 2400 },
@@ -374,7 +402,6 @@
             'LIU_508_SW_R8': { name: "508 SW R8 '20~", brand: 'PEUGEOT', booth: 2400 },
             'LIU_5008_T87': { name: "5008 T87 '10~18", brand: 'PEUGEOT', booth: 2400 },
             'LIU_5008_P87': { name: "5008 P87 '18~", brand: 'PEUGEOT', booth: 2400 },
-            // 六-03 PEUGEOT (5款)
             'LIU_301': { name: "301 '16~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_RIFTER': { name: "Rifter '18~20", brand: 'PEUGEOT', booth: 2400 },
             'LIU_TRAVELLER': { name: "TRAVELLER '18~21 (領航家)", brand: 'PEUGEOT', booth: 2400 },
@@ -413,7 +440,7 @@
             { id: 28, name: "後燈拆裝", work: "單邊獨立拆裝", prices: { "LIU_BERLINGO": { p: 0, l: 480 }, "LIU_C4P": { p: 0, l: 480 }, "LIU_GC4P": { p: 0, l: 480 }, "LIU_C5A": { p: 0, l: 480 }, "LIU_DS3": { p: 0, l: 480 }, "LIU_208_5D": { p: 0, l: 480 }, "LIU_208_3D": { p: 0, l: 480 }, "LIU_2008_A94": { p: 0, l: 480 }, "LIU_2008_P24": { p: 0, l: 480 }, "LIU_308_5D_T7": { p: 0, l: 600 }, "LIU_308_SW_T7": { p: 0, l: 600 }, "LIU_308_CC_T7": { p: 0, l: 720 }, "LIU_308_5D_T9": { p: 0, l: 600 }, "LIU_308_SW_T9": { p: 0, l: 600 }, "LIU_3008_T8": { p: 0, l: 600 }, "LIU_3008_P8": { p: 0, l: 1200 }, "LIU_508_4D_W2": { p: 0, l: 720 }, "LIU_508_SW_W2": { p: 0, l: 720 }, "LIU_508_SW_R8": { p: 0, l: 1440 }, "LIU_5008_T87": { p: 0, l: 600 }, "LIU_5008_P87": { p: 0, l: 1200 }, "LIU_301": { p: 0, l: 480 }, "LIU_RIFTER": { p: 0, l: 720 }, "LIU_TRAVELLER": { p: 0, l: 720 }, "LIU_RCZ": { p: 0, l: 960 }, "LIU_408_P54": { p: 0, l: 1320 } } }
         ];
 
-        // 3. 水險 / 新車運輸產險資料庫 (W01, W02)
+        // 3. 水險資料庫
         const MARINE_DATA = [
             { id: 101, name: "前葉子板 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 11352 }, "ALFA_STELVIO": { total: 12642 } } },
             { id: 102, name: "後葉子板 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 12556 }, "ALFA_STELVIO": { total: 16512 } } },
@@ -440,7 +467,6 @@
             { id: 123, name: "頭燈 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 1720, note: "僅拆裝" }, "ALFA_STELVIO": { total: 1290, note: "僅拆裝" } } },
             { id: 124, name: "尾燈 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 1118, note: "僅拆裝" }, "ALFA_STELVIO": { total: 1118, note: "僅拆裝" } } },
             { id: 125, name: "車頂天線 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 2666 }, "ALFA_STELVIO": { total: 2838 } } },
-            // 通用修補
             { id: 126, name: "鋁圈烤漆", work: "單顆鋁圈烤漆", prices: { "ALFA_GIULIA": { total: 5200 }, "ALFA_STELVIO": { total: 5200 } } },
             { id: 127, name: "CNC 雙色鋁圈切割", work: "雙色鋁圈車修加工", prices: { "ALFA_GIULIA": { total: 6550 }, "ALFA_STELVIO": { total: 6550 } } },
             { id: 128, name: "胎皮更換 (19吋以下)", work: "19吋以下輪胎拆換", prices: { "ALFA_GIULIA": { total: 800 }, "ALFA_STELVIO": { total: 800 } } },
@@ -452,7 +478,6 @@
             { id: 134, name: "前/後擋玻璃專業修補", work: "牛眼/星狀裂痕修補", prices: { "ALFA_GIULIA": { total: 4000 }, "ALFA_STELVIO": { total: 4000 } } },
             { id: 135, name: "點漆工資 (含金油)", work: "局部細微點漆與防鏽處理", prices: { "ALFA_GIULIA": { total: 250 }, "ALFA_STELVIO": { total: 250 } } },
 
-            // 法系運輸險 (W01)
             { id: 201, name: "引擎蓋 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 5500 }, "PE_3008": { total: 6200 }, "PE_5008": { total: 6200 }, "PE_408": { total: 5500 }, "CI_C5A": { total: 5500 }, "CI_BERLINGO": { total: 4600 }, "CI_C4": { total: 5500 } } },
             { id: 202, name: "車頂 (一般漆/運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 7000 }, "PE_3008": { total: 7000 }, "PE_5008": { total: 7200 }, "PE_408": { total: 6400 }, "CI_C5A": { total: 7000 }, "CI_BERLINGO": { total: 7800 }, "CI_C4": { total: 7000 } } },
             { id: 203, name: "車頂全景天窗款 (運輸險)", work: "全景車頂款式塗裝", prices: { "PE_2008": { total: 3500 }, "PE_3008": { total: 3500 }, "PE_5008": { total: 3600 }, "PE_408": { total: 3200 }, "CI_C5A": { total: 3500 }, "CI_BERLINGO": { total: 3900 }, "CI_C4": { total: 3500 } } },
@@ -567,7 +592,6 @@
                     <button class="tab-btn" onclick="setFilter('LIU_PE_ALL')">六和 PEUGEOT (21款)</button>
                     <button class="tab-btn citroen" onclick="setFilter('LIU_CI_ALL')">六和 CITROËN (5款)</button>
                 `;
-                // 依據當前 filter 動態產生全部車種按鈕
                 renderLiuheModelButtons();
             } else {
                 brandContainer.innerHTML = `
@@ -681,6 +705,7 @@
             } else {
                 if (paintSelect.value.startsWith('alfa_')) paintSelect.value = 'pe_special';
             }
+            renderTable(); // 重新渲染表格按鈕狀態
             recalculate();
         }
 
@@ -727,7 +752,7 @@
                     }
                     headHTML += `<th style="text-align:right;">${label} 塗裝</th><th style="text-align:right;">${label} 拆裝</th>`;
                 });
-                headHTML += '<th style="text-align:center;width:70px;">操作</th></tr>';
+                headHTML += '<th style="text-align:center;width:85px;">操作</th></tr>';
                 tableHead.innerHTML = headHTML;
 
                 const filtered = data.filter(item => {
@@ -738,7 +763,12 @@
 
                 let bodyHTML = '';
                 filtered.forEach(item => {
-                    bodyHTML += `<tr>
+                    const isSelected = selectedItemIds.has(item.id);
+                    const rowClass = isSelected ? 'row-selected' : '';
+                    const btnClass = isSelected ? 'btn-add added' : 'btn-add';
+                    const btnText = isSelected ? '<i class="fa-solid fa-check"></i> 已加入' : '<i class="fa-solid fa-plus"></i> 加入';
+
+                    bodyHTML += `<tr class="${rowClass}">
                         <td>${item.id}</td>
                         <td><strong>${item.name}</strong></td>
                         <td class="work-desc">${item.work}</td>`;
@@ -758,8 +788,8 @@
 
                     bodyHTML += `
                         <td style="text-align:center;">
-                            <button class="btn-add" onclick="toggleItemSelection(${item.id})">
-                                <i class="fa-solid fa-plus"></i> 加入
+                            <button class="${btnClass}" onclick="toggleItemSelection(${item.id})">
+                                ${btnText}
                             </button>
                         </td>
                     </tr>`;
@@ -771,7 +801,7 @@
                     const label = MARINE_MODELS[m].name.replace(' (水險)', '').replace(' (運輸險)', '');
                     headHTML += `<th style="text-align:right;">${label} 單價</th>`;
                 });
-                headHTML += '<th style="text-align:center;width:70px;">操作</th></tr>';
+                headHTML += '<th style="text-align:center;width:85px;">操作</th></tr>';
                 tableHead.innerHTML = headHTML;
 
                 const filtered = data.filter(item => {
@@ -782,7 +812,12 @@
 
                 let bodyHTML = '';
                 filtered.forEach(item => {
-                    bodyHTML += `<tr>
+                    const isSelected = selectedItemIds.has(item.id);
+                    const rowClass = isSelected ? 'row-selected' : '';
+                    const btnClass = isSelected ? 'btn-add added' : 'btn-add';
+                    const btnText = isSelected ? '<i class="fa-solid fa-check"></i> 已加入' : '<i class="fa-solid fa-plus"></i> 加入';
+
+                    bodyHTML += `<tr class="${rowClass}">
                         <td>${item.id}</td>
                         <td><strong>${item.name}</strong></td>
                         <td class="work-desc">${item.work}</td>`;
@@ -799,8 +834,8 @@
 
                     bodyHTML += `
                         <td style="text-align:center;">
-                            <button class="btn-add" onclick="toggleItemSelection(${item.id})">
-                                <i class="fa-solid fa-plus"></i> 加入
+                            <button class="${btnClass}" onclick="toggleItemSelection(${item.id})">
+                                ${btnText}
                             </button>
                         </td>
                     </tr>`;
@@ -813,12 +848,14 @@
             if (selectedItemIds.has(id)) selectedItemIds.delete(id);
             else selectedItemIds.add(id);
             renderSelectedItems();
+            renderTable(); // 即時更新按鈕顏色與狀態
             recalculate();
         }
 
         function clearSelectedItems() {
             selectedItemIds.clear();
             renderSelectedItems();
+            renderTable(); // 恢復所有按鈕為未加入狀態
             recalculate();
         }
 
@@ -846,14 +883,14 @@
                         html += `
                             <div class="bill-item">
                                 <div><strong>${item.name}</strong> <span style="font-size:11px;color:var(--text-muted);">(塗: $${p.p.toLocaleString()} / 工: $${p.l.toLocaleString()})</span></div>
-                                <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" onclick="toggleItemSelection(${item.id})"></i>
+                                <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" title="移除項目" onclick="toggleItemSelection(${item.id})"></i>
                             </div>
                         `;
                     } else {
                         html += `
                             <div class="bill-item">
                                 <div><strong>${item.name}</strong> <span style="font-size:11px;color:var(--accent-cyan);">(理賠價: $${p.total.toLocaleString()})</span></div>
-                                <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" onclick="toggleItemSelection(${item.id})"></i>
+                                <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" title="移除項目" onclick="toggleItemSelection(${item.id})"></i>
                             </div>
                         `;
                     }
@@ -861,7 +898,7 @@
                     html += `
                         <div class="bill-item" style="color:var(--text-muted);">
                             <div>${item.name} <span style="font-size:11px;color:var(--accent-red);">(此車型不適用)</span></div>
-                            <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" onclick="toggleItemSelection(${item.id})"></i>
+                            <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" title="移除項目" onclick="toggleItemSelection(${item.id})"></i>
                         </div>
                     `;
                 }
@@ -1086,7 +1123,7 @@
             });
         }
 
-        // 初始化
+        // 系統啟動
         switchClaimMode('GENERAL');
     </script>
 </body>
