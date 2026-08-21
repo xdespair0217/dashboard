@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全品牌保險理賠與水險/運輸險作業控制台 (原廠協議 / 六和保代全車系 / 水險運輸險)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-header: #21262d;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --text-bright: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-cyan: #39c5bb;
+            --accent-green: #3fb950;
+            --accent-orange: #d29922;
+            --accent-red: #f85149;
+            --accent-alfa: #c51d24;
+            --accent-marine: #00bcd4;
+            --hover-bg: #1f242c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding: 20px; font-size: 14px; line-height: 1.5; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #182333 0%, #0d1117 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        header h1 { font-size: 20px; color: var(--text-bright); display: flex; align-items: center; gap: 10px; }
+        .mode-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid transparent; }
+        .mode-badge.general { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); border-color: var(--accent-blue); }
+        .mode-badge.liuhe { background: rgba(210, 153, 34, 0.2); color: #f2cc60; border-color: var(--accent-orange); }
+        .mode-badge.marine { background: rgba(0, 188, 212, 0.15); color: var(--accent-marine); border-color: var(--accent-marine); }
+
+        .controls-bar {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+        .btn-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .group-label { font-size: 12px; font-weight: bold; color: var(--text-muted); margin-right: 4px; }
+
+        .type-btn {
+            background: #21262d;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .type-btn.active.general { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); box-shadow: 0 0 10px rgba(88, 166, 255, 0.4); }
+        .type-btn.active.liuhe { background: #b07d12; color: #fff; border-color: #f2cc60; box-shadow: 0 0 10px rgba(242, 204, 96, 0.4); }
+        .type-btn.active.marine { background: var(--accent-marine); color: #000; border-color: var(--accent-marine); box-shadow: 0 0 10px rgba(0, 188, 212, 0.5); }
+
+        .tab-btn {
+            background: var(--bg-card-header);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover, .tab-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+        .tab-btn.alfa.active { background: var(--accent-alfa); border-color: var(--accent-alfa); }
+        .tab-btn.citroen.active { background: #e05638; border-color: #e05638; }
+        .tab-btn.liuhe.active { background: #b07d12; border-color: #f2cc60; color: #fff; }
+
+        .search-box { position: relative; width: 100%; max-width: 380px; }
+        .search-box input {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 7px 12px 7px 34px;
+            color: var(--text-bright);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .search-box i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        .main-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; margin-bottom: 20px; }
+        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .card-header {
+            background: var(--bg-card-header);
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-bright);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .card-body { padding: 18px; }
+
+        .calc-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .select-field { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-bright); padding: 8px 10px; border-radius: 6px; width: 100%; font-size: 13px; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+        .bill-items-container { max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-main); margin-bottom: 12px; }
+        .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #22272e; font-size: 13px; }
+        .bill-item:last-child { border-bottom: none; }
+
+        .summary-box { background: #111722; border: 1px solid #293241; padding: 14px; border-radius: 6px; margin-bottom: 12px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+        .summary-row.total { font-size: 17px; font-weight: bold; color: var(--accent-orange); border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 8px; }
+
+        .output-box { background: #090d13; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; color: #7ee787; max-height: 130px; overflow-y: auto; margin-bottom: 12px; }
+        .btn-action { background: var(--accent-cyan); color: #0d1117; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center; transition: 0.2s; }
+        .btn-action:hover { filter: brightness(1.1); }
+
+        .rules-list { list-style: none; font-size: 13px; }
+        .rules-list li { padding: 9px 0; border-bottom: 1px solid #22272e; display: flex; gap: 10px; }
+        .rules-list li:last-child { border-bottom: none; }
+        .tag-pill { background: #232a35; color: var(--accent-blue); padding: 2px 7px; border-radius: 4px; font-size: 11px; border: 1px solid #384353; display: inline-block; margin: 2px; }
+        .tag-pill.alfa { color: #ff7b72; border-color: #5a1e22; }
+
+        .table-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th { background: var(--bg-card-header); color: var(--text-bright); padding: 10px 12px; font-weight: 600; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #22272e; color: var(--text-main); }
+        tr:hover td { background: var(--hover-bg); }
+
+        .price-paint { color: #f0883e; font-weight: 600; }
+        .price-labor { color: #58a6ff; font-weight: 600; }
+        .price-total { color: var(--accent-green); font-weight: 600; }
+        .btn-add { background: #238636; color: #fff; border: none; padding: 4px 9px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-add:hover { background: #2ea043; }
+        .work-desc { font-size: 12px; color: var(--text-muted); max-width: 280px; line-height: 1.4; }
+        .note-tag { background: rgba(210, 153, 34, 0.2); color: var(--accent-orange); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1><i class="fa-solid fa-car-burst text-cyan"></i> 全品牌保險理賠與水險/運輸險作業控制台</h1>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                整合 ALFA ROMEO、PEUGEOT、CITROËN 原廠一般協議 / 六和保代 (六-01, 02, 03) / 水險運輸險
+            </div>
+        </div>
+        <div id="modeStatusBadge" class="mode-badge general"><i class="fa-solid fa-shield-halved"></i> 一般車險理賠模式</div>
+    </header>
+
+    <div class="controls-bar">
+        <!-- 頂部：險種體系三軌切換 -->
+        <div class="filter-row">
+            <div class="btn-group">
+                <span class="group-label">協議體系：</span>
+                <button class="type-btn general active" onclick="switchClaimMode('GENERAL')">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> 1. 一般產險/原廠協議 (A01/A02/ALFA)
+                </button>
+                <button class="type-btn liuhe" onclick="switchClaimMode('LIUHE')">
+                    <i class="fa-solid fa-building-columns"></i> 2. 六和保代專屬協議 (六-01/02/03 全車系)
+                </button>
+                <button class="type-btn marine" onclick="switchClaimMode('MARINE')">
+                    <i class="fa-solid fa-ship"></i> 3. 水險 / 新車運輸險 (W01/W02)
+                </button>
+            </div>
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="搜尋部品、玻璃、輪圈、水切、凹痕、擾流板..." oninput="renderTable()">
+            </div>
+        </div>
+
+        <!-- 品牌與車型篩選列 -->
+        <div class="filter-row" style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
+            <div class="btn-group" id="brandBtnGroup"></div>
+        </div>
+        <div class="filter-row" style="border-top: 1px dashed #22272e; padding-top: 6px;">
+            <div class="btn-group" id="modelBtnGroup"></div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- 左側：估價試算工具 -->
+        <div class="card">
+            <div class="card-header">
+                <span id="calcCardTitle"><i class="fa-solid fa-calculator"></i> 理賠估價與字串生成工具</span>
+                <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;" onclick="clearSelectedItems()">
+                    <i class="fa-solid fa-rotate-left"></i> 清空重選
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="calc-options">
+                    <div>
+                        <label style="display:block;margin-bottom:5px;font-size:12px;">受損車型：</label>
+                        <select class="select-field" id="calcModel" onchange="onCalcModelChange()"></select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:5px;font-size:12px;">特殊漆料模式：</label>
+                        <select class="select-field" id="paintType" onchange="recalculate()">
+                            <option value="none">一般標準漆 (0%)</option>
+                            <option value="pe_special">法系/六和特殊漆 (+15% 塗裝)</option>
+                            <option value="alfa_2layer">Alfa 特殊漆 (+20% 塗裝)</option>
+                            <option value="alfa_3layer">Alfa 三層特殊漆 645 (+30% 塗裝)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-options" id="generalExtraOptions" style="margin-top:-4px;">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="includeInnerPaint" onchange="recalculate()">
+                        <span>Alfa 內裡烤漆 (+30% 外表)</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="includeDiagFee" onchange="recalculate()">
+                        <span>Alfa 電腦診斷設定 (+$2,000)</span>
+                    </label>
+                </div>
+
+                <div style="font-size:12px;margin-bottom:5px;color:var(--text-muted);">已加入理賠清單項目：</div>
+                <div class="bill-items-container" id="selectedItemsList">
+                    <div style="padding:15px;text-align:center;color:var(--text-muted);">尚未加入任何項目，請從下方對照表點擊「+ 加入」</div>
+                </div>
+
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>基礎塗裝金額：</span>
+                        <span id="basePaintSum">$0</span>
+                    </div>
+                    <div class="summary-row" id="innerPaintRow" style="display:none;">
+                        <span>總成內裡烤漆 (外表 30%)：</span>
+                        <span id="innerPaintSum" style="color:var(--accent-orange);">$0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>特殊漆料加成：</span>
+                        <span id="specialPaintSum" style="color:var(--accent-orange);">$0</span>
+                    </div>
+                    <div class="summary-row" id="laborSumRow">
+                        <span>拆裝工資合計：</span>
+                        <span id="laborSum">$0</span>
+                    </div>
+                    <div class="summary-row" id="boothFeeRow">
+                        <span id="boothFeeLabel">烤漆房及調漆費：</span>
+                        <span id="boothFee">$0</span>
+                    </div>
+                    <div class="summary-row" id="diagFeeRow" style="display:none;">
+                        <span>電腦診斷設定費用：</span>
+                        <span id="diagFee">$2,000</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>理賠總計金額 (含稅)：</span>
+                        <span id="grandTotal">$0</span>
+                    </div>
+                </div>
+
+                <div class="output-box" id="outputPreview">尚未生成報價備註字串</div>
+                <button class="btn-action" onclick="copyOutputText()">
+                    <i class="fa-regular fa-copy"></i> 一鍵複製 DMS / 保險系統備註
+                </button>
+            </div>
+        </div>
+
+        <!-- 右側：協議規範庫 -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="fa-solid fa-book-bookmark"></i> 協議核心規範與作業指引</span>
+            </div>
+            <div class="card-body">
+                <ul class="rules-list" id="rulesListContent"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部：全功能對照表 -->
+    <div class="table-card">
+        <div class="card-header">
+            <span id="tableTitle"><i class="fa-solid fa-table-list"></i> 理賠塗裝拆裝協議價格對照表</span>
+            <span style="font-size:12px;color:var(--text-muted);">單位：新台幣 (NTD 已含稅)</span>
+        </div>
+        <table id="priceTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentMode = 'GENERAL'; // 'GENERAL', 'LIUHE', 'MARINE'
+        let currentFilter = 'ALL';
+        let selectedItemIds = new Set();
+
+        // 1. 一般車險理賠資料庫 (A01, A02, ALFA01)
+        const GENERAL_DATA = [
+            { id: 1, name: "前保險桿拆裝", work: "單純拆裝不含配件", prices: { "2008": { p: 7200, l: 1800 }, "3008": { p: 6840, l: 3120 }, "508_SW": { p: 7560, l: 1800 }, "5008": { p: 6480, l: 2640 }, "408": { p: 8520, l: 1560 }, "BERLINGO": { p: 7560, l: 2280 }, "C5A": { p: 6120, l: 2400 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 2, name: "前保險桿", work: "含拆水箱護罩、通風網、左右霧燈、下唇板、飾條、前雷達、盲點偵測器雷達、緩衝墊、左右保桿支架、上飾蓋、廠徽標誌、日行燈", prices: { "2008": { p: 7200, l: 3480 }, "3008": { p: 6840, l: 4800 }, "508_SW": { p: 7560, l: 3480 }, "5008": { p: 6480, l: 4320 }, "408": { p: 8520, l: 7920 }, "BERLINGO": { p: 7560, l: 3960 }, "C5A": { p: 6120, l: 4200 }, "GUILIA_SPRINT": { p: 7000, l: 3000 }, "GUILIA_QV": { p: 9000, l: 3000 }, "STELVIO_SPRINT": { p: 9000, l: 3000 } } },
+            { id: 3, name: "後保險桿拆裝", work: "單純拆裝不含配件", prices: { "2008": { p: 5760, l: 1440 }, "3008": { p: 4800, l: 1440 }, "508_SW": { p: 7320, l: 1440 }, "5008": { p: 5520, l: 1440 }, "408": { p: 6600, l: 1080 }, "BERLINGO": { p: 5280, l: 1560 }, "C5A": { p: 5400, l: 1800 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 4, name: "後保險桿", work: "含拆下飾板、倒車燈、反光片、鉚釘、左彎角、右彎角、加強板、盲點偵測器、左右保桿支架、倒車雷達、倒車鏡頭", prices: { "2008": { p: 5760, l: 2760 }, "3008": { p: 4800, l: 2760 }, "508_SW": { p: 7320, l: 2640 }, "5008": { p: 5520, l: 2520 }, "408": { p: 6600, l: 5760 }, "BERLINGO": { p: 5280, l: 2640 }, "C5A": { p: 5400, l: 3600 }, "GUILIA_SPRINT": { p: 7000, l: 3000 }, "GUILIA_QV": { p: 9000, l: 3000 }, "STELVIO_SPRINT": { p: 9000, l: 3000 } } },
+            { id: 5, name: "引擎蓋受損拆裝", work: "含拆隔熱墊、雨刷噴水頭、標誌", prices: { "2008": { p: 9600, l: 600 }, "3008": { p: 10800, l: 600 }, "508_SW": { p: 12720, l: 600 }, "5008": { p: 10800, l: 600 }, "408": { p: 14760, l: 480 }, "BERLINGO": { p: 8040, l: 480 }, "C5A": { p: 9480, l: 600 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 6, name: "引擎蓋總成更換", work: "含拆飾條、隔熱墊、六角鎖、緩衝橡皮、防水條、支架、油壓頂桿、雨刷噴水頭、標誌", prices: { "2008": { p: 10200, l: 1800 }, "3008": { p: 11400, l: 2280 }, "508_SW": { p: 13320, l: 2400 }, "5008": { p: 11400, l: 2040 }, "408": { p: 15600, l: 1200 }, "BERLINGO": { p: 8640, l: 2280 }, "C5A": { p: 10080, l: 2400 }, "GUILIA_SPRINT": { p: 9000, l: 2500 }, "GUILIA_QV": { p: 16000, l: 2500, note: "碳纖維" }, "STELVIO_SPRINT": { p: 12000, l: 2500 } } },
+            { id: 7, name: "前擋玻璃拆裝", work: "含前檔飾條-雨刷通風網", prices: { "2008": { p: 0, l: 3360 }, "3008": { p: 0, l: 3960 }, "508_SW": { p: 0, l: 3720 }, "5008": { p: 0, l: 3960 }, "408": { p: 0, l: 4800 }, "BERLINGO": { p: 0, l: 4440 }, "C5A": { p: 0, l: 3360 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 8, name: "前葉子鈑受損拆裝", work: "輪弧飾板", prices: { "2008": { p: 6240, l: 960 }, "3008": { p: 6600, l: 960 }, "508_SW": { p: 6840, l: 960 }, "5008": { p: 6600, l: 960 }, "408": { p: 5400, l: 2280 }, "BERLINGO": { p: 6120, l: 960 }, "C5A": { p: 6240, l: 960 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 9, name: "前葉子板總成更換", work: "輪弧飾板、葉子板通風網、葉子板燈組、保險桿單邊、內龜板、隔離板、擋泥板、方向燈、廠徽標誌", prices: { "2008": { p: 6720, l: 2760 }, "3008": { p: 6960, l: 3600 }, "508_SW": { p: 7200, l: 3360 }, "5008": { p: 6960, l: 3600 }, "408": { p: 6360, l: 2760 }, "BERLINGO": { p: 6840, l: 3240 }, "C5A": { p: 6960, l: 3240 }, "GUILIA_SPRINT": { p: 4000, l: 3000 }, "GUILIA_QV": { p: 7500, l: 3000 }, "STELVIO_SPRINT": { p: 8000, l: 3000 } } },
+            { id: 10, name: "前門受損配件拆裝", work: "含拆護條、內飾板、外把手、鎖仁組、外水切、後視鏡、標誌", prices: { "2008": { p: 7320, l: 1800 }, "3008": { p: 7560, l: 1920 }, "508_SW": { p: 7440, l: 1680 }, "5008": { p: 7560, l: 1920 }, "408": { p: 11160, l: 2280 }, "BERLINGO": { p: 7200, l: 1440 }, "C5A": { p: 6960, l: 1440 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 11, name: "前門總成更換", work: "含拆護條、內飾板、內外把手、鎖仁、內外水切、六角鎖、門框橡皮、防水條、泥槽、馬達、升降機、中控鎖、上下鉸鏈、止檔器、後視鏡、門玻璃、車身膠、標誌", prices: { "2008": { p: 7920, l: 3840 }, "3008": { p: 8160, l: 4200 }, "508_SW": { p: 7920, l: 4200 }, "5008": { p: 8160, l: 4200 }, "408": { p: 12120, l: 4080 }, "BERLINGO": { p: 8160, l: 3240 }, "C5A": { p: 7800, l: 3360 }, "GUILIA_SPRINT": { p: 6000, l: 7500 }, "GUILIA_QV": { p: 9000, l: 7500 }, "STELVIO_SPRINT": { p: 9500, l: 7500 } } },
+            { id: 12, name: "後門受損配件拆裝", work: "含拆護條、內飾板、外把手、外水切、軌道鉸鏈", prices: { "2008": { p: 7320, l: 960 }, "3008": { p: 7560, l: 1680 }, "508_SW": { p: 7560, l: 960 }, "5008": { p: 7560, l: 1680 }, "408": { p: 10680, l: 2040 }, "BERLINGO": { p: 7200, l: 2520 }, "C5A": { p: 7320, l: 840 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 13, name: "後門總成更換", work: "含拆護條、內飾板、後門模塊面板組件、內外把手、內外水切、六角鎖、門框橡皮、防水條、泥槽、馬達、升降機、上下鉸鏈、止檔器、滑動架、門玻璃", prices: { "2008": { p: 7920, l: 3840 }, "3008": { p: 8160, l: 4200 }, "508_SW": { p: 8040, l: 4200 }, "5008": { p: 8160, l: 4200 }, "408": { p: 11640, l: 3480 }, "BERLINGO": { p: 8160, l: 4080 }, "C5A": { p: 7920, l: 3240 }, "GUILIA_SPRINT": { p: 6000, l: 6250 }, "GUILIA_QV": { p: 9000, l: 6250 }, "STELVIO_SPRINT": { p: 9500, l: 6250 } } },
+            { id: 14, name: "戶定受損配件拆裝", work: "側裙", prices: { "2008": { p: 8160, l: 0 }, "3008": { p: 7800, l: 1440 }, "508_SW": { p: 7920, l: 0 }, "5008": { p: 7800, l: 1440 }, "408": { p: 8640, l: 1080 }, "BERLINGO": { p: 7200, l: 0 }, "C5A": { p: 7200, l: 0 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 15, name: "戶定總成更換", work: "含拆前後單邊座椅、地毯飾蓋、防水條、地毯半掀、側裙、門、切焊", prices: { "2008": { p: 9360, l: 7800 }, "3008": { p: 9000, l: 8160 }, "508_SW": { p: 9120, l: 8400 }, "5008": { p: 9000, l: 8160 }, "408": { p: 9600, l: 8760 }, "BERLINGO": { p: 8160, l: 7320 }, "C5A": { p: 8160, l: 7440 }, "GUILIA_SPRINT": { p: 3000, l: 3750 }, "GUILIA_QV": { p: 5000, l: 3750 }, "STELVIO_SPRINT": { p: 5000, l: 3750 } } },
+            { id: 16, name: "後葉子鈑配件拆裝", work: "輪弧飾板", prices: { "2008": { p: 7440, l: 960 }, "3008": { p: 7680, l: 960 }, "508_SW": { p: 8160, l: 960 }, "5008": { p: 7680, l: 960 }, "408": { p: 5880, l: 2400 }, "BERLINGO": { p: 8400, l: 960 }, "C5A": { p: 6960, l: 960 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 17, name: "後葉子鈑總成更換 (右)(左)", work: "含拆後燈、後保險桿、單邊車頂飾條、輪弧飾板、下側裙、內龜板、切焊、(不含內裝及三角窗玻璃)", prices: { "2008": { p: 8640, l: 8160 }, "3008": { p: 8640, l: 8400 }, "508_SW": { p: 9120, l: 8880 }, "5008": { p: 8640, l: 8400 }, "408": { p: 6840, l: 22560 }, "BERLINGO": { p: 9360, l: 9000 }, "C5A": { p: 7560, l: 8400 }, "GUILIA_SPRINT": { p: 4000, l: 12500 }, "GUILIA_QV": { p: 9000, l: 12500 }, "STELVIO_SPRINT": { p: 9000, l: 12500 } } },
+            { id: 18, name: "後箱(尾門)蓋", work: "含拆所有標誌、內飾板、倒車攝影鏡頭、外把手、防水條、第三煞車燈、後尾燈、反光燈條、鍍鉻飾條、下飾板", prices: { "2008": { p: 9360, l: 1440 }, "3008": { p: 8760, l: 1800 }, "508_SW": { p: 8520, l: 1440 }, "5008": { p: 8760, l: 1800 }, "408": { p: 12360, l: 3000 }, "BERLINGO": { p: 8520, l: 2640 }, "C5A": { p: 8520, l: 2760 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": { p: 4000, l: 2000 } } },
+            { id: 19, name: "後箱(尾門)蓋總成更換", work: "含拆左右飾條、左右車頂架、內裝頂篷、拆焊、防鏽拆所有標誌、內飾板、倒車攝影鏡頭、外把手、防水條、第三煞車燈、後尾燈、反光燈條、鍍鉻飾條、雨刷馬達", prices: { "2008": { p: 9960, l: 3840 }, "3008": { p: 9360, l: 5760 }, "508_SW": { p: 9120, l: 3840 }, "5008": { p: 9360, l: 5760 }, "408": { p: 13320, l: 3960 }, "BERLINGO": { p: 9120, l: 4440 }, "C5A": { p: 9000, l: 4560 }, "GUILIA_SPRINT": { p: 9000, l: 3750 }, "GUILIA_QV": { p: 12000, l: 3750 }, "STELVIO_SPRINT": { p: 8000, l: 3750 } } },
+            { id: 20, name: "後擋玻璃拆裝", work: "含玻璃拆裝、雨刷馬達、內飾板", prices: { "2008": { p: 0, l: 3000 }, "3008": { p: 0, l: 3000 }, "508_SW": { p: 0, l: 3000 }, "5008": { p: 0, l: 3000 }, "408": { p: 0, l: 2040 }, "BERLINGO": { p: 0, l: 3000 }, "C5A": { p: 0, l: 3000 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 21, name: "車頂更換", work: "含拆左右飾條、左右車頂架、內裝頂篷、天線", prices: { "2008": { p: 12600, l: 9600 }, "3008": { p: 12960, l: 10200 }, "508_SW": { p: 13200, l: 9600 }, "5008": { p: 12960, l: 10200 }, "408": { p: 14400, l: 12480 }, "BERLINGO": { p: 13680, l: 8400 }, "C5A": { p: 12720, l: 7800 }, "GUILIA_SPRINT": { p: 12000, l: 11250 }, "GUILIA_QV": { p: 20000, l: 11250, note: "碳纖維" }, "STELVIO_SPRINT": { p: 15000, l: 11250 } } },
+            { id: 22, name: "車頂更換(全景天窗)", work: "必要零件之拆裝另計", prices: { "2008": { p: 7440, l: 6240 }, "3008": { p: 7800, l: 6000 }, "508_SW": { p: 7200, l: 6000 }, "5008": { p: 7800, l: 6000 }, "408": { p: 7440, l: 12480 }, "BERLINGO": { p: 9360, l: 6240 }, "C5A": { p: 9000, l: 7080 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 23, name: "天窗玻璃拆裝", work: "含該拆零件", prices: { "2008": { p: 0, l: 7560 }, "3008": { p: 0, l: 7560 }, "508_SW": { p: 0, l: 7560 }, "5008": { p: 0, l: 7560 }, "408": { p: 0, l: 5880 }, "BERLINGO": { p: 0, l: 7080 }, "C5A": { p: 0, l: 7080 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 24, name: "擾流板 / 後擋擾流", work: "含該拆零件", prices: { "2008": { p: 3000, l: 1200 }, "3008": { p: 0, l: 0 }, "508_SW": { p: 0, l: 0 }, "5008": { p: 0, l: 0 }, "408": { p: 0, l: 0 }, "BERLINGO": { p: 2760, l: 720 }, "C5A": { p: 2760, l: 720 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": { p: 2500, l: 1250 } } },
+            { id: 25, name: "後視鏡外蓋拆裝", work: "含鏡片、外蓋", prices: { "2008": { p: 720, l: 360 }, "3008": { p: 720, l: 360 }, "508_SW": { p: 720, l: 360 }, "5008": { p: 720, l: 360 }, "408": { p: 720, l: 240 }, "BERLINGO": { p: 720, l: 360 }, "C5A": { p: 720, l: 360 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 26, name: "後視鏡拆裝更換", work: "含拆車門內飾板、LED方向燈、後視鏡馬達、下蓋分解、鏡片、外蓋", prices: { "2008": { p: 720, l: 960 }, "3008": { p: 720, l: 720 }, "508_SW": { p: 720, l: 480 }, "5008": { p: 720, l: 720 }, "408": { p: 720, l: 720 }, "BERLINGO": { p: 720, l: 720 }, "C5A": { p: 720, l: 720 }, "GUILIA_SPRINT": { p: 800, l: 1500 }, "GUILIA_QV": { p: 1500, l: 1500 }, "STELVIO_SPRINT": { p: 1500, l: 1500 } } },
+            { id: 27, name: "大燈拆裝", work: "單邊獨立拆裝", prices: { "2008": { p: 0, l: 840 }, "3008": { p: 0, l: 960 }, "508_SW": { p: 0, l: 960 }, "5008": { p: 0, l: 960 }, "408": { p: 0, l: 1800 }, "BERLINGO": { p: 0, l: 840 }, "C5A": { p: 0, l: 840 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 28, name: "後燈拆裝", work: "單邊獨立拆裝", prices: { "2008": { p: 0, l: 480 }, "3008": { p: 0, l: 1200 }, "508_SW": { p: 0, l: 1440 }, "5008": { p: 0, l: 1200 }, "408": { p: 0, l: 1320 }, "BERLINGO": { p: 0, l: 480 }, "C5A": { p: 0, l: 480 }, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": null } },
+            { id: 29, name: "後保險桿下飾板", work: "下飾板獨立拆裝/塗裝", prices: { "2008": null, "3008": null, "508_SW": null, "5008": null, "408": null, "BERLINGO": null, "C5A": null, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": { p: 3000, l: 2000 } } },
+            { id: 30, name: "車輪輪弧/片", work: "輪弧飾片獨立拆裝/塗裝", prices: { "2008": null, "3008": null, "508_SW": null, "5008": null, "408": null, "BERLINGO": null, "C5A": null, "GUILIA_SPRINT": null, "GUILIA_QV": null, "STELVIO_SPRINT": { p: 2000, l: 1250 } } },
+            { id: 31, name: "車頂天線拆裝塗裝", work: "車頂鯊魚鰭/天線更換塗裝", prices: { "2008": null, "3008": null, "508_SW": null, "5008": null, "408": null, "BERLINGO": null, "C5A": null, "GUILIA_SPRINT": { p: 1000, l: 1250 }, "GUILIA_QV": { p: 1000, l: 1250 }, "STELVIO_SPRINT": { p: 1000, l: 1250 } } }
+        ];
+
+        // 2. 六和保代資料庫 (六-01 CITROEN 5款 + 六-02 PEUGEOT 16款 + 六-03 PEUGEOT 5款 = 26款)
+        const LIUHE_MODELS = {
+            // 六-01 (CITROEN)
+            'LIU_BERLINGO': { name: "BERLINGO K94 '18~", brand: 'CITROEN', booth: 2400 },
+            'LIU_C4P': { name: "C4 Picasso '14~20", brand: 'CITROEN', booth: 2400 },
+            'LIU_GC4P': { name: "Grand C4 Picasso '14~20", brand: 'CITROEN', booth: 2400 },
+            'LIU_C5A': { name: "C5A '18~", brand: 'CITROEN', booth: 2400 },
+            'LIU_DS3': { name: "DS3 3D '14~19", brand: 'CITROEN', booth: 2400 },
+            // 六-02 (PEUGEOT 16款)
+            'LIU_208_5D': { name: "208 5D A91 '12~20", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_208_3D': { name: "208 3D A91 '12~20", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_2008_A94': { name: "2008 A94 '14~19", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_2008_P24': { name: "2008 P24 '20~", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_308_5D_T7': { name: "308 5D T7 '08~14", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_308_SW_T7': { name: "308 SW T7 '08~14", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_308_CC_T7': { name: "308 CC T7 '08~14", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_308_5D_T9': { name: "308 5D T9 '15~20", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_308_SW_T9': { name: "308 SW T9 '15~20", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_3008_T8': { name: "3008 T8 '10~17", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_3008_P8': { name: "3008 P8 '17~", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_508_4D_W2': { name: "508 4D W2 '12~19", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_508_SW_W2': { name: "508 SW W2 '12~19", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_508_SW_R8': { name: "508 SW R8 '20~", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_5008_T87': { name: "5008 T87 '10~18", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_5008_P87': { name: "5008 P87 '18~", brand: 'PEUGEOT', booth: 2400 },
+            // 六-03 (PEUGEOT 5款新增)
+            'LIU_301': { name: "301 '16~20", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_RIFTER': { name: "Rifter '18~20", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_TRAVELLER': { name: "TRAVELLER '18~21 (領航家)", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_RCZ': { name: "RCZ '18~21", brand: 'PEUGEOT', booth: 2400 },
+            'LIU_408_P54': { name: "408 P54 '23~", brand: 'PEUGEOT', booth: 2400 }
+        };
+
+        const LIUHE_DATA = [
+            { id: 1, name: "前保險桿拆裝", work: "單純拆裝不含配件", prices: { "LIU_BERLINGO": { p: 7560, l: 2280 }, "LIU_C4P": { p: 7920, l: 2400 }, "LIU_GC4P": { p: 7920, l: 2400 }, "LIU_C5A": { p: 6120, l: 2400 }, "LIU_DS3": { p: 6120, l: 2160 }, "LIU_208_5D": { p: 6960, l: 1560 }, "LIU_208_3D": { p: 6960, l: 1560 }, "LIU_2008_A94": { p: 6240, l: 1560 }, "LIU_2008_P24": { p: 7200, l: 1800 }, "LIU_308_5D_T7": { p: 6480, l: 1800 }, "LIU_308_SW_T7": { p: 6480, l: 1800 }, "LIU_308_CC_T7": { p: 6480, l: 1800 }, "LIU_308_5D_T9": { p: 6840, l: 1800 }, "LIU_308_SW_T9": { p: 6840, l: 1800 }, "LIU_3008_T8": { p: 6720, l: 1800 }, "LIU_3008_P8": { p: 6840, l: 3120 }, "LIU_508_4D_W2": { p: 7200, l: 1680 }, "LIU_508_SW_W2": { p: 7200, l: 1680 }, "LIU_508_SW_R8": { p: 7560, l: 1800 }, "LIU_5008_T87": { p: 7200, l: 1680 }, "LIU_5008_P87": { p: 6480, l: 2640 }, "LIU_301": { p: 6000, l: 1320 }, "LIU_RIFTER": { p: 4080, l: 1320 }, "LIU_TRAVELLER": { p: 6360, l: 2040 }, "LIU_RCZ": { p: 6600, l: 1560 }, "LIU_408_P54": { p: 8520, l: 1560 } } },
+            { id: 2, name: "前保險桿", work: "含拆水箱護罩、通風網、左右霧燈、下唇板、飾條、前雷達、盲點偵測器雷達、緩衝墊、左右保桿支架、上飾蓋、廠徽標誌、日行燈", prices: { "LIU_BERLINGO": { p: 7560, l: 3960 }, "LIU_C4P": { p: 7920, l: 4200 }, "LIU_GC4P": { p: 7920, l: 4200 }, "LIU_C5A": { p: 6120, l: 4200 }, "LIU_DS3": { p: 6120, l: 3600 }, "LIU_208_5D": { p: 6960, l: 3240 }, "LIU_208_3D": { p: 6960, l: 3240 }, "LIU_2008_A94": { p: 6240, l: 3240 }, "LIU_2008_P24": { p: 7200, l: 3480 }, "LIU_308_5D_T7": { p: 6480, l: 3480 }, "LIU_308_SW_T7": { p: 6480, l: 3480 }, "LIU_308_CC_T7": { p: 6480, l: 3480 }, "LIU_308_5D_T9": { p: 6840, l: 3480 }, "LIU_308_SW_T9": { p: 6840, l: 3480 }, "LIU_3008_T8": { p: 6720, l: 3480 }, "LIU_3008_P8": { p: 6840, l: 4800 }, "LIU_508_4D_W2": { p: 7200, l: 3360 }, "LIU_508_SW_W2": { p: 7200, l: 3360 }, "LIU_508_SW_R8": { p: 7560, l: 3480 }, "LIU_5008_T87": { p: 7200, l: 3360 }, "LIU_5008_P87": { p: 6480, l: 4320 }, "LIU_301": { p: 6000, l: 3000 }, "LIU_RIFTER": { p: 4080, l: 3000 }, "LIU_TRAVELLER": { p: 6360, l: 3720 }, "LIU_RCZ": { p: 6600, l: 3240 }, "LIU_408_P54": { p: 8520, l: 7920 } } },
+            { id: 3, name: "後保險桿拆裝", work: "單純拆裝不含配件", prices: { "LIU_BERLINGO": { p: 5280, l: 1560 }, "LIU_C4P": { p: 6120, l: 1560 }, "LIU_GC4P": { p: 6120, l: 1560 }, "LIU_C5A": { p: 5400, l: 1800 }, "LIU_DS3": { p: 6120, l: 1320 }, "LIU_208_5D": { p: 6480, l: 1440 }, "LIU_208_3D": { p: 6480, l: 1440 }, "LIU_2008_A94": { p: 5040, l: 1440 }, "LIU_2008_P24": { p: 5760, l: 1440 }, "LIU_308_5D_T7": { p: 6600, l: 1440 }, "LIU_308_SW_T7": { p: 6720, l: 1440 }, "LIU_308_CC_T7": { p: 6840, l: 1440 }, "LIU_308_5D_T9": { p: 6600, l: 1440 }, "LIU_308_SW_T9": { p: 6600, l: 1440 }, "LIU_3008_T8": { p: 4800, l: 1440 }, "LIU_3008_P8": { p: 4800, l: 1440 }, "LIU_508_4D_W2": { p: 6960, l: 1440 }, "LIU_508_SW_W2": { p: 6720, l: 1440 }, "LIU_508_SW_R8": { p: 7320, l: 1440 }, "LIU_5008_T87": { p: 6000, l: 1440 }, "LIU_5008_P87": { p: 5520, l: 1440 }, "LIU_301": { p: 5760, l: 1440 }, "LIU_RIFTER": { p: 0, l: 1440 }, "LIU_TRAVELLER": { p: 4800, l: 1440 }, "LIU_RCZ": { p: 6000, l: 1440 }, "LIU_408_P54": { p: 6600, l: 1080 } } },
+            { id: 4, name: "後保險桿", work: "含拆下飾板、倒車燈、反光片、鉚釘、左彎角、右彎角、加強板、盲點偵測器、左右保桿支架、倒車雷達、倒車鏡頭", prices: { "LIU_BERLINGO": { p: 5280, l: 2640 }, "LIU_C4P": { p: 6120, l: 2640 }, "LIU_GC4P": { p: 6120, l: 2640 }, "LIU_C5A": { p: 5400, l: 3600 }, "LIU_DS3": { p: 6120, l: 2400 }, "LIU_208_5D": { p: 6480, l: 2400 }, "LIU_208_3D": { p: 6480, l: 2400 }, "LIU_2008_A94": { p: 5040, l: 2160 }, "LIU_2008_P24": { p: 5760, l: 2760 }, "LIU_308_5D_T7": { p: 6600, l: 2400 }, "LIU_308_SW_T7": { p: 6720, l: 2640 }, "LIU_308_CC_T7": { p: 6840, l: 2520 }, "LIU_308_5D_T9": { p: 6600, l: 2400 }, "LIU_308_SW_T9": { p: 6600, l: 2640 }, "LIU_3008_T8": { p: 4800, l: 2400 }, "LIU_3008_P8": { p: 4800, l: 2760 }, "LIU_508_4D_W2": { p: 6960, l: 2640 }, "LIU_508_SW_W2": { p: 6720, l: 2400 }, "LIU_508_SW_R8": { p: 7320, l: 2640 }, "LIU_5008_T87": { p: 6000, l: 2640 }, "LIU_5008_P87": { p: 5520, l: 2520 }, "LIU_301": { p: 5760, l: 2400 }, "LIU_RIFTER": { p: 0, l: 2640 }, "LIU_TRAVELLER": { p: 4800, l: 2640 }, "LIU_RCZ": { p: 6000, l: 2640 }, "LIU_408_P54": { p: 6600, l: 5760 } } },
+            { id: 5, name: "引擎蓋受損拆裝", work: "含拆隔熱墊、雨刷噴水頭、標誌", prices: { "LIU_BERLINGO": { p: 8040, l: 480 }, "LIU_C4P": { p: 9120, l: 480 }, "LIU_GC4P": { p: 9120, l: 600 }, "LIU_C5A": { p: 9480, l: 600 }, "LIU_DS3": { p: 8040, l: 480 }, "LIU_208_5D": { p: 8880, l: 480 }, "LIU_208_3D": { p: 8880, l: 480 }, "LIU_2008_A94": { p: 8640, l: 600 }, "LIU_2008_P24": { p: 9600, l: 600 }, "LIU_308_5D_T7": { p: 9600, l: 600 }, "LIU_308_SW_T7": { p: 9600, l: 600 }, "LIU_308_CC_T7": { p: 9600, l: 480 }, "LIU_308_5D_T9": { p: 10800, l: 480 }, "LIU_308_SW_T9": { p: 10800, l: 480 }, "LIU_3008_T8": { p: 9840, l: 600 }, "LIU_3008_P8": { p: 10800, l: 600 }, "LIU_508_4D_W2": { p: 12960, l: 600 }, "LIU_508_SW_W2": { p: 12960, l: 600 }, "LIU_508_SW_R8": { p: 12720, l: 600 }, "LIU_5008_T87": { p: 9600, l: 600 }, "LIU_5008_P87": { p: 10800, l: 600 }, "LIU_301": { p: 8400, l: 480 }, "LIU_RIFTER": { p: 8400, l: 600 }, "LIU_TRAVELLER": { p: 8640, l: 600 }, "LIU_RCZ": { p: 13200, l: 480 }, "LIU_408_P54": { p: 14760, l: 480 } } },
+            { id: 6, name: "引擎蓋總成更換", work: "含拆飾條、隔熱墊、六角鎖、緩衝橡皮、防水條、支架、油壓頂桿、雨刷噴水頭、標誌", prices: { "LIU_BERLINGO": { p: 8640, l: 2280 }, "LIU_C4P": { p: 9720, l: 2280 }, "LIU_GC4P": { p: 9720, l: 2400 }, "LIU_C5A": { p: 10080, l: 2400 }, "LIU_DS3": { p: 8640, l: 2280 }, "LIU_208_5D": { p: 9480, l: 1680 }, "LIU_208_3D": { p: 9480, l: 1680 }, "LIU_2008_A94": { p: 9240, l: 1800 }, "LIU_2008_P24": { p: 10200, l: 1800 }, "LIU_308_5D_T7": { p: 10200, l: 1800 }, "LIU_308_SW_T7": { p: 10200, l: 1800 }, "LIU_308_CC_T7": { p: 10200, l: 1800 }, "LIU_308_5D_T9": { p: 11400, l: 1920 }, "LIU_308_SW_T9": { p: 11400, l: 1920 }, "LIU_3008_T8": { p: 10440, l: 1920 }, "LIU_3008_P8": { p: 11400, l: 2280 }, "LIU_508_4D_W2": { p: 13560, l: 2160 }, "LIU_508_SW_W2": { p: 13560, l: 2160 }, "LIU_508_SW_R8": { p: 13320, l: 2400 }, "LIU_5008_T87": { p: 10200, l: 1800 }, "LIU_5008_P87": { p: 11400, l: 2040 }, "LIU_301": { p: 9000, l: 1680 }, "LIU_RIFTER": { p: 9000, l: 1920 }, "LIU_TRAVELLER": { p: 9240, l: 1800 }, "LIU_RCZ": { p: 13800, l: 1920 }, "LIU_408_P54": { p: 15600, l: 1200 } } },
+            { id: 7, name: "前擋玻璃拆裝", work: "含前檔飾條-雨刷通風網", prices: { "LIU_BERLINGO": { p: 0, l: 4440 }, "LIU_C4P": { p: 0, l: 3360 }, "LIU_GC4P": { p: 0, l: 3360 }, "LIU_C5A": { p: 0, l: 3360 }, "LIU_DS3": { p: 0, l: 3360 }, "LIU_208_5D": { p: 0, l: 3480 }, "LIU_208_3D": { p: 0, l: 3480 }, "LIU_2008_A94": { p: 0, l: 3360 }, "LIU_2008_P24": { p: 0, l: 3360 }, "LIU_308_5D_T7": { p: 0, l: 3600 }, "LIU_308_SW_T7": { p: 0, l: 3600 }, "LIU_308_CC_T7": { p: 0, l: 3600 }, "LIU_308_5D_T9": { p: 0, l: 3600 }, "LIU_308_SW_T9": { p: 0, l: 3600 }, "LIU_3008_T8": { p: 0, l: 3960 }, "LIU_3008_P8": { p: 0, l: 3960 }, "LIU_508_4D_W2": { p: 0, l: 3360 }, "LIU_508_SW_W2": { p: 0, l: 3360 }, "LIU_508_SW_R8": { p: 0, l: 3720 }, "LIU_5008_T87": { p: 0, l: 3960 }, "LIU_5008_P87": { p: 0, l: 3960 }, "LIU_301": { p: 0, l: 3360 }, "LIU_RIFTER": { p: 0, l: 3600 }, "LIU_TRAVELLER": { p: 0, l: 3720 }, "LIU_RCZ": { p: 0, l: 3360 }, "LIU_408_P54": { p: 0, l: 4800 } } },
+            { id: 8, name: "前葉子鈑受損拆裝", work: "輪弧飾板", prices: { "LIU_BERLINGO": { p: 6120, l: 960 }, "LIU_C4P": { p: 6240, l: 960 }, "LIU_GC4P": { p: 6240, l: 960 }, "LIU_C5A": { p: 6240, l: 960 }, "LIU_DS3": { p: 6120, l: 960 }, "LIU_208_5D": { p: 6000, l: 960 }, "LIU_208_3D": { p: 6000, l: 960 }, "LIU_2008_A94": { p: 6000, l: 960 }, "LIU_2008_P24": { p: 6240, l: 960 }, "LIU_308_5D_T7": { p: 6000, l: 960 }, "LIU_308_SW_T7": { p: 6000, l: 960 }, "LIU_308_CC_T7": { p: 6000, l: 960 }, "LIU_308_5D_T9": { p: 6240, l: 960 }, "LIU_308_SW_T9": { p: 6240, l: 960 }, "LIU_3008_T8": { p: 6360, l: 960 }, "LIU_3008_P8": { p: 6600, l: 960 }, "LIU_508_4D_W2": { p: 6240, l: 960 }, "LIU_508_SW_W2": { p: 6240, l: 960 }, "LIU_508_SW_R8": { p: 6840, l: 960 }, "LIU_5008_T87": { p: 6360, l: 960 }, "LIU_5008_P87": { p: 6600, l: 960 }, "LIU_301": { p: 5760, l: 960 }, "LIU_RIFTER": { p: 5880, l: 960 }, "LIU_TRAVELLER": { p: 6240, l: 960 }, "LIU_RCZ": { p: 4200, l: 960 }, "LIU_408_P54": { p: 5400, l: 2280 } } },
+            { id: 9, name: "前葉子板總成更換", work: "輪弧飾板、葉子板通風網、葉子板燈組、保險桿單邊、內龜板、隔離板、檔泥板、方向燈、廠徽標誌", prices: { "LIU_BERLINGO": { p: 6840, l: 3240 }, "LIU_C4P": { p: 6960, l: 3120 }, "LIU_GC4P": { p: 6960, l: 3120 }, "LIU_C5A": { p: 6960, l: 3240 }, "LIU_DS3": { p: 6840, l: 3120 }, "LIU_208_5D": { p: 6600, l: 2760 }, "LIU_208_3D": { p: 6600, l: 2760 }, "LIU_2008_A94": { p: 6480, l: 2760 }, "LIU_2008_P24": { p: 6720, l: 2760 }, "LIU_308_5D_T7": { p: 6240, l: 2640 }, "LIU_308_SW_T7": { p: 6240, l: 2640 }, "LIU_308_CC_T7": { p: 6240, l: 2880 }, "LIU_308_5D_T9": { p: 6720, l: 2640 }, "LIU_308_SW_T9": { p: 6720, l: 2640 }, "LIU_3008_T8": { p: 6720, l: 2760 }, "LIU_3008_P8": { p: 6960, l: 3600 }, "LIU_508_4D_W2": { p: 6720, l: 3000 }, "LIU_508_SW_W2": { p: 6720, l: 3240 }, "LIU_508_SW_R8": { p: 7200, l: 3360 }, "LIU_5008_T87": { p: 6720, l: 2400 }, "LIU_5008_P87": { p: 6960, l: 3600 }, "LIU_301": { p: 6000, l: 2640 }, "LIU_RIFTER": { p: 6240, l: 3360 }, "LIU_TRAVELLER": { p: 6600, l: 3240 }, "LIU_RCZ": { p: 4560, l: 2160 }, "LIU_408_P54": { p: 6360, l: 2760 } } },
+            { id: 10, name: "前門受損配件拆裝", work: "含拆護條、內飾板、外把手、鎖仁組、外水切、後視鏡、標誌", prices: { "LIU_BERLINGO": { p: 7200, l: 1440 }, "LIU_C4P": { p: 6960, l: 1440 }, "LIU_GC4P": { p: 6960, l: 1440 }, "LIU_C5A": { p: 6960, l: 1440 }, "LIU_DS3": { p: 6960, l: 1440 }, "LIU_208_5D": { p: 7200, l: 1440 }, "LIU_208_3D": { p: 7800, l: 1800 }, "LIU_2008_A94": { p: 7200, l: 1440 }, "LIU_2008_P24": { p: 7320, l: 1800 }, "LIU_308_5D_T7": { p: 7200, l: 1440 }, "LIU_308_SW_T7": { p: 7200, l: 1440 }, "LIU_308_CC_T7": { p: 8400, l: 1800 }, "LIU_308_5D_T9": { p: 7200, l: 1560 }, "LIU_308_SW_T9": { p: 7200, l: 1560 }, "LIU_3008_T8": { p: 7440, l: 1560 }, "LIU_3008_P8": { p: 7560, l: 1920 }, "LIU_508_4D_W2": { p: 7440, l: 1680 }, "LIU_508_SW_W2": { p: 7440, l: 1680 }, "LIU_508_SW_R8": { p: 7440, l: 1680 }, "LIU_5008_T87": { p: 7440, l: 1560 }, "LIU_5008_P87": { p: 7560, l: 1920 }, "LIU_301": { p: 6120, l: 1200 }, "LIU_RIFTER": { p: 8040, l: 1800 }, "LIU_TRAVELLER": { p: 8400, l: 1920 }, "LIU_RCZ": { p: 8400, l: 1800 }, "LIU_408_P54": { p: 11160, l: 2280 } } },
+            { id: 11, name: "前門總成更換", work: "含拆護條、內飾板、內外把手、鎖仁、內外水切、六角鎖、門框橡皮、防水條、泥槽、馬達、升降機、中控鎖、上下鉸鏈、止檔器、後視鏡、門玻璃、車身膠、標誌", prices: { "LIU_BERLINGO": { p: 8160, l: 3240 }, "LIU_C4P": { p: 7800, l: 3240 }, "LIU_GC4P": { p: 7800, l: 3240 }, "LIU_C5A": { p: 7800, l: 3360 }, "LIU_DS3": { p: 7800, l: 5400 }, "LIU_208_5D": { p: 7680, l: 3240 }, "LIU_208_3D": { p: 8280, l: 3240 }, "LIU_2008_A94": { p: 7680, l: 3600 }, "LIU_2008_P24": { p: 7920, l: 3840 }, "LIU_308_5D_T7": { p: 7680, l: 3480 }, "LIU_308_SW_T7": { p: 7680, l: 3480 }, "LIU_308_CC_T7": { p: 9000, l: 3840 }, "LIU_308_5D_T9": { p: 7680, l: 3480 }, "LIU_308_SW_T9": { p: 7680, l: 3480 }, "LIU_3008_T8": { p: 7920, l: 3480 }, "LIU_3008_P8": { p: 8160, l: 4200 }, "LIU_508_4D_W2": { p: 7920, l: 3720 }, "LIU_508_SW_W2": { p: 7920, l: 3840 }, "LIU_508_SW_R8": { p: 7920, l: 4200 }, "LIU_5008_T87": { p: 7920, l: 3480 }, "LIU_5008_P87": { p: 8160, l: 4200 }, "LIU_301": { p: 6600, l: 3000 }, "LIU_RIFTER": { p: 8520, l: 3840 }, "LIU_TRAVELLER": { p: 9000, l: 3960 }, "LIU_RCZ": { p: 9000, l: 4200 }, "LIU_408_P54": { p: 12120, l: 4080 } } },
+            { id: 12, name: "後門受損配件拆裝", work: "含拆護條、內飾板、外把手、外水切、軌道鉸鏈", prices: { "LIU_BERLINGO": { p: 7200, l: 2520 }, "LIU_C4P": { p: 6960, l: 960 }, "LIU_GC4P": { p: 7080, l: 720 }, "LIU_C5A": { p: 7320, l: 840 }, "LIU_DS3": { p: 0, l: 0 }, "LIU_208_5D": { p: 7080, l: 720 }, "LIU_208_3D": { p: 7080, l: 720 }, "LIU_2008_A94": { p: 7200, l: 720 }, "LIU_2008_P24": { p: 7320, l: 960 }, "LIU_308_5D_T7": { p: 7200, l: 840 }, "LIU_308_SW_T7": { p: 7320, l: 840 }, "LIU_308_CC_T7": { p: 0, l: 0 }, "LIU_308_5D_T9": { p: 7200, l: 720 }, "LIU_308_SW_T9": { p: 7320, l: 720 }, "LIU_3008_T8": { p: 7440, l: 840 }, "LIU_3008_P8": { p: 7560, l: 1680 }, "LIU_508_4D_W2": { p: 7440, l: 960 }, "LIU_508_SW_W2": { p: 7560, l: 960 }, "LIU_508_SW_R8": { p: 7560, l: 960 }, "LIU_5008_T87": { p: 7440, l: 960 }, "LIU_5008_P87": { p: 7560, l: 1680 }, "LIU_301": { p: 6000, l: 720 }, "LIU_RIFTER": { p: 8040, l: 2520 }, "LIU_TRAVELLER": { p: 8400, l: 2520 }, "LIU_RCZ": { p: 0, l: 0 }, "LIU_408_P54": { p: 10680, l: 2040 } } },
+            { id: 13, name: "後門總成更換", work: "含拆護條、內飾板、後門模塊面板組件、內外把手、內外水切、六角鎖、門框橡皮、防水條、泥槽、馬達、升降機、上下鉸鏈、止檔器、滑動架、門玻璃", prices: { "LIU_BERLINGO": { p: 8160, l: 4080 }, "LIU_C4P": { p: 7800, l: 3120 }, "LIU_GC4P": { p: 7920, l: 3240 }, "LIU_C5A": { p: 7920, l: 3240 }, "LIU_DS3": { p: 0, l: 0 }, "LIU_208_5D": { p: 7680, l: 2880 }, "LIU_208_3D": { p: 7680, l: 2880 }, "LIU_2008_A94": { p: 7680, l: 3600 }, "LIU_2008_P24": { p: 7920, l: 3840 }, "LIU_308_5D_T7": { p: 7800, l: 3120 }, "LIU_308_SW_T7": { p: 7800, l: 3120 }, "LIU_308_CC_T7": { p: 0, l: 0 }, "LIU_308_5D_T9": { p: 7800, l: 3120 }, "LIU_308_SW_T9": { p: 7800, l: 3120 }, "LIU_3008_T8": { p: 7920, l: 3120 }, "LIU_3008_P8": { p: 8160, l: 4200 }, "LIU_508_4D_W2": { p: 7920, l: 3720 }, "LIU_508_SW_W2": { p: 8040, l: 3840 }, "LIU_508_SW_R8": { p: 8040, l: 4200 }, "LIU_5008_T87": { p: 7920, l: 3360 }, "LIU_5008_P87": { p: 8160, l: 4200 }, "LIU_301": { p: 6480, l: 3120 }, "LIU_RIFTER": { p: 8520, l: 3840 }, "LIU_TRAVELLER": { p: 9000, l: 3960 }, "LIU_RCZ": { p: 0, l: 0 }, "LIU_408_P54": { p: 11640, l: 3480 } } },
+            { id: 14, name: "戶定受損配件拆裝", work: "側裙", prices: { "LIU_BERLINGO": { p: 7200, l: 0 }, "LIU_C4P": { p: 7200, l: 0 }, "LIU_GC4P": { p: 7200, l: 0 }, "LIU_C5A": { p: 7200, l: 0 }, "LIU_DS3": { p: 7200, l: 0 }, "LIU_208_5D": { p: 7200, l: 0 }, "LIU_208_3D": { p: 7200, l: 0 }, "LIU_2008_A94": { p: 7200, l: 0 }, "LIU_2008_P24": { p: 8160, l: 0 }, "LIU_308_5D_T7": { p: 7200, l: 0 }, "LIU_308_SW_T7": { p: 7200, l: 0 }, "LIU_308_CC_T7": { p: 7200, l: 0 }, "LIU_308_5D_T9": { p: 7200, l: 0 }, "LIU_308_SW_T9": { p: 7200, l: 0 }, "LIU_3008_T8": { p: 7200, l: 0 }, "LIU_3008_P8": { p: 7800, l: 1440 }, "LIU_508_4D_W2": { p: 7200, l: 0 }, "LIU_508_SW_W2": { p: 7200, l: 0 }, "LIU_508_SW_R8": { p: 7920, l: 0 }, "LIU_5008_T87": { p: 7200, l: 0 }, "LIU_5008_P87": { p: 7800, l: 1440 }, "LIU_301": { p: 6360, l: 0 }, "LIU_RIFTER": { p: 7800, l: 0 }, "LIU_TRAVELLER": { p: 7800, l: 0 }, "LIU_RCZ": { p: 6480, l: 0 }, "LIU_408_P54": { p: 8640, l: 1080 } } },
+            { id: 15, name: "戶定總成更換", work: "含拆前後單邊座椅、地毯飾蓋、防水條、地毯半掀、側裙、門、切焊", prices: { "LIU_BERLINGO": { p: 8160, l: 7320 }, "LIU_C4P": { p: 8160, l: 6600 }, "LIU_GC4P": { p: 8160, l: 7320 }, "LIU_C5A": { p: 8160, l: 7440 }, "LIU_DS3": { p: 8160, l: 5880 }, "LIU_208_5D": { p: 8160, l: 6600 }, "LIU_208_3D": { p: 8160, l: 6600 }, "LIU_2008_A94": { p: 8160, l: 6960 }, "LIU_2008_P24": { p: 9360, l: 7800 }, "LIU_308_5D_T7": { p: 8160, l: 6600 }, "LIU_308_SW_T7": { p: 8160, l: 6600 }, "LIU_308_CC_T7": { p: 8160, l: 6600 }, "LIU_308_5D_T9": { p: 8160, l: 6600 }, "LIU_308_SW_T9": { p: 8160, l: 6600 }, "LIU_3008_T8": { p: 8160, l: 7440 }, "LIU_3008_P8": { p: 9000, l: 8160 }, "LIU_508_4D_W2": { p: 8160, l: 7800 }, "LIU_508_SW_W2": { p: 8160, l: 7800 }, "LIU_508_SW_R8": { p: 9120, l: 8400 }, "LIU_5008_T87": { p: 8160, l: 7800 }, "LIU_5008_P87": { p: 9000, l: 8160 }, "LIU_301": { p: 7560, l: 7200 }, "LIU_RIFTER": { p: 9000, l: 7200 }, "LIU_TRAVELLER": { p: 9000, l: 7200 }, "LIU_RCZ": { p: 7680, l: 7200 }, "LIU_408_P54": { p: 9600, l: 8760 } } },
+            { id: 16, name: "後葉子鈑配件拆裝", work: "輪弧飾板", prices: { "LIU_BERLINGO": { p: 8400, l: 960 }, "LIU_C4P": { p: 6960, l: 960 }, "LIU_GC4P": { p: 7200, l: 960 }, "LIU_C5A": { p: 6960, l: 960 }, "LIU_DS3": { p: 6360, l: 960 }, "LIU_208_5D": { p: 7200, l: 960 }, "LIU_208_3D": { p: 7200, l: 960 }, "LIU_2008_A94": { p: 6960, l: 960 }, "LIU_2008_P24": { p: 7440, l: 960 }, "LIU_308_5D_T7": { p: 6960, l: 960 }, "LIU_308_SW_T7": { p: 7200, l: 960 }, "LIU_308_CC_T7": { p: 7440, l: 960 }, "LIU_308_5D_T9": { p: 6960, l: 960 }, "LIU_308_SW_T9": { p: 7200, l: 960 }, "LIU_3008_T8": { p: 7080, l: 960 }, "LIU_3008_P8": { p: 7680, l: 960 }, "LIU_508_4D_W2": { p: 7200, l: 960 }, "LIU_508_SW_W2": { p: 7200, l: 960 }, "LIU_508_SW_R8": { p: 8160, l: 960 }, "LIU_5008_T87": { p: 7200, l: 960 }, "LIU_5008_P87": { p: 7680, l: 960 }, "LIU_301": { p: 6960, l: 960 }, "LIU_RIFTER": { p: 8160, l: 2520 }, "LIU_TRAVELLER": { p: 10560, l: 2520 }, "LIU_RCZ": { p: 11880, l: 960 }, "LIU_408_P54": { p: 5880, l: 2400 } } },
+            { id: 17, name: "後葉子鈑總成更換 (右)(左)", work: "含拆後燈、後保險桿、單邊車頂飾條、輪弧飾板、下側裙、內龜板、切焊、(不含內裝及三角窗玻璃)", prices: { "LIU_BERLINGO": { p: 9360, l: 9000 }, "LIU_C4P": { p: 7560, l: 8640 }, "LIU_GC4P": { p: 7800, l: 8640 }, "LIU_C5A": { p: 7560, l: 8400 }, "LIU_DS3": { p: 6960, l: 12360 }, "LIU_208_5D": { p: 7800, l: 7800 }, "LIU_208_3D": { p: 7800, l: 7800 }, "LIU_2008_A94": { p: 7800, l: 8400 }, "LIU_2008_P24": { p: 8640, l: 8160 }, "LIU_308_5D_T7": { p: 7560, l: 7800 }, "LIU_308_SW_T7": { p: 7800, l: 8040 }, "LIU_308_CC_T7": { p: 8400, l: 8400 }, "LIU_308_5D_T9": { p: 7560, l: 7800 }, "LIU_308_SW_T9": { p: 7800, l: 8040 }, "LIU_3008_T8": { p: 8160, l: 8400 }, "LIU_3008_P8": { p: 8640, l: 8400 }, "LIU_508_4D_W2": { p: 8160, l: 8400 }, "LIU_508_SW_W2": { p: 8160, l: 8400 }, "LIU_508_SW_R8": { p: 9120, l: 8880 }, "LIU_5008_T87": { p: 8160, l: 8400 }, "LIU_5008_P87": { p: 8640, l: 8400 }, "LIU_301": { p: 8160, l: 7440 }, "LIU_RIFTER": { p: 9360, l: 9600 }, "LIU_TRAVELLER": { p: 11760, l: 10200 }, "LIU_RCZ": { p: 13080, l: 10560 }, "LIU_408_P54": { p: 6840, l: 22560 } } },
+            { id: 18, name: "後箱(尾門)蓋", work: "含拆所有標誌、內飾板、倒車攝影鏡頭、外把手、防水條、第三煞車燈、後尾燈、反光燈條、鍍鉻飾條", prices: { "LIU_BERLINGO": { p: 8520, l: 2640 }, "LIU_C4P": { p: 8640, l: 2640 }, "LIU_GC4P": { p: 8640, l: 2640 }, "LIU_C5A": { p: 8520, l: 2760 }, "LIU_DS3": { p: 7320, l: 2760 }, "LIU_208_5D": { p: 7800, l: 1440 }, "LIU_208_3D": { p: 7800, l: 1440 }, "LIU_2008_A94": { p: 7800, l: 1440 }, "LIU_2008_P24": { p: 9360, l: 1440 }, "LIU_308_5D_T7": { p: 7680, l: 1440 }, "LIU_308_SW_T7": { p: 8040, l: 1440 }, "LIU_308_CC_T7": { p: 7200, l: 1440 }, "LIU_308_5D_T9": { p: 7680, l: 1440 }, "LIU_308_SW_T9": { p: 8040, l: 1440 }, "LIU_3008_T8": { p: 8400, l: 1800 }, "LIU_3008_P8": { p: 8760, l: 1800 }, "LIU_508_4D_W2": { p: 7680, l: 1440 }, "LIU_508_SW_W2": { p: 8040, l: 1440 }, "LIU_508_SW_R8": { p: 8520, l: 1440 }, "LIU_5008_T87": { p: 8400, l: 1800 }, "LIU_5008_P87": { p: 8760, l: 1800 }, "LIU_301": { p: 7200, l: 1200 }, "LIU_RIFTER": { p: 10920, l: 1800 }, "LIU_TRAVELLER": { p: 11400, l: 1920 }, "LIU_RCZ": { p: 8400, l: 1440 }, "LIU_408_P54": { p: 12360, l: 3000 } } },
+            { id: 19, name: "後箱(尾門)蓋總成更換", work: "含拆左右飾條、左右車頂架、內裝頂篷、拆焊、防鏽拆所有標誌、內飾板、倒車攝影鏡頭、外把手、防水條、第三煞車燈、後尾燈、反光燈條、鍍鉻飾條、雨刷馬達", prices: { "LIU_BERLINGO": { p: 9120, l: 4440 }, "LIU_C4P": { p: 9240, l: 4560 }, "LIU_GC4P": { p: 9240, l: 4440 }, "LIU_C5A": { p: 9000, l: 4560 }, "LIU_DS3": { p: 7680, l: 4560 }, "LIU_208_5D": { p: 8400, l: 3840 }, "LIU_208_3D": { p: 8400, l: 3840 }, "LIU_2008_A94": { p: 8400, l: 3840 }, "LIU_2008_P24": { p: 9960, l: 3840 }, "LIU_308_5D_T7": { p: 8400, l: 3840 }, "LIU_308_SW_T7": { p: 8640, l: 3840 }, "LIU_308_CC_T7": { p: 8160, l: 4320 }, "LIU_308_5D_T9": { p: 8400, l: 3840 }, "LIU_308_SW_T9": { p: 8640, l: 3840 }, "LIU_3008_T8": { p: 9000, l: 5760 }, "LIU_3008_P8": { p: 9360, l: 5760 }, "LIU_508_4D_W2": { p: 8280, l: 3840 }, "LIU_508_SW_W2": { p: 8640, l: 3840 }, "LIU_508_SW_R8": { p: 9120, l: 3840 }, "LIU_5008_T87": { p: 9000, l: 5760 }, "LIU_5008_P87": { p: 9360, l: 5760 }, "LIU_301": { p: 7800, l: 3120 }, "LIU_RIFTER": { p: 11520, l: 4200 }, "LIU_TRAVELLER": { p: 12000, l: 4800 }, "LIU_RCZ": { p: 9000, l: 4320 }, "LIU_408_P54": { p: 13320, l: 3960 } } },
+            { id: 20, name: "後擋玻璃拆裝", work: "含玻璃拆裝、雨刷馬達、內飾板", prices: { "LIU_BERLINGO": { p: 0, l: 3000 }, "LIU_C4P": { p: 0, l: 3000 }, "LIU_GC4P": { p: 0, l: 3000 }, "LIU_C5A": { p: 0, l: 3000 }, "LIU_DS3": { p: 0, l: 3000 }, "LIU_208_5D": { p: 0, l: 3000 }, "LIU_208_3D": { p: 0, l: 3000 }, "LIU_2008_A94": { p: 0, l: 3000 }, "LIU_2008_P24": { p: 0, l: 3000 }, "LIU_308_5D_T7": { p: 0, l: 3000 }, "LIU_308_SW_T7": { p: 0, l: 3000 }, "LIU_308_CC_T7": { p: 0, l: 3000 }, "LIU_308_5D_T9": { p: 0, l: 3000 }, "LIU_308_SW_T9": { p: 0, l: 3000 }, "LIU_3008_T8": { p: 0, l: 3000 }, "LIU_3008_P8": { p: 0, l: 3000 }, "LIU_508_4D_W2": { p: 0, l: 3000 }, "LIU_508_SW_W2": { p: 0, l: 3000 }, "LIU_508_SW_R8": { p: 0, l: 3000 }, "LIU_5008_T87": { p: 0, l: 3000 }, "LIU_5008_P87": { p: 0, l: 3000 }, "LIU_301": { p: 0, l: 3000 }, "LIU_RIFTER": { p: 0, l: 3240 }, "LIU_TRAVELLER": { p: 0, l: 3240 }, "LIU_RCZ": { p: 0, l: 3240 }, "LIU_408_P54": { p: 0, l: 2040 } } },
+            { id: 21, name: "車頂更換", work: "含拆左右飾條、左右車頂架、內裝頂篷、天線", prices: { "LIU_BERLINGO": { p: 13680, l: 8400 }, "LIU_C4P": { p: 12000, l: 7440 }, "LIU_GC4P": { p: 12600, l: 7800 }, "LIU_C5A": { p: 12720, l: 7800 }, "LIU_DS3": { p: 12240, l: 7440 }, "LIU_208_5D": { p: 12240, l: 7440 }, "LIU_208_3D": { p: 12240, l: 7440 }, "LIU_2008_A94": { p: 12480, l: 9600 }, "LIU_2008_P24": { p: 12600, l: 9600 }, "LIU_308_5D_T7": { p: 12480, l: 9600 }, "LIU_308_SW_T7": { p: 12720, l: 9600 }, "LIU_308_CC_T7": { p: 12720, l: 9600 }, "LIU_308_5D_T9": { p: 12480, l: 9600 }, "LIU_308_SW_T9": { p: 12720, l: 9600 }, "LIU_3008_T8": { p: 12480, l: 9600 }, "LIU_3008_P8": { p: 12960, l: 10200 }, "LIU_508_4D_W2": { p: 12720, l: 9600 }, "LIU_508_SW_W2": { p: 12960, l: 9600 }, "LIU_508_SW_R8": { p: 13200, l: 9600 }, "LIU_5008_T87": { p: 12960, l: 9600 }, "LIU_5008_P87": { p: 12960, l: 10200 }, "LIU_301": { p: 9720, l: 9000 }, "LIU_RIFTER": { p: 14400, l: 11520 }, "LIU_TRAVELLER": { p: 18000, l: 12000 }, "LIU_RCZ": { p: 9360, l: 9600 }, "LIU_408_P54": { p: 14400, l: 12480 } } },
+            { id: 22, name: "車頂更換(全景天窗)", work: "必要零件之拆裝另計", prices: { "LIU_BERLINGO": { p: 9360, l: 6240 }, "LIU_C4P": { p: 9000, l: 6240 }, "LIU_GC4P": { p: 9360, l: 6240 }, "LIU_C5A": { p: 9000, l: 7080 }, "LIU_DS3": { p: 0, l: 0 }, "LIU_208_5D": { p: 7200, l: 6240 }, "LIU_208_3D": { p: 7200, l: 6240 }, "LIU_2008_A94": { p: 7200, l: 6240 }, "LIU_2008_P24": { p: 7440, l: 6240 }, "LIU_308_5D_T7": { p: 7440, l: 6000 }, "LIU_308_SW_T7": { p: 7440, l: 6000 }, "LIU_308_CC_T7": { p: 0, l: 0 }, "LIU_308_5D_T9": { p: 7440, l: 6000 }, "LIU_308_SW_T9": { p: 7440, l: 6000 }, "LIU_3008_T8": { p: 7440, l: 6000 }, "LIU_3008_P8": { p: 7800, l: 6000 }, "LIU_508_4D_W2": { p: 7440, l: 6000 }, "LIU_508_SW_W2": { p: 7440, l: 6000 }, "LIU_508_SW_R8": { p: 7200, l: 6000 }, "LIU_5008_T87": { p: 7800, l: 6000 }, "LIU_5008_P87": { p: 7800, l: 6000 }, "LIU_301": { p: 0, l: 0 }, "LIU_RIFTER": { p: 7800, l: 8040 }, "LIU_TRAVELLER": { p: 8400, l: 7800 }, "LIU_RCZ": { p: 0, l: 0 }, "LIU_408_P54": { p: 7440, l: 12480 } } },
+            { id: 23, name: "天窗玻璃拆裝", work: "含該拆零件", prices: { "LIU_BERLINGO": { p: 0, l: 7080 }, "LIU_C4P": { p: 0, l: 7080 }, "LIU_GC4P": { p: 0, l: 7080 }, "LIU_C5A": { p: 0, l: 7080 }, "LIU_DS3": { p: 0, l: 7080 }, "LIU_208_5D": { p: 0, l: 7560 }, "LIU_208_3D": { p: 0, l: 7560 }, "LIU_2008_A94": { p: 0, l: 7560 }, "LIU_2008_P24": { p: 0, l: 7560 }, "LIU_308_5D_T7": { p: 0, l: 7560 }, "LIU_308_SW_T7": { p: 0, l: 7560 }, "LIU_308_CC_T7": { p: 0, l: 7560 }, "LIU_308_5D_T9": { p: 0, l: 7560 }, "LIU_308_SW_T9": { p: 0, l: 7560 }, "LIU_3008_T8": { p: 0, l: 7560 }, "LIU_3008_P8": { p: 0, l: 7560 }, "LIU_508_4D_W2": { p: 0, l: 7560 }, "LIU_508_SW_W2": { p: 0, l: 7560 }, "LIU_508_SW_R8": { p: 0, l: 7560 }, "LIU_5008_T87": { p: 0, l: 7560 }, "LIU_5008_P87": { p: 0, l: 7560 }, "LIU_301": { p: 0, l: 7560 }, "LIU_RIFTER": { p: 0, l: 7560 }, "LIU_TRAVELLER": { p: 0, l: 7560 }, "LIU_RCZ": { p: 0, l: 7560 }, "LIU_408_P54": { p: 0, l: 5880 } } },
+            { id: 24, name: "擾流板", work: "含該拆零件", prices: { "LIU_BERLINGO": { p: 2760, l: 720 }, "LIU_C4P": { p: 2760, l: 720 }, "LIU_GC4P": { p: 2760, l: 720 }, "LIU_C5A": { p: 2760, l: 720 }, "LIU_DS3": { p: 2760, l: 720 }, "LIU_208_5D": { p: 2760, l: 720 }, "LIU_208_3D": { p: 2760, l: 720 }, "LIU_2008_A94": { p: 2760, l: 720 }, "LIU_2008_P24": { p: 3000, l: 1200 }, "LIU_308_5D_T7": { p: 2760, l: 720 }, "LIU_308_SW_T7": { p: 2760, l: 720 }, "LIU_308_CC_T7": { p: 2760, l: 720 }, "LIU_308_5D_T9": { p: 2760, l: 720 }, "LIU_308_SW_T9": { p: 2760, l: 720 }, "LIU_3008_T8": { p: 0, l: 0 }, "LIU_3008_P8": { p: 0, l: 0 }, "LIU_508_4D_W2": { p: 0, l: 0 }, "LIU_508_SW_W2": { p: 0, l: 0 }, "LIU_508_SW_R8": { p: 0, l: 0 }, "LIU_5008_T87": { p: 0, l: 0 }, "LIU_5008_P87": { p: 0, l: 0 }, "LIU_301": { p: 0, l: 0 }, "LIU_RIFTER": { p: 0, l: 0 }, "LIU_TRAVELLER": { p: 0, l: 0 }, "LIU_RCZ": { p: 2400, l: 1200 }, "LIU_408_P54": { p: 0, l: 0 } } },
+            { id: 25, name: "後視鏡外蓋拆裝", work: "含鏡片、外蓋", prices: { "LIU_BERLINGO": { p: 720, l: 360 }, "LIU_C4P": { p: 720, l: 360 }, "LIU_GC4P": { p: 720, l: 360 }, "LIU_C5A": { p: 720, l: 360 }, "LIU_DS3": { p: 720, l: 360 }, "LIU_208_5D": { p: 720, l: 360 }, "LIU_208_3D": { p: 720, l: 360 }, "LIU_2008_A94": { p: 720, l: 360 }, "LIU_2008_P24": { p: 720, l: 360 }, "LIU_308_5D_T7": { p: 720, l: 360 }, "LIU_308_SW_T7": { p: 720, l: 360 }, "LIU_308_CC_T7": { p: 720, l: 360 }, "LIU_308_5D_T9": { p: 720, l: 360 }, "LIU_308_SW_T9": { p: 720, l: 360 }, "LIU_3008_T8": { p: 720, l: 360 }, "LIU_3008_P8": { p: 720, l: 360 }, "LIU_508_4D_W2": { p: 720, l: 360 }, "LIU_508_SW_W2": { p: 720, l: 360 }, "LIU_508_SW_R8": { p: 720, l: 360 }, "LIU_5008_T87": { p: 720, l: 360 }, "LIU_5008_P87": { p: 720, l: 360 }, "LIU_301": { p: 720, l: 360 }, "LIU_RIFTER": { p: 720, l: 360 }, "LIU_TRAVELLER": { p: 720, l: 360 }, "LIU_RCZ": { p: 720, l: 360 }, "LIU_408_P54": { p: 720, l: 240 } } },
+            { id: 26, name: "後視鏡拆裝更換", work: "含拆車門內飾板、LED方向燈、後視鏡馬達、下蓋分解、鏡片、外蓋", prices: { "LIU_BERLINGO": { p: 720, l: 720 }, "LIU_C4P": { p: 720, l: 720 }, "LIU_GC4P": { p: 720, l: 720 }, "LIU_C5A": { p: 720, l: 720 }, "LIU_DS3": { p: 720, l: 1080 }, "LIU_208_5D": { p: 720, l: 720 }, "LIU_208_3D": { p: 720, l: 720 }, "LIU_2008_A94": { p: 720, l: 720 }, "LIU_2008_P24": { p: 720, l: 960 }, "LIU_308_5D_T7": { p: 720, l: 720 }, "LIU_308_SW_T7": { p: 720, l: 720 }, "LIU_308_CC_T7": { p: 720, l: 960 }, "LIU_308_5D_T9": { p: 720, l: 840 }, "LIU_308_SW_T9": { p: 720, l: 840 }, "LIU_3008_T8": { p: 720, l: 960 }, "LIU_3008_P8": { p: 720, l: 720 }, "LIU_508_4D_W2": { p: 720, l: 1200 }, "LIU_508_SW_W2": { p: 720, l: 1200 }, "LIU_508_SW_R8": { p: 720, l: 480 }, "LIU_5008_T87": { p: 720, l: 720 }, "LIU_5008_P87": { p: 720, l: 720 }, "LIU_301": { p: 720, l: 360 }, "LIU_RIFTER": { p: 720, l: 600 }, "LIU_TRAVELLER": { p: 720, l: 480 }, "LIU_RCZ": { p: 720, l: 840 }, "LIU_408_P54": { p: 720, l: 720 } } },
+            { id: 27, name: "大燈拆裝", work: "單邊獨立拆裝", prices: { "LIU_BERLINGO": { p: 0, l: 840 }, "LIU_C4P": { p: 0, l: 840 }, "LIU_GC4P": { p: 0, l: 840 }, "LIU_C5A": { p: 0, l: 840 }, "LIU_DS3": { p: 0, l: 840 }, "LIU_208_5D": { p: 0, l: 720 }, "LIU_208_3D": { p: 0, l: 720 }, "LIU_2008_A94": { p: 0, l: 840 }, "LIU_2008_P24": { p: 0, l: 840 }, "LIU_308_5D_T7": { p: 0, l: 840 }, "LIU_308_SW_T7": { p: 0, l: 840 }, "LIU_308_CC_T7": { p: 0, l: 840 }, "LIU_308_5D_T9": { p: 0, l: 840 }, "LIU_308_SW_T9": { p: 0, l: 840 }, "LIU_3008_T8": { p: 0, l: 840 }, "LIU_3008_P8": { p: 0, l: 960 }, "LIU_508_4D_W2": { p: 0, l: 1200 }, "LIU_508_SW_W2": { p: 0, l: 1200 }, "LIU_508_SW_R8": { p: 0, l: 960 }, "LIU_5008_T87": { p: 0, l: 840 }, "LIU_5008_P87": { p: 0, l: 960 }, "LIU_301": { p: 0, l: 720 }, "LIU_RIFTER": { p: 0, l: 960 }, "LIU_TRAVELLER": { p: 0, l: 1200 }, "LIU_RCZ": { p: 0, l: 960 }, "LIU_408_P54": { p: 0, l: 1800 } } },
+            { id: 28, name: "後燈拆裝", work: "單邊獨立拆裝", prices: { "LIU_BERLINGO": { p: 0, l: 480 }, "LIU_C4P": { p: 0, l: 480 }, "LIU_GC4P": { p: 0, l: 480 }, "LIU_C5A": { p: 0, l: 480 }, "LIU_DS3": { p: 0, l: 480 }, "LIU_208_5D": { p: 0, l: 480 }, "LIU_208_3D": { p: 0, l: 480 }, "LIU_2008_A94": { p: 0, l: 480 }, "LIU_2008_P24": { p: 0, l: 480 }, "LIU_308_5D_T7": { p: 0, l: 600 }, "LIU_308_SW_T7": { p: 0, l: 600 }, "LIU_308_CC_T7": { p: 0, l: 720 }, "LIU_308_5D_T9": { p: 0, l: 600 }, "LIU_308_SW_T9": { p: 0, l: 600 }, "LIU_3008_T8": { p: 0, l: 600 }, "LIU_3008_P8": { p: 0, l: 1200 }, "LIU_508_4D_W2": { p: 0, l: 720 }, "LIU_508_SW_W2": { p: 0, l: 720 }, "LIU_508_SW_R8": { p: 0, l: 1440 }, "LIU_5008_T87": { p: 0, l: 600 }, "LIU_5008_P87": { p: 0, l: 1200 }, "LIU_301": { p: 0, l: 480 }, "LIU_RIFTER": { p: 0, l: 720 }, "LIU_TRAVELLER": { p: 0, l: 720 }, "LIU_RCZ": { p: 0, l: 960 }, "LIU_408_P54": { p: 0, l: 1320 } } }
+        ];
+
+        // 3. 水險 / 新車運輸產險資料庫 (W01, W02)
+        const MARINE_DATA = [
+            { id: 101, name: "前葉子板 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 11352 }, "ALFA_STELVIO": { total: 12642 } } },
+            { id: 102, name: "後葉子板 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 12556 }, "ALFA_STELVIO": { total: 16512 } } },
+            { id: 103, name: "車頂 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 13846 }, "ALFA_STELVIO": { total: 17458 } } },
+            { id: 104, name: "天窗 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 4300 }, "ALFA_STELVIO": { total: 8944 } } },
+            { id: 105, name: "水箱護罩 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 1290 }, "ALFA_STELVIO": { total: 1290 } } },
+            { id: 106, name: "前保桿 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 9718 }, "ALFA_STELVIO": { total: 11524 } } },
+            { id: 107, name: "前保桿下巴 (水險)", work: "僅STELVIO車型適用", prices: { "ALFA_GIULIA": null, "ALFA_STELVIO": { total: 4816, note: "僅STELVIO" } } },
+            { id: 108, name: "後保桿 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 7998 }, "ALFA_STELVIO": { total: 9804 } } },
+            { id: 109, name: "後保桿下巴 (水險)", work: "僅STELVIO車型適用", prices: { "ALFA_GIULIA": null, "ALFA_STELVIO": { total: 4816, note: "僅STELVIO" } } },
+            { id: 110, name: "邊側裙 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 5160 }, "ALFA_STELVIO": { total: 5160 } } },
+            { id: 111, name: "引擎蓋 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 12384 }, "ALFA_STELVIO": { total: 12814 } } },
+            { id: 112, name: "行李廂蓋 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 9890 }, "ALFA_STELVIO": { total: 12556 } } },
+            { id: 113, name: "油箱蓋 (水險)", work: "僅烤漆工資", prices: { "ALFA_GIULIA": { total: 1290, note: "僅烤漆" }, "ALFA_STELVIO": { total: 1290, note: "僅烤漆" } } },
+            { id: 114, name: "前車門 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 11868 }, "ALFA_STELVIO": { total: 13330 } } },
+            { id: 115, name: "前門把手 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 1745 }, "ALFA_STELVIO": { total: 1737 } } },
+            { id: 116, name: "後車門 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 12556 }, "ALFA_STELVIO": { total: 12728 } } },
+            { id: 117, name: "後門把手 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 1745 }, "ALFA_STELVIO": { total: 1737 } } },
+            { id: 118, name: "後視鏡總成 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 3182 }, "ALFA_STELVIO": { total: 3182 } } },
+            { id: 119, name: "前檔玻璃 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 4900, note: "僅拆裝" }, "ALFA_STELVIO": { total: 4900, note: "僅拆裝" } } },
+            { id: 120, name: "後擋玻璃 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 4900, note: "僅拆裝" }, "ALFA_STELVIO": { total: 4900, note: "僅拆裝" } } },
+            { id: 121, name: "前車窗玻璃 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 3440, note: "僅拆裝" }, "ALFA_STELVIO": { total: 3440, note: "僅拆裝" } } },
+            { id: 122, name: "後車窗玻璃 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 3354, note: "僅拆裝" }, "ALFA_STELVIO": { total: 3354, note: "僅拆裝" } } },
+            { id: 123, name: "頭燈 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 1720, note: "僅拆裝" }, "ALFA_STELVIO": { total: 1290, note: "僅拆裝" } } },
+            { id: 124, name: "尾燈 (水險)", work: "僅拆裝工資", prices: { "ALFA_GIULIA": { total: 1118, note: "僅拆裝" }, "ALFA_STELVIO": { total: 1118, note: "僅拆裝" } } },
+            { id: 125, name: "車頂天線 (水險)", work: "含拆裝塗裝", prices: { "ALFA_GIULIA": { total: 2666 }, "ALFA_STELVIO": { total: 2838 } } },
+            // 通用修補
+            { id: 126, name: "鋁圈烤漆", work: "單顆鋁圈烤漆", prices: { "ALFA_GIULIA": { total: 5200 }, "ALFA_STELVIO": { total: 5200 } } },
+            { id: 127, name: "CNC 雙色鋁圈切割", work: "雙色鋁圈車修加工", prices: { "ALFA_GIULIA": { total: 6550 }, "ALFA_STELVIO": { total: 6550 } } },
+            { id: 128, name: "胎皮更換 (19吋以下)", work: "19吋以下輪胎拆換", prices: { "ALFA_GIULIA": { total: 800 }, "ALFA_STELVIO": { total: 800 } } },
+            { id: 129, name: "胎皮更換 (19吋以上)", work: "19吋(含)以上輪胎拆換", prices: { "ALFA_GIULIA": { total: 1000 }, "ALFA_STELVIO": { total: 1000 } } },
+            { id: 130, name: "輪胎外補 (補膠條)", work: "輪胎外補補胎", prices: { "ALFA_GIULIA": { total: 200 }, "ALFA_STELVIO": { total: 200 } } },
+            { id: 131, name: "輪胎內補 (貼片補)", work: "輪胎拆裝內補", prices: { "ALFA_GIULIA": { total: 800 }, "ALFA_STELVIO": { total: 800 } } },
+            { id: 132, name: "凹痕微鈑金修補 (輕度)", work: "免烤漆凹痕修復 (輕度)", prices: { "ALFA_GIULIA": { total: 3500, note: "鋁合金另議" }, "ALFA_STELVIO": { total: 3500, note: "鋁合金另議" } } },
+            { id: 133, name: "凹痕微鈑金修補 (中度)", work: "免烤漆凹痕修復 (中度)", prices: { "ALFA_GIULIA": { total: 5500, note: "鋁合金另議" }, "ALFA_STELVIO": { total: 5500, note: "鋁合金另議" } } },
+            { id: 134, name: "前/後擋玻璃專業修補", work: "牛眼/星狀裂痕修補", prices: { "ALFA_GIULIA": { total: 4000 }, "ALFA_STELVIO": { total: 4000 } } },
+            { id: 135, name: "點漆工資 (含金油)", work: "局部細微點漆與防鏽處理", prices: { "ALFA_GIULIA": { total: 250 }, "ALFA_STELVIO": { total: 250 } } },
+
+            // 法系運輸險 (W01)
+            { id: 201, name: "引擎蓋 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 5500 }, "PE_3008": { total: 6200 }, "PE_5008": { total: 6200 }, "PE_408": { total: 5500 }, "CI_C5A": { total: 5500 }, "CI_BERLINGO": { total: 4600 }, "CI_C4": { total: 5500 } } },
+            { id: 202, name: "車頂 (一般漆/運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 7000 }, "PE_3008": { total: 7000 }, "PE_5008": { total: 7200 }, "PE_408": { total: 6400 }, "CI_C5A": { total: 7000 }, "CI_BERLINGO": { total: 7800 }, "CI_C4": { total: 7000 } } },
+            { id: 203, name: "車頂全景天窗款 (運輸險)", work: "全景車頂款式塗裝", prices: { "PE_2008": { total: 3500 }, "PE_3008": { total: 3500 }, "PE_5008": { total: 3600 }, "PE_408": { total: 3200 }, "CI_C5A": { total: 3500 }, "CI_BERLINGO": { total: 3900 }, "CI_C4": { total: 3500 } } },
+            { id: 204, name: "後車箱蓋 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 5400 }, "PE_3008": { total: 5300 }, "PE_5008": { total: 5300 }, "PE_408": { total: 4200 }, "CI_C5A": { total: 4900 }, "CI_BERLINGO": { total: 7200 }, "CI_C4": { total: 5400 } } },
+            { id: 205, name: "前葉子板 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 3600 }, "PE_3008": { total: 3800 }, "PE_5008": { total: 3800 }, "PE_408": { total: 3600 }, "CI_C5A": { total: 3600 }, "CI_BERLINGO": { total: 3520 }, "CI_C4": { total: 3600 } } },
+            { id: 206, name: "後葉子板 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 4300 }, "PE_3008": { total: 4400 }, "PE_5008": { total: 4500 }, "PE_408": { total: 4300 }, "CI_C5A": { total: 3800 }, "CI_BERLINGO": { total: 4900 }, "CI_C4": { total: 4300 } } },
+            { id: 207, name: "前車門 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 4300 }, "PE_3008": { total: 4400 }, "PE_5008": { total: 4400 }, "PE_408": { total: 4300 }, "CI_C5A": { total: 4300 }, "CI_BERLINGO": { total: 4300 }, "CI_C4": { total: 4200 } } },
+            { id: 208, name: "後車門 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 4200 }, "PE_3008": { total: 4300 }, "PE_5008": { total: 4300 }, "PE_408": { total: 4200 }, "CI_C5A": { total: 4200 }, "CI_BERLINGO": { total: 4300 }, "CI_C4": { total: 4300 } } },
+            { id: 209, name: "前柵 (水箱罩)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 2000 }, "PE_3008": { total: 2000 }, "PE_5008": { total: 2000 }, "PE_408": { total: 0 }, "CI_C5A": { total: 0 }, "CI_BERLINGO": { total: 0 }, "CI_C4": { total: 0 } } },
+            { id: 210, name: "前保險桿 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 4000 }, "PE_3008": { total: 4000 }, "PE_5008": { total: 4000 }, "PE_408": { total: 3600 }, "CI_C5A": { total: 4000 }, "CI_BERLINGO": { total: 4400 }, "CI_C4": { total: 4000 } } },
+            { id: 211, name: "後保險桿 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 2400, note: "單邊" }, "PE_3008": { total: 2800 }, "PE_5008": { total: 3200 }, "PE_408": { total: 2400, note: "單邊" }, "CI_C5A": { total: 3200 }, "CI_BERLINGO": { total: 0 }, "CI_C4": { total: 4000 } } },
+            { id: 212, name: "戶定 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 2000 }, "PE_3008": { total: 2000 }, "PE_5008": { total: 2000 }, "PE_408": { total: 2000 }, "CI_C5A": { total: 2000 }, "CI_BERLINGO": { total: 2000 }, "CI_C4": { total: 2000 } } },
+            { id: 213, name: "保險桿飾條 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 600 }, "PE_3008": { total: 600 }, "PE_5008": { total: 600 }, "PE_408": { total: 600 }, "CI_C5A": { total: 0 }, "CI_BERLINGO": { total: 0 }, "CI_C4": { total: 0 } } },
+            { id: 214, name: "車頂架 (運輸險)", work: "單邊價格", prices: { "PE_2008": { total: 1500, note: "單邊" }, "PE_3008": { total: 0 }, "PE_5008": { total: 0 }, "PE_408": { total: 0 }, "CI_C5A": { total: 1500, note: "單邊" }, "CI_BERLINGO": { total: 1500, note: "單邊" }, "CI_C4": { total: 0 } } },
+            { id: 215, name: "車門飾條 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 600 }, "PE_3008": { total: 600 }, "PE_5008": { total: 600 }, "PE_408": { total: 0 }, "CI_C5A": { total: 0 }, "CI_BERLINGO": { total: 0 }, "CI_C4": { total: 0 } } },
+            { id: 216, name: "後視鏡 (運輸險)", work: "新車運輸險塗裝", prices: { "PE_2008": { total: 1000 }, "PE_3008": { total: 1000 }, "PE_5008": { total: 1000 }, "PE_408": { total: 1000 }, "CI_C5A": { total: 1000 }, "CI_BERLINGO": { total: 1000 }, "CI_C4": { total: 1000 } } }
+        ];
+
+        const GENERAL_MODELS = {
+            'GUILIA_SPRINT': { name: 'Alfa Romeo Giulia Sprint', brand: 'ALFA', booth: 5000 },
+            'GUILIA_QV': { name: 'Alfa Romeo Giulia QV', brand: 'ALFA', booth: 5000 },
+            'STELVIO_SPRINT': { name: 'Alfa Romeo Stelvio Sprint', brand: 'ALFA', booth: 5000 },
+            '2008': { name: 'PEUGEOT 2008', brand: 'PEUGEOT', booth: 2400 },
+            '3008': { name: 'PEUGEOT 3008', brand: 'PEUGEOT', booth: 2400 },
+            '508_SW': { name: 'PEUGEOT 508 SW', brand: 'PEUGEOT', booth: 2400 },
+            '5008': { name: 'PEUGEOT 5008', brand: 'PEUGEOT', booth: 2400 },
+            '408': { name: 'PEUGEOT 408', brand: 'PEUGEOT', booth: 2400 },
+            'BERLINGO': { name: 'CITROËN BERLINGO', brand: 'CITROEN', booth: 2400 },
+            'C5A': { name: 'CITROËN C5 AIRCROSS', brand: 'CITROEN', booth: 2400 }
+        };
+
+        const MARINE_MODELS = {
+            'ALFA_GIULIA': { name: 'Alfa Romeo Giulia (水險)', brand: 'ALFA_MARINE', booth: 0 },
+            'ALFA_STELVIO': { name: 'Alfa Romeo Stelvio (水險)', brand: 'ALFA_MARINE', booth: 0 },
+            'PE_2008': { name: 'PEUGEOT 2008 (運輸險)', brand: 'PE_TRANS', booth: 0 },
+            'PE_3008': { name: 'PEUGEOT 3008 (運輸險)', brand: 'PE_TRANS', booth: 0 },
+            'PE_5008': { name: 'PEUGEOT 5008 (運輸險)', brand: 'PE_TRANS', booth: 0 },
+            'PE_408': { name: 'PEUGEOT 408 (運輸險)', brand: 'PE_TRANS', booth: 0 },
+            'CI_C5A': { name: 'CITROËN C5 AIRCROSS (運輸險)', brand: 'CI_TRANS', booth: 0 },
+            'CI_BERLINGO': { name: 'CITROËN BERLINGO (運輸險)', brand: 'CI_TRANS', booth: 0 },
+            'CI_C4': { name: 'CITROËN C4 (運輸險)', brand: 'CI_TRANS', booth: 0 }
+        };
+
+        function switchClaimMode(mode) {
+            currentMode = mode;
+            selectedItemIds.clear();
+            currentFilter = 'ALL';
+
+            const badge = document.getElementById('modeStatusBadge');
+            const typeBtns = document.querySelectorAll('.type-btn');
+            typeBtns.forEach(b => b.classList.remove('active'));
+
+            if (mode === 'GENERAL') {
+                badge.className = 'mode-badge general';
+                badge.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> 原廠一般車險理賠模式 (A01 / A02 / ALFA01)';
+                typeBtns[0].classList.add('active');
+                document.getElementById('generalExtraOptions').style.display = 'grid';
+                document.getElementById('laborSumRow').style.display = 'flex';
+                document.getElementById('boothFeeRow').style.display = 'flex';
+            } else if (mode === 'LIUHE') {
+                badge.className = 'mode-badge liuhe';
+                badge.innerHTML = '<i class="fa-solid fa-building-columns"></i> 六和保代專屬協議模式 (六-01 / 02 / 03 全26款車型)';
+                typeBtns[1].classList.add('active');
+                document.getElementById('generalExtraOptions').style.display = 'none';
+                document.getElementById('laborSumRow').style.display = 'flex';
+                document.getElementById('boothFeeRow').style.display = 'flex';
+            } else {
+                badge.className = 'mode-badge marine';
+                badge.innerHTML = '<i class="fa-solid fa-ship"></i> 水險 / 新車運輸險模式 (W01 / W02)';
+                typeBtns[2].classList.add('active');
+                document.getElementById('generalExtraOptions').style.display = 'none';
+                document.getElementById('laborSumRow').style.display = 'none';
+                document.getElementById('boothFeeRow').style.display = 'none';
+            }
+
+            renderFilterButtons();
+            populateCalcSelect();
+            renderRules();
+            renderTable();
+            recalculate();
+        }
+
+        function renderFilterButtons() {
+            const brandContainer = document.getElementById('brandBtnGroup');
+            const modelContainer = document.getElementById('modelBtnGroup');
+
+            if (currentMode === 'GENERAL') {
+                brandContainer.innerHTML = `
+                    <span class="group-label">品牌切換：</span>
+                    <button class="tab-btn active" onclick="setFilter('ALL')">全部品牌對照</button>
+                    <button class="tab-btn alfa" onclick="setFilter('ALFA_ALL')">ALFA ROMEO</button>
+                    <button class="tab-btn" onclick="setFilter('PE_ALL')">PEUGEOT</button>
+                    <button class="tab-btn citroen" onclick="setFilter('CI_ALL')">CITROËN</button>
+                `;
+                modelContainer.innerHTML = `
+                    <span class="group-label">單一車型：</span>
+                    <button class="tab-btn alfa" onclick="setFilter('GUILIA_SPRINT')">Giulia Sprint</button>
+                    <button class="tab-btn alfa" onclick="setFilter('GUILIA_QV')">Giulia QV</button>
+                    <button class="tab-btn alfa" onclick="setFilter('STELVIO_SPRINT')">Stelvio Sprint</button>
+                    <button class="tab-btn" onclick="setFilter('2008')">2008</button>
+                    <button class="tab-btn" onclick="setFilter('3008')">3008</button>
+                    <button class="tab-btn" onclick="setFilter('508_SW')">508 SW</button>
+                    <button class="tab-btn" onclick="setFilter('5008')">5008</button>
+                    <button class="tab-btn" onclick="setFilter('408')">408</button>
+                    <button class="tab-btn citroen" onclick="setFilter('BERLINGO')">BERLINGO</button>
+                    <button class="tab-btn citroen" onclick="setFilter('C5A')">C5 AIRCROSS</button>
+                `;
+            } else if (currentMode === 'LIUHE') {
+                brandContainer.innerHTML = `
+                    <span class="group-label">六和品牌：</span>
+                    <button class="tab-btn liuhe active" onclick="setFilter('ALL')">六和全車型對照 (26款)</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_PE_ALL')">六和 PEUGEOT (21款)</button>
+                    <button class="tab-btn citroen" onclick="setFilter('LIU_CI_ALL')">六和 CITROËN (5款)</button>
+                `;
+                modelContainer.innerHTML = `
+                    <span class="group-label">熱門車型：</span>
+                    <button class="tab-btn citroen" onclick="setFilter('LIU_BERLINGO')">布丁狗 K94</button>
+                    <button class="tab-btn citroen" onclick="setFilter('LIU_C4P')">C4 Picasso</button>
+                    <button class="tab-btn citroen" onclick="setFilter('LIU_C5A')">C5A '18~</button>
+                    <button class="tab-btn citroen" onclick="setFilter('LIU_DS3')">DS3 3D</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_2008_P24')">2008 P24</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_3008_P8')">3008 P8</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_5008_P87')">5008 P87</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_508_SW_R8')">508 SW R8</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_301')">301 '16~20</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_RIFTER')">Rifter '18~20</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_TRAVELLER')">TRAVELLER 領航家</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_RCZ')">RCZ '18~21</button>
+                    <button class="tab-btn" onclick="setFilter('LIU_408_P54')">408 P54 '23~</button>
+                `;
+            } else {
+                brandContainer.innerHTML = `
+                    <span class="group-label">水險品牌：</span>
+                    <button class="tab-btn active" onclick="setFilter('ALL')">全部水險對照</button>
+                    <button class="tab-btn alfa" onclick="setFilter('ALFA_MARINE_ALL')">ALFA 水險 (W02)</button>
+                    <button class="tab-btn" onclick="setFilter('PE_TRANS_ALL')">PEUGEOT 運輸險 (W01)</button>
+                    <button class="tab-btn citroen" onclick="setFilter('CI_TRANS_ALL')">CITROËN 運輸險 (W01)</button>
+                    <button class="tab-btn" style="background:#30363d;" onclick="setFilter('GENERAL_REPAIR_ALL')">週邊修補通用工資</button>
+                `;
+                modelContainer.innerHTML = `
+                    <span class="group-label">水險車型：</span>
+                    <button class="tab-btn alfa" onclick="setFilter('ALFA_GIULIA')">Giulia 水險</button>
+                    <button class="tab-btn alfa" onclick="setFilter('ALFA_STELVIO')">Stelvio 水險</button>
+                    <button class="tab-btn" onclick="setFilter('PE_2008')">2008 運輸險</button>
+                    <button class="tab-btn" onclick="setFilter('PE_3008')">3008 運輸險</button>
+                    <button class="tab-btn" onclick="setFilter('PE_5008')">5008 運輸險</button>
+                    <button class="tab-btn" onclick="setFilter('PE_408')">408 運輸險</button>
+                    <button class="tab-btn citroen" onclick="setFilter('CI_C5A')">C5A 運輸險</button>
+                    <button class="tab-btn citroen" onclick="setFilter('CI_BERLINGO')">布丁狗 運輸險</button>
+                    <button class="tab-btn citroen" onclick="setFilter('CI_C4')">C4 運輸險</button>
+                `;
+            }
+        }
+
+        function populateCalcSelect() {
+            const select = document.getElementById('calcModel');
+            select.innerHTML = '';
+            let models = GENERAL_MODELS;
+            if (currentMode === 'LIUHE') models = LIUHE_MODELS;
+            else if (currentMode === 'MARINE') models = MARINE_MODELS;
+
+            for (const [key, val] of Object.entries(models)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = val.name;
+                select.appendChild(opt);
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('#brandBtnGroup .tab-btn, #modelBtnGroup .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            let modelMap = GENERAL_MODELS;
+            if (currentMode === 'LIUHE') modelMap = LIUHE_MODELS;
+            else if (currentMode === 'MARINE') modelMap = MARINE_MODELS;
+
+            if (modelMap[filter]) {
+                document.getElementById('calcModel').value = filter;
+                onCalcModelChange();
+            }
+            renderTable();
+            recalculate();
+        }
+
+        function onCalcModelChange() {
+            const modelKey = document.getElementById('calcModel').value;
+            let modelMap = GENERAL_MODELS;
+            if (currentMode === 'LIUHE') modelMap = LIUHE_MODELS;
+            else if (currentMode === 'MARINE') modelMap = MARINE_MODELS;
+
+            const info = modelMap[modelKey];
+            const paintSelect = document.getElementById('paintType');
+
+            if (info && info.brand && info.brand.includes('ALFA')) {
+                if (paintSelect.value === 'pe_special') paintSelect.value = 'alfa_2layer';
+            } else {
+                if (paintSelect.value.startsWith('alfa_')) paintSelect.value = 'pe_special';
+            }
+            recalculate();
+        }
+
+        function getVisibleModels() {
+            if (currentMode === 'GENERAL') {
+                if (currentFilter === 'ALL') return Object.keys(GENERAL_MODELS);
+                if (currentFilter === 'ALFA_ALL') return ['GUILIA_SPRINT', 'GUILIA_QV', 'STELVIO_SPRINT'];
+                if (currentFilter === 'PE_ALL') return ['2008', '3008', '508_SW', '5008', '408'];
+                if (currentFilter === 'CI_ALL') return ['BERLINGO', 'C5A'];
+                return [currentFilter];
+            } else if (currentMode === 'LIUHE') {
+                if (currentFilter === 'ALL') return Object.keys(LIUHE_MODELS);
+                if (currentFilter === 'LIU_CI_ALL') return ['LIU_BERLINGO', 'LIU_C4P', 'LIU_GC4P', 'LIU_C5A', 'LIU_DS3'];
+                if (currentFilter === 'LIU_PE_ALL') return Object.keys(LIUHE_MODELS).filter(k => k.startsWith('LIU_') && !['LIU_BERLINGO', 'LIU_C4P', 'LIU_GC4P', 'LIU_C5A', 'LIU_DS3'].includes(k));
+                return [currentFilter];
+            } else {
+                if (currentFilter === 'ALL') return Object.keys(MARINE_MODELS);
+                if (currentFilter === 'ALFA_MARINE_ALL') return ['ALFA_GIULIA', 'ALFA_STELVIO'];
+                if (currentFilter === 'PE_TRANS_ALL') return ['PE_2008', 'PE_3008', 'PE_5008', 'PE_408'];
+                if (currentFilter === 'CI_TRANS_ALL') return ['CI_C5A', 'CI_BERLINGO', 'CI_C4'];
+                if (currentFilter === 'GENERAL_REPAIR_ALL') return ['ALFA_GIULIA', 'ALFA_STELVIO'];
+                return [currentFilter];
+            }
+        }
+
+        function renderTable() {
+            const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            const models = getVisibleModels();
+
+            let data = GENERAL_DATA;
+            if (currentMode === 'LIUHE') data = LIUHE_DATA;
+            else if (currentMode === 'MARINE') data = MARINE_DATA;
+
+            if (currentMode === 'GENERAL' || currentMode === 'LIUHE') {
+                let headHTML = '<tr><th style="width:35px;">序</th><th>修理部品名稱</th><th>工作項目內容</th>';
+                models.forEach(m => {
+                    let label = m;
+                    if (currentMode === 'GENERAL') {
+                        label = m.replace('_SPRINT', ' S').replace('_QV', ' QV').replace('_SW', ' SW');
+                    } else {
+                        label = LIUHE_MODELS[m].name.split(' ')[0] + ' ' + (LIUHE_MODELS[m].name.split(' ')[1] || '');
+                    }
+                    headHTML += `<th style="text-align:right;">${label} 塗裝</th><th style="text-align:right;">${label} 拆裝</th>`;
+                });
+                headHTML += '<th style="text-align:center;width:70px;">操作</th></tr>';
+                tableHead.innerHTML = headHTML;
+
+                const filtered = data.filter(item => {
+                    const match = item.name.toLowerCase().includes(searchKeyword) || item.work.toLowerCase().includes(searchKeyword);
+                    const hasPrice = models.some(m => item.prices[m] !== null && item.prices[m] !== undefined);
+                    return match && hasPrice;
+                });
+
+                let bodyHTML = '';
+                filtered.forEach(item => {
+                    bodyHTML += `<tr>
+                        <td>${item.id}</td>
+                        <td><strong>${item.name}</strong></td>
+                        <td class="work-desc">${item.work}</td>`;
+
+                    models.forEach(m => {
+                        const p = item.prices[m];
+                        if (!p) {
+                            bodyHTML += `<td style="text-align:right;color:#484f58;">-</td><td style="text-align:right;color:#484f58;">-</td>`;
+                        } else {
+                            const noteTag = p.note ? `<span class="note-tag">${p.note}</span>` : '';
+                            bodyHTML += `
+                                <td style="text-align:right;" class="price-paint">$${p.p.toLocaleString()}${noteTag}</td>
+                                <td style="text-align:right;" class="price-labor">$${p.l.toLocaleString()}</td>
+                            `;
+                        }
+                    });
+
+                    bodyHTML += `
+                        <td style="text-align:center;">
+                            <button class="btn-add" onclick="toggleItemSelection(${item.id})">
+                                <i class="fa-solid fa-plus"></i> 加入
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+                tableBody.innerHTML = bodyHTML || '<tr><td colspan="35" style="text-align:center;padding:20px;">無符合條件的項目</td></tr>';
+            } else {
+                let headHTML = '<tr><th style="width:35px;">序</th><th>水險 / 運輸險項目</th><th>備註說明</th>';
+                models.forEach(m => {
+                    const label = MARINE_MODELS[m].name.replace(' (水險)', '').replace(' (運輸險)', '');
+                    headHTML += `<th style="text-align:right;">${label} 單價</th>`;
+                });
+                headHTML += '<th style="text-align:center;width:70px;">操作</th></tr>';
+                tableHead.innerHTML = headHTML;
+
+                const filtered = data.filter(item => {
+                    const match = item.name.toLowerCase().includes(searchKeyword) || item.work.toLowerCase().includes(searchKeyword);
+                    const hasPrice = models.some(m => item.prices[m] !== null && item.prices[m] !== undefined);
+                    return match && hasPrice;
+                });
+
+                let bodyHTML = '';
+                filtered.forEach(item => {
+                    bodyHTML += `<tr>
+                        <td>${item.id}</td>
+                        <td><strong>${item.name}</strong></td>
+                        <td class="work-desc">${item.work}</td>`;
+
+                    models.forEach(m => {
+                        const p = item.prices[m];
+                        if (!p || p.total === undefined) {
+                            bodyHTML += `<td style="text-align:right;color:#484f58;">-</td>`;
+                        } else {
+                            const noteTag = p.note ? ` <span class="note-tag">${p.note}</span>` : '';
+                            bodyHTML += `<td style="text-align:right;" class="price-total">$${p.total.toLocaleString()}${noteTag}</td>`;
+                        }
+                    });
+
+                    bodyHTML += `
+                        <td style="text-align:center;">
+                            <button class="btn-add" onclick="toggleItemSelection(${item.id})">
+                                <i class="fa-solid fa-plus"></i> 加入
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+                tableBody.innerHTML = bodyHTML || '<tr><td colspan="20" style="text-align:center;padding:20px;">無符合條件的項目</td></tr>';
+            }
+        }
+
+        function toggleItemSelection(id) {
+            if (selectedItemIds.has(id)) selectedItemIds.delete(id);
+            else selectedItemIds.add(id);
+            renderSelectedItems();
+            recalculate();
+        }
+
+        function clearSelectedItems() {
+            selectedItemIds.clear();
+            renderSelectedItems();
+            recalculate();
+        }
+
+        function renderSelectedItems() {
+            const container = document.getElementById('selectedItemsList');
+            const modelKey = document.getElementById('calcModel').value;
+
+            let data = GENERAL_DATA;
+            if (currentMode === 'LIUHE') data = LIUHE_DATA;
+            else if (currentMode === 'MARINE') data = MARINE_DATA;
+
+            if (selectedItemIds.size === 0) {
+                container.innerHTML = '<div style="padding:15px;text-align:center;color:var(--text-muted);">尚未加入任何項目，請從下方對照表點擊「+ 加入」</div>';
+                return;
+            }
+
+            let html = '';
+            selectedItemIds.forEach(id => {
+                const item = data.find(x => x.id === id);
+                if (!item) return;
+
+                const p = item.prices[modelKey];
+                if (p) {
+                    if (currentMode === 'GENERAL' || currentMode === 'LIUHE') {
+                        html += `
+                            <div class="bill-item">
+                                <div><strong>${item.name}</strong> <span style="font-size:11px;color:var(--text-muted);">(塗: $${p.p.toLocaleString()} / 工: $${p.l.toLocaleString()})</span></div>
+                                <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" onclick="toggleItemSelection(${item.id})"></i>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="bill-item">
+                                <div><strong>${item.name}</strong> <span style="font-size:11px;color:var(--accent-cyan);">(理賠價: $${p.total.toLocaleString()})</span></div>
+                                <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" onclick="toggleItemSelection(${item.id})"></i>
+                            </div>
+                        `;
+                    }
+                } else {
+                    html += `
+                        <div class="bill-item" style="color:var(--text-muted);">
+                            <div>${item.name} <span style="font-size:11px;color:var(--accent-red);">(此車型不適用)</span></div>
+                            <i class="fa-solid fa-trash-can" style="color:var(--accent-red);cursor:pointer;" onclick="toggleItemSelection(${item.id})"></i>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        function recalculate() {
+            const modelKey = document.getElementById('calcModel').value;
+
+            let modelMap = GENERAL_MODELS;
+            let data = GENERAL_DATA;
+            if (currentMode === 'LIUHE') {
+                modelMap = LIUHE_MODELS;
+                data = LIUHE_DATA;
+            } else if (currentMode === 'MARINE') {
+                modelMap = MARINE_MODELS;
+                data = MARINE_DATA;
+            }
+
+            const modelInfo = modelMap[modelKey] || { name: modelKey, brand: '', booth: 2400 };
+            const paintType = document.getElementById('paintType').value;
+
+            let totalPaint = 0;
+            let totalLabor = 0;
+            let itemNames = [];
+
+            selectedItemIds.forEach(id => {
+                const item = data.find(x => x.id === id);
+                if (!item) return;
+                const p = item.prices[modelKey];
+                if (p) {
+                    if (currentMode === 'GENERAL' || currentMode === 'LIUHE') {
+                        totalPaint += p.p;
+                        totalLabor += p.l;
+                    } else {
+                        totalPaint += p.total;
+                    }
+                    itemNames.push(item.name);
+                }
+            });
+
+            let innerPaintAmount = 0;
+            let diagFeeAmount = 0;
+            let boothFeeAmount = 0;
+
+            if (currentMode === 'GENERAL' || currentMode === 'LIUHE') {
+                if (currentMode === 'GENERAL') {
+                    const includeInner = document.getElementById('includeInnerPaint').checked;
+                    const includeDiag = document.getElementById('includeDiagFee').checked;
+
+                    innerPaintAmount = includeInner && totalPaint > 0 ? Math.round(totalPaint * 0.30) : 0;
+                    document.getElementById('innerPaintRow').style.display = includeInner ? 'flex' : 'none';
+                    document.getElementById('innerPaintSum').innerText = `$${innerPaintAmount.toLocaleString()}`;
+
+                    diagFeeAmount = includeDiag ? 2000 : 0;
+                    document.getElementById('diagFeeRow').style.display = includeDiag ? 'flex' : 'none';
+                } else {
+                    document.getElementById('innerPaintRow').style.display = 'none';
+                    document.getElementById('diagFeeRow').style.display = 'none';
+                }
+
+                boothFeeAmount = (selectedItemIds.size > 0 && totalPaint > 0) ? modelInfo.booth : 0;
+                document.getElementById('boothFeeLabel').innerText = `烤漆房及調漆費 (${modelInfo.brand === 'ALFA' ? 'Alfa $5,000' : '$2,400'})：`;
+                document.getElementById('boothFee').innerText = `$${boothFeeAmount.toLocaleString()}`;
+            }
+
+            // 特殊漆加成
+            let specialPaintAddon = 0;
+            let paintDesc = '(一般標準漆)';
+            const paintBase = totalPaint + innerPaintAmount;
+
+            if (paintType === 'pe_special') {
+                specialPaintAddon = Math.round(paintBase * 0.15);
+                paintDesc = '(特殊漆料 +15%)';
+            } else if (paintType === 'alfa_2layer') {
+                specialPaintAddon = Math.round(paintBase * 0.20);
+                paintDesc = '(Alfa 特殊漆 +20%)';
+            } else if (paintType === 'alfa_3layer') {
+                specialPaintAddon = Math.round(paintBase * 0.30);
+                paintDesc = '(Alfa 三層漆 645 +30%)';
+            }
+
+            const grandTotal = totalPaint + innerPaintAmount + specialPaintAddon + totalLabor + boothFeeAmount + diagFeeAmount;
+
+            document.getElementById('basePaintSum').innerText = `$${totalPaint.toLocaleString()}`;
+            document.getElementById('specialPaintSum').innerText = `$${specialPaintAddon.toLocaleString()}`;
+            document.getElementById('laborSum').innerText = `$${totalLabor.toLocaleString()}`;
+            document.getElementById('grandTotal').innerText = `$${grandTotal.toLocaleString()}`;
+
+            // 生成結構化理賠備註
+            if (selectedItemIds.size > 0 && itemNames.length > 0) {
+                let preview = '';
+                if (currentMode === 'GENERAL') {
+                    preview = `【${modelInfo.name} 一般車險理賠明細】\n` +
+                        `1. 施作項目：${itemNames.join('、')}\n` +
+                        `2. 基礎塗裝金額：$${totalPaint.toLocaleString()} 元\n`;
+                    if (innerPaintAmount > 0) preview += `3. 總成內裡烤漆 (30%)：$${innerPaintAmount.toLocaleString()} 元\n`;
+                    if (specialPaintAddon > 0) preview += `4. 特殊漆料加成：$${specialPaintAddon.toLocaleString()} 元 ${paintDesc}\n`;
+                    preview += `5. 拆裝工資合計：$${totalLabor.toLocaleString()} 元\n` +
+                        `6. 烤漆房及調漆費：$${boothFeeAmount.toLocaleString()} 元\n`;
+                    if (diagFeeAmount > 0) preview += `7. 完工故障消除/電腦診斷設定：$2,000 元\n`;
+                    preview += `───────────────\n` +
+                        `協議理賠總金額：NT$ ${grandTotal.toLocaleString()} 元 (含稅)`;
+                } else if (currentMode === 'LIUHE') {
+                    preview = `【六和保代專屬協議 - ${modelInfo.name} 估價明細】\n` +
+                        `1. 施作項目：${itemNames.join('、')}\n` +
+                        `2. 協議塗裝金額：$${totalPaint.toLocaleString()} 元\n`;
+                    if (specialPaintAddon > 0) preview += `3. 特殊漆料加成(+15%)：$${specialPaintAddon.toLocaleString()} 元 ${paintDesc}\n`;
+                    preview += `4. 拆裝工資合計：$${totalLabor.toLocaleString()} 元\n` +
+                        `5. 烤漆房及調漆費：$${boothFeeAmount.toLocaleString()} 元\n` +
+                        `───────────────\n` +
+                        `六和保代核銷總計：NT$ ${grandTotal.toLocaleString()} 元 (含稅)`;
+                } else {
+                    preview = `【${modelInfo.name} 水險/新車運輸險賠付明細】\n` +
+                        `1. 賠付項目：${itemNames.join('、')}\n` +
+                        `2. 基礎水險協議價：$${totalPaint.toLocaleString()} 元\n`;
+                    if (specialPaintAddon > 0) preview += `3. 特殊漆加成：$${specialPaintAddon.toLocaleString()} 元 ${paintDesc}\n`;
+                    preview += `───────────────\n` +
+                        `新車運輸險賠付總計：NT$ ${grandTotal.toLocaleString()} 元 (已含稅)`;
+                }
+                document.getElementById('outputPreview').innerText = preview;
+            } else {
+                document.getElementById('outputPreview').innerText = '尚未加入有效項目';
+            }
+
+            renderSelectedItems();
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rulesListContent');
+            if (currentMode === 'GENERAL') {
+                container.innerHTML = `
+                    <li>
+                        <i class="fa-solid fa-spray-can-sparkles" style="color:var(--accent-orange);margin-top:3px;"></i>
+                        <div>
+                            <strong>烤漆房與調漆基準 (每次事故計一次)：</strong>
+                            <div style="color:var(--text-muted);font-size:12px;">• ALFA ROMEO：加計 <span style="color:#ff7b72;font-weight:bold;">$5,000 元</span><br>• PEUGEOT / CITROËN：加計 <span style="color:var(--accent-cyan);font-weight:bold;">$2,400 元</span></div>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-palette" style="color:var(--accent-cyan);margin-top:3px;"></i>
+                        <div>
+                            <strong>ALFA ROMEO 特殊漆料：</strong>
+                            <div style="margin-top:3px;">
+                                <span style="font-size:11px;color:var(--text-muted);">+20% 色碼：</span>
+                                <span class="tag-pill alfa">601</span><span class="tag-pill alfa">636</span><span class="tag-pill alfa">640</span><span class="tag-pill alfa">519</span><span class="tag-pill alfa">664</span><span class="tag-pill alfa">688</span><span class="tag-pill alfa">522</span><span class="tag-pill alfa">408</span><span class="tag-pill alfa">756</span><span class="tag-pill alfa">035</span><span class="tag-pill alfa">398</span>
+                                <br><span style="font-size:11px;color:var(--text-muted);">+30% 三層漆色碼：</span>
+                                <span class="tag-pill alfa" style="color:#ffea7f;border-color:#7c6f2e;">645 (三層漆)</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-palette" style="color:var(--accent-blue);margin-top:3px;"></i>
+                        <div>
+                            <strong>PEUGEOT / CITROËN 特殊漆 (+15%)：</strong>
+                            <div style="margin-top:3px;">
+                                <span class="tag-pill">曜石灰 WWM7</span><span class="tag-pill">冰沙白 SJM7</span><span class="tag-pill">星砂金 JDM7</span><span class="tag-pill">烈焰紅 F3M5</span><span class="tag-pill">珍珠白 FCM6/N9M6/KWE</span><span class="tag-pill">電磁藍 EGM0</span><span class="tag-pill">柏金灰 VLM0</span><span class="tag-pill">珍珠黑 D369</span>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            } else if (currentMode === 'LIUHE') {
+                container.innerHTML = `
+                    <li>
+                        <i class="fa-solid fa-building-columns" style="color:#f2cc60;margin-top:3px;"></i>
+                        <div>
+                            <strong>六和保代專屬協議規範 (六-01 / 六-02 / 六-03 共 26 款)：</strong>
+                            <div style="color:var(--text-muted);font-size:12px;">
+                                • <strong>實施日期：</strong>PEUGEOT (六-02, 03) 自 2024/08/01 起實施；CITROËN (六-01) 依專屬協議規範執行。<br>
+                                • <strong>烤漆房與調漆費：</strong>每次事故車輛塗裝合計價格加計一次 <span style="color:#f2cc60;font-weight:bold;">$2,400 元</span>。<br>
+                                • <strong>戶定與總成：</strong>戶定塗裝已含碟石漆噴塗；總成更換烤漆已內含內裡。
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-palette" style="color:var(--accent-orange);margin-top:3px;"></i>
+                        <div>
+                            <strong>六和保代特殊漆料加成 (+15%)：</strong>
+                            <div style="margin-top:3px;">
+                                <span class="tag-pill">曜石灰 WWM7</span><span class="tag-pill">冰沙白 SJM7</span><span class="tag-pill">星砂金 JDM7</span><span class="tag-pill">烈焰紅 F3M5</span><span class="tag-pill">珍珠白 FCM6/N9M6/KWE</span><span class="tag-pill">電磁藍 EGM0</span><span class="tag-pill">柏金灰 VLM0</span><span class="tag-pill">古銅棕 LGM0/ELG</span><span class="tag-pill">亞麻灰 KLM0</span><span class="tag-pill">珍珠黑 D369</span><span class="tag-pill">絢麗橙 KLS</span><span class="tag-pill">白金灰 ELV</span><span class="tag-pill">眩暈藍</span><span class="tag-pill">黑色金屬漆 KTV</span>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            } else {
+                container.innerHTML = `
+                    <li>
+                        <i class="fa-solid fa-ship" style="color:var(--accent-marine);margin-top:3px;"></i>
+                        <div>
+                            <strong>水險 / 新車運輸險核銷說明：</strong>
+                            <div style="color:var(--text-muted);font-size:12px;">
+                                • 所有價格<strong>「已含稅」</strong>，只限新車運輸產險賠付。<br>
+                                • 依據 PG Union 技服通字 第112053號 / 第112C027號 作業管理辦法申請。
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-screwdriver-wrench" style="color:var(--accent-green);margin-top:3px;"></i>
+                        <div>
+                            <strong>通用週邊修補工資基準 (W02)：</strong>
+                            <div style="color:var(--text-muted);font-size:12px;">
+                                • 鋁圈烤漆：$5,200 / 顆 ｜ CNC 雙色切割：$6,550 / 顆<br>
+                                • 輪胎拆裝：19吋以下 $800 / 19吋(含)以上 $1,000<br>
+                                • 凹痕微鈑金：輕度 $3,500 / 中度 $5,500 (鋁合金及重度另議)<br>
+                                • 點漆 (含金油)：$250 / 處 ｜ 玻璃修補：$4,000
+                            </div>
+                        </div>
+                    </li>
+                `;
+            }
+        }
+
+        function copyOutputText() {
+            const text = document.getElementById('outputPreview').innerText;
+            if (text.includes('尚未加入')) {
+                alert('請先加入受損項目！');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                alert('理賠估價字串已成功複製到剪貼簿！');
+            });
+        }
+
+        // 系統啟動
+        switchClaimMode('GENERAL');
+    </script>
+</body>
+</html>
