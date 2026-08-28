@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>互動式魚骨圖產生與教學系統 (Fishbone Interactive Analyzer)</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: #1e293b;
+      --border-color: #334155;
+      --primary: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --fish-spine: #38bdf8;
+      --fish-bone: #64748b;
+      --fish-sub: #475569;
+      --head-bg: #facc15;
+      --head-text: #0f172a;
+      --main-box-bg: #0284c7;
+      --sub-box-bg: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 頂部導航列 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .tabs { display: flex; gap: 8px; }
+    button {
+      padding: 8px 16px;
+      border: 1px solid var(--border-color);
+      background: #0f172a;
+      color: var(--text-main);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    button:hover { border-color: var(--primary); }
+    button.active {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+    }
+    .btn-export {
+      background: #059669;
+      border-color: #059669;
+      color: #fff;
+    }
+    .btn-export:hover { background: #10b981; }
+
+    /* 主工作區 */
+    .workspace {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 12px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* 資料輸入側欄 */
+    .sidebar {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 12px 16px;
+      background: #111827;
+      font-size: 14px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-content {
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+    .form-group.core-group {
+      border-color: #eab308;
+      background: rgba(234, 179, 8, 0.05);
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 6px 10px;
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+    .sub-items-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    /* 魚骨圖畫布區 */
+    .canvas-container {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      user-select: none;
+    }
+    .node-text {
+      font-family: inherit;
+      font-size: 12px;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+    .head-text {
+      font-size: 16px;
+      font-weight: 800;
+      fill: #0f172a;
+    }
+    .main-text {
+      font-size: 13px;
+      font-weight: 700;
+      fill: #ffffff;
+    }
+    .sub-text {
+      font-size: 11px;
+      fill: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchPreset('problem')">🔍 問題魚骨圖</button>
+      <button class="tab-btn" onclick="switchPreset('strategy')">🎯 策略魚骨圖</button>
+      <button class="tab-btn" onclick="switchPreset('template')">📐 Excel 座標模板</button>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span style="font-size: 12px; color: var(--text-muted);">8 主構面 / 24 次構面動態拓撲</span>
+      <button class="btn-export" onclick="exportSVG()">匯出 SVG 向量圖</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- 左側即時輸入表 -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span>邏輯資料輸入端 (動態連動)</span>
+        <span id="activeSheetName" style="color: var(--primary); font-size: 12px;">問題資料輸入</span>
+      </div>
+      <div class="sidebar-content" id="formContainer"></div>
+    </div>
+
+    <!-- 右側動態魚骨圖畫布 -->
+    <div class="canvas-container">
+      <svg id="fishboneSvg" viewBox="0 0 1400 750"></svg>
+    </div>
+  </div>
+
+  <script>
+    // 預設資料集（完全吻合 Excel 中的三組分頁資料）
+    const datasets = {
+      problem: {
+        sheetName: "問題資料輸入",
+        core: "營業額未達標",
+        categories: [
+          { name: "進車數不足", subs: ["車口不足", "外廠競爭", "保養期限過長"] },
+          { name: "單車消費額太低", subs: ["零件價格偏低", "保固比率過高", "附加耗材銷售差"] },
+          { name: "客戶滿意度不佳", subs: ["人員訓練不足", "人員士氣不佳", "產品品質不佳"] },
+          { name: "服務流程凌亂", subs: ["未訂定標準", "未定期演練", "考核未落實"] },
+          { name: "零件缺料嚴重", subs: ["原廠缺貨", "自廠庫存不足", "臨時急用"] },
+          { name: "代步車不足", subs: ["事故車太多", "保固案件過多", "客戶借期過長"] },
+          { name: "維修技能不佳", subs: ["人員素質欠佳", "訓練不足", "自廠訓練未落實"] },
+          { name: "人力不足", subs: ["接待人力不足", "技師人力不足", "人力年資過大"] }
+        ]
+      },
+      strategy: {
+        sheetName: "策略資料輸入",
+        core: "提高營業額",
+        categories: [
+          { name: "增加進車數", subs: ["保養到期邀約", "久未回廠邀約", "新車滿月回廠"] },
+          { name: "增加單車消費額", subs: ["關鍵消耗品銷售", "落實進場環車檢查", "接待銷售競賽"] },
+          { name: "提升客戶滿意度", subs: ["接待技巧提升", "危機處理能力", "不滿意客戶補救"] },
+          { name: "落實服務流程", subs: ["每月定期演練", "流程修改及調整", "建立稽核機制"] },
+          { name: "提高零件供應率", subs: ["提出缺料項目", "四廠零件互調", "定期檢討缺料項目"] },
+          { name: "滿足客戶代步需求", subs: ["建立代叫計程車", "以租賃車補充", "業務同仁取車"] },
+          { name: "提升維修技能", subs: ["自廠訓練制度", "早會提醒機制", "建立師徒制度"] },
+          { name: "補足人力缺口", subs: ["檢視人力缺口", "檢討薪獎結構", "降低人力流失"] }
+        ]
+      },
+      template: {
+        sheetName: "模板資料輸入",
+        core: "XX",
+        categories: [
+          { name: "B2", subs: ["C2", "C3", "C4"] },
+          { name: "B3", subs: ["D2", "D3", "D4"] },
+          { name: "B4", subs: ["E2", "E3", "E4"] },
+          { name: "B5", subs: ["F2", "F3", "F4"] },
+          { name: "B6", subs: ["G2", "G3", "G4"] },
+          { name: "B7", subs: ["H2", "H3", "H4"] },
+          { name: "B8", subs: ["I2", "I3", "I4"] },
+          { name: "B9", subs: ["J2", "J3", "J4"] }
+        ]
+      }
+    };
+
+    let currentKey = 'problem';
+    let activeData = JSON.parse(JSON.stringify(datasets[currentKey]));
+
+    function switchPreset(key) {
+      currentKey = key;
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', ['problem', 'strategy', 'template'][idx] === key);
+      });
+      activeData = JSON.parse(JSON.stringify(datasets[key]));
+      document.getElementById('activeSheetName').textContent = activeData.sheetName;
+      renderForm();
+      renderDiagram();
+    }
+
+    function renderForm() {
+      const container = document.getElementById('formContainer');
+      let html = `
+        <div class="form-group core-group">
+          <label>魚頭核心指標 [A2]</label>
+          <input type="text" value="${activeData.core}" oninput="updateCore(this.value)">
+        </div>
+      `;
+
+      activeData.categories.forEach((cat, idx) => {
+        const isTop = idx < 4;
+        const colLetter = String.fromCharCode(67 + idx); // C, D, E...
+        html += `
+          <div class="form-group">
+            <label style="color: ${isTop ? '#38bdf8' : '#34d399'}">
+              構面 ${idx + 1} (${isTop ? '上半部' : '下半部'}) [B${idx + 2}]
+            </label>
+            <input type="text" value="${cat.name}" oninput="updateCategory(${idx}, this.value)">
+            <div class="sub-items-grid">
+              <input type="text" placeholder="${colLetter}2" value="${cat.subs[0]}" oninput="updateSub(${idx}, 0, this.value)">
+              <input type="text" placeholder="${colLetter}3" value="${cat.subs[1]}" oninput="updateSub(${idx}, 1, this.value)">
+              <input type="text" placeholder="${colLetter}4" value="${cat.subs[2]}" oninput="updateSub(${idx}, 2, this.value)">
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updateCore(val) { activeData.core = val; renderDiagram(); }
+    function updateCategory(catIdx, val) { activeData.categories[catIdx].name = val; renderDiagram(); }
+    function updateSub(catIdx, subIdx, val) { activeData.categories[catIdx].subs[subIdx] = val; renderDiagram(); }
+
+    function renderDiagram() {
+      const svg = document.getElementById('fishboneSvg');
+      const W = 1400, H = 750;
+      const spineY = 375;
+      const headX = 120;
+      const tailX = 1320;
+
+      let svgHTML = `
+        <defs>
+          <linearGradient id="spineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" />
+            <stop offset="100%" stop-color="#818cf8" />
+          </linearGradient>
+          <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+          </marker>
+        </defs>
+
+        <!-- 主脊椎線 -->
+        <line x1="${tailX}" y1="${spineY}" x2="${headX + 90}" y2="${spineY}" stroke="url(#spineGrad)" stroke-width="6" marker-end="url(#arrow)" />
+
+        <!-- 魚頭 (A2 核心目標/問題) -->
+        <polygon points="${headX-10},${spineY} ${headX+90},${spineY-60} ${headX+90},${spineY+60}" fill="#facc15" stroke="#ca8a04" stroke-width="3" />
+        <rect x="20" y="${spineY-30}" width="140" height="60" rx="8" fill="#facc15" stroke="#ca8a04" stroke-width="2" />
+        <text x="90" y="${spineY}" class="node-text head-text">${activeData.core}</text>
+      `;
+
+      // 4 根在上方 (進車數, 單車金額, 滿意度, 流程)，4 根在下方 (零件, 代步車, 技能, 人力)
+      const topX = [1180, 920, 660, 400];
+      const botX = [1180, 920, 660, 400];
+
+      activeData.categories.forEach((cat, idx) => {
+        const isTop = idx < 4;
+        const boneRootX = isTop ? topX[idx] : botX[idx - 4];
+        const boneLen = 220;
+        const angle = isTop ? -60 : 60; // 傾斜角度
+        const rad = (angle * Math.PI) / 180;
+
+        const tipX = boneRootX + boneLen * Math.cos(rad);
+        const tipY = spineY + boneLen * Math.sin(rad);
+
+        // 主骨連線
+        svgHTML += `
+          <line x1="${boneRootX}" y1="${spineY}" x2="${tipX}" y2="${tipY}" stroke="#64748b" stroke-width="4" stroke-linecap="round" />
+          
+          <!-- 主骨標題方塊 (B2:B9) -->
+          <rect x="${tipX - 65}" y="${isTop ? tipY - 32 : tipY}" width="130" height="32" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
+          <text x="${tipX}" y="${isTop ? tipY - 16 : tipY + 16}" class="node-text main-text">${cat.name}</text>
+        `;
+
+        // 3 根次骨 (細項)
+        cat.subs.forEach((sub, subIdx) => {
+          const ratio = (subIdx + 1) / 4;
+          const subRootX = boneRootX + (tipX - boneRootX) * ratio;
+          const subRootY = spineY + (tipY - spineY) * ratio;
+          const subLen = 100;
+          const subEndX = subRootX - subLen;
+
+          svgHTML += `
+            <line x1="${subRootX}" y1="${subRootY}" x2="${subEndX}" y2="${subRootY}" stroke="#475569" stroke-width="2" stroke-dasharray="2,2" />
+            <rect x="${subEndX - 100}" y="${subRootY - 12}" width="105" height="24" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1" />
+            <text x="${subEndX - 47}" y="${subRootY}" class="node-text sub-text">${sub}</text>
+          `;
+        });
+      });
+
+      svg.innerHTML = svgHTML;
+    }
+
+    function exportSVG() {
+      const svg = document.getElementById('fishboneSvg');
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(svg);
+      const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `魚骨圖_${activeData.core}.svg`;
+      a.click();
+    }
+
+    // 初始化
+    renderForm();
+    renderDiagram();
+  </script>
+</body>
+</html>
