@@ -3,218 +3,318 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>互動式魚骨圖產生與教學系統 (Fishbone Interactive Analyzer)</title>
+  <title>Cognitive Map Studio - 魚骨圖與心智圖多維解構系統</title>
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --panel-bg: #1e293b;
-      --border-color: #334155;
-      --primary: #38bdf8;
+      --bg-dark: #090d16;
+      --panel-bg: #131b2e;
+      --panel-border: #1e293b;
+      --accent-cyan: #38bdf8;
+      --accent-gold: #fbbf24;
+      --accent-purple: #a855f7;
+      --accent-emerald: #34d399;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --fish-spine: #38bdf8;
-      --fish-bone: #64748b;
-      --fish-sub: #475569;
-      --head-bg: #facc15;
-      --head-text: #0f172a;
-      --main-box-bg: #0284c7;
-      --sub-box-bg: #1e293b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
-      background-color: var(--bg-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg-dark);
       color: var(--text-main);
-      padding: 16px;
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
     }
 
-    /* 頂部導航列 */
+    /* 頂部控制面板 */
     header {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 16px;
-      background: var(--panel-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      margin-bottom: 12px;
+      gap: 16px;
+      z-index: 10;
     }
-    .tabs { display: flex; gap: 8px; }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-title span { color: var(--accent-cyan); }
+
+    .btn-group { display: flex; gap: 6px; align-items: center; }
+
     button {
-      padding: 8px 16px;
-      border: 1px solid var(--border-color);
-      background: #0f172a;
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
       color: var(--text-main);
+      padding: 6px 14px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 500;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
-    button:hover { border-color: var(--primary); }
+    button:hover {
+      border-color: var(--accent-cyan);
+      background: #243247;
+    }
     button.active {
-      background: var(--primary);
-      color: #0f172a;
-      border-color: var(--primary);
+      background: var(--accent-cyan);
+      color: #090d16;
+      border-color: var(--accent-cyan);
+      font-weight: 700;
     }
-    .btn-export {
-      background: #059669;
-      border-color: #059669;
-      color: #fff;
+    .btn-action {
+      background: #1e1b4b;
+      border-color: var(--accent-purple);
+      color: #c4b5fd;
     }
-    .btn-export:hover { background: #10b981; }
+    .btn-action:hover {
+      background: var(--accent-purple);
+      color: #090d16;
+    }
+    .btn-gold {
+      background: #451a03;
+      border-color: var(--accent-gold);
+      color: #fde047;
+    }
+    .btn-gold:hover {
+      background: var(--accent-gold);
+      color: #090d16;
+    }
 
     /* 主工作區 */
     .workspace {
       display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 12px;
+      grid-template-columns: 360px 1fr;
       flex: 1;
       overflow: hidden;
     }
 
-    /* 資料輸入側欄 */
+    /* 左側資料大綱編輯器 */
     .sidebar {
       background: var(--panel-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-right: 1px solid var(--panel-border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
     .sidebar-header {
       padding: 12px 16px;
-      background: #111827;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--panel-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: #0d1322;
     }
-    .sidebar-content {
+    .outline-tree {
       padding: 12px;
       overflow-y: auto;
       flex: 1;
     }
 
-    .form-group {
-      margin-bottom: 14px;
-      background: #0f172a;
-      padding: 10px;
+    .node-editor {
+      background: #090d16;
+      border: 1px solid var(--panel-border);
       border-radius: 6px;
-      border: 1px solid var(--border-color);
+      margin-bottom: 10px;
+      padding: 10px;
+      transition: border-color 0.2s ease;
     }
-    .form-group.core-group {
-      border-color: #eab308;
-      background: rgba(234, 179, 8, 0.05);
+    .node-editor:hover { border-color: #334155; }
+    .node-editor.core-editor {
+      border-color: var(--accent-gold);
+      background: rgba(251, 191, 36, 0.04);
     }
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
+    .node-header-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .node-header-row input {
+      flex: 1;
       font-weight: 600;
     }
+
     input[type="text"] {
-      width: 100%;
-      padding: 6px 10px;
-      background: #1e293b;
-      border: 1px solid var(--border-color);
+      background: #172033;
+      border: 1px solid var(--panel-border);
       border-radius: 4px;
       color: #fff;
-      font-size: 13px;
+      padding: 5px 8px;
+      font-size: 12px;
       outline: none;
     }
     input[type="text"]:focus {
-      border-color: var(--primary);
-    }
-    .sub-items-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-top: 6px;
+      border-color: var(--accent-cyan);
     }
 
-    /* 魚骨圖畫布區 */
+    .sub-item-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+      align-items: center;
+    }
+    .sub-item-row input { flex: 1; }
+
+    .btn-icon {
+      padding: 3px 6px;
+      font-size: 11px;
+      line-height: 1;
+      border-radius: 3px;
+    }
+    .btn-danger { color: #f87171; border-color: #7f1d1d; }
+    .btn-danger:hover { background: #ef4444; color: #fff; }
+
+    /* 右側可視化畫布 */
     .canvas-container {
-      background: var(--panel-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
       position: relative;
+      background: radial-gradient(circle at center, #111a2e 0%, #090d16 100%);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     svg {
       width: 100%;
       height: 100%;
-      user-select: none;
+      cursor: grab;
     }
-    .node-text {
-      font-family: inherit;
-      font-size: 12px;
+    svg:active { cursor: grabbing; }
+
+    /* SVG 節點樣式 */
+    .svg-node {
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    }
+    .svg-node:hover {
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
+    }
+    .svg-node.dimmed {
+      opacity: 0.15;
+    }
+    .svg-node.focused {
+      opacity: 1;
+      filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.8));
+    }
+
+    .node-box {
+      rx: 6px;
+      transition: all 0.3s ease;
+    }
+    .text-core {
+      font-size: 15px;
+      font-weight: 800;
+      fill: #090d16;
       text-anchor: middle;
       dominant-baseline: central;
-      pointer-events: none;
     }
-    .head-text {
-      font-size: 16px;
-      font-weight: 800;
-      fill: #0f172a;
-    }
-    .main-text {
-      font-size: 13px;
+    .text-branch {
+      font-size: 12px;
       font-weight: 700;
       fill: #ffffff;
+      text-anchor: middle;
+      dominant-baseline: central;
     }
-    .sub-text {
+    .text-leaf {
       font-size: 11px;
+      font-weight: 500;
       fill: #cbd5e1;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* 懸浮控制浮動條 */
+    .floating-hud {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      align-items: center;
+      color: var(--text-muted);
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchPreset('problem')">🔍 問題魚骨圖</button>
-      <button class="tab-btn" onclick="switchPreset('strategy')">🎯 策略魚骨圖</button>
-      <button class="tab-btn" onclick="switchPreset('template')">📐 Excel 座標模板</button>
+    <div class="brand-title">
+      <span>◈</span> COGNITIVE MAP STUDIO
     </div>
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <span style="font-size: 12px; color: var(--text-muted);">8 主構面 / 24 次構面動態拓撲</span>
-      <button class="btn-export" onclick="exportSVG()">匯出 SVG 向量圖</button>
+
+    <div class="btn-group">
+      <span style="font-size: 12px; color: var(--text-muted); margin-right: 4px;">版型模型：</span>
+      <button class="active" id="btn-fishbone" onclick="setLayout('fishbone')">🦴 魚骨要因圖</button>
+      <button id="btn-mindmap" onclick="setLayout('mindmap')">🧠 放射心智圖</button>
+      <button id="btn-tree" onclick="setLayout('tree')">🌲 樹狀架構圖</button>
+      <button id="btn-matrix" onclick="setLayout('matrix')">▦ 矩陣看板</button>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-gold" onclick="loadPreset('problem')">載入：問題診斷</button>
+      <button class="btn-gold" onclick="loadPreset('strategy')">載入：策略推演</button>
+      <button class="btn-action" onclick="toggleFocusMode()">🎯 聚焦點評模式</button>
+      <button class="btn-action" onclick="exportSVG()">📥 匯出 SVG</button>
     </div>
   </header>
 
   <div class="workspace">
-    <!-- 左側即時輸入表 -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <span>邏輯資料輸入端 (動態連動)</span>
-        <span id="activeSheetName" style="color: var(--primary); font-size: 12px;">問題資料輸入</span>
+        <span>節點大綱層級 (即時雙向聯動)</span>
+        <button class="btn-icon" style="background:#0284c7; border:none; color:#fff;" onclick="addCategory()">+ 新增主構面</button>
       </div>
-      <div class="sidebar-content" id="formContainer"></div>
+      <div class="outline-tree" id="editorTree"></div>
     </div>
 
-    <!-- 右側動態魚骨圖畫布 -->
     <div class="canvas-container">
-      <svg id="fishboneSvg" viewBox="0 0 1400 750"></svg>
+      <svg id="mainSvg" viewBox="0 0 1600 900">
+        <defs>
+          <linearGradient id="grad-spine" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" />
+            <stop offset="100%" stop-color="#818cf8" />
+          </linearGradient>
+          <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+          </marker>
+        </defs>
+        <g id="viewportGroup"></g>
+      </svg>
+      <div class="floating-hud">
+        <span>💡 點擊分支方塊可高亮/聚焦講解</span>
+        <span>•</span>
+        <span id="nodeCountInfo">構面: 8 | 細項: 24</span>
+      </div>
     </div>
   </div>
 
   <script>
-    // 預設資料集（完全吻合 Excel 中的三組分頁資料）
-    const datasets = {
+    // 預設經典資料庫（完全對應 Excel 邏輯）
+    const presetData = {
       problem: {
-        sheetName: "問題資料輸入",
         core: "營業額未達標",
         categories: [
           { name: "進車數不足", subs: ["車口不足", "外廠競爭", "保養期限過長"] },
@@ -228,7 +328,6 @@
         ]
       },
       strategy: {
-        sheetName: "策略資料輸入",
         core: "提高營業額",
         categories: [
           { name: "增加進車數", subs: ["保養到期邀約", "久未回廠邀約", "新車滿月回廠"] },
@@ -240,154 +339,340 @@
           { name: "提升維修技能", subs: ["自廠訓練制度", "早會提醒機制", "建立師徒制度"] },
           { name: "補足人力缺口", subs: ["檢視人力缺口", "檢討薪獎結構", "降低人力流失"] }
         ]
-      },
-      template: {
-        sheetName: "模板資料輸入",
-        core: "XX",
-        categories: [
-          { name: "B2", subs: ["C2", "C3", "C4"] },
-          { name: "B3", subs: ["D2", "D3", "D4"] },
-          { name: "B4", subs: ["E2", "E3", "E4"] },
-          { name: "B5", subs: ["F2", "F3", "F4"] },
-          { name: "B6", subs: ["G2", "G3", "G4"] },
-          { name: "B7", subs: ["H2", "H3", "H4"] },
-          { name: "B8", subs: ["I2", "I3", "I4"] },
-          { name: "B9", subs: ["J2", "J3", "J4"] }
-        ]
       }
     };
 
-    let currentKey = 'problem';
-    let activeData = JSON.parse(JSON.stringify(datasets[currentKey]));
+    let state = {
+      layout: 'fishbone', // fishbone | mindmap | tree | matrix
+      focusedCategoryIndex: null,
+      data: JSON.parse(JSON.stringify(presetData.problem))
+    };
 
-    function switchPreset(key) {
-      currentKey = key;
-      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
-        btn.classList.toggle('active', ['problem', 'strategy', 'template'][idx] === key);
+    // 切換預設資料
+    function loadPreset(key) {
+      state.data = JSON.parse(JSON.stringify(presetData[key]));
+      state.focusedCategoryIndex = null;
+      renderAll();
+    }
+
+    // 切換佈局模式
+    function setLayout(layoutType) {
+      state.layout = layoutType;
+      document.querySelectorAll('.btn-group button').forEach(b => {
+        if (b.id) b.classList.toggle('active', b.id === `btn-${layoutType}`);
       });
-      activeData = JSON.parse(JSON.stringify(datasets[key]));
-      document.getElementById('activeSheetName').textContent = activeData.sheetName;
-      renderForm();
       renderDiagram();
     }
 
-    function renderForm() {
-      const container = document.getElementById('formContainer');
+    function toggleFocusMode() {
+      if (state.focusedCategoryIndex !== null) {
+        state.focusedCategoryIndex = null;
+      } else if (state.data.categories.length > 0) {
+        state.focusedCategoryIndex = 0;
+      }
+      renderDiagram();
+    }
+
+    // 節點增刪與修改
+    function updateCore(val) { state.data.core = val; renderDiagram(); }
+    function updateCatName(idx, val) { state.data.categories[idx].name = val; renderDiagram(); }
+    function updateSubName(catIdx, subIdx, val) { state.data.categories[catIdx].subs[subIdx] = val; renderDiagram(); }
+    
+    function addCategory() {
+      state.data.categories.push({ name: `新增構面 ${state.data.categories.length + 1}`, subs: ["細項 1", "細項 2"] });
+      renderAll();
+    }
+    function removeCategory(idx) {
+      state.data.categories.splice(idx, 1);
+      if (state.focusedCategoryIndex === idx) state.focusedCategoryIndex = null;
+      renderAll();
+    }
+    function addSubItem(catIdx) {
+      state.data.categories[catIdx].subs.push(`細項 ${state.data.categories[catIdx].subs.length + 1}`);
+      renderAll();
+    }
+    function removeSubItem(catIdx, subIdx) {
+      state.data.categories[catIdx].subs.splice(subIdx, 1);
+      renderAll();
+    }
+
+    // 渲染左側輸入面板
+    function renderEditor() {
+      const container = document.getElementById('editorTree');
       let html = `
-        <div class="form-group core-group">
-          <label>魚頭核心指標 [A2]</label>
-          <input type="text" value="${activeData.core}" oninput="updateCore(this.value)">
+        <div class="node-editor core-editor">
+          <label style="font-size:11px; color:var(--accent-gold); font-weight:700;">核心焦點 (ROOT / HEAD)</label>
+          <div class="node-header-row" style="margin-top:4px;">
+            <input type="text" value="${state.data.core}" oninput="updateCore(this.value)">
+          </div>
         </div>
       `;
 
-      activeData.categories.forEach((cat, idx) => {
-        const isTop = idx < 4;
-        const colLetter = String.fromCharCode(67 + idx); // C, D, E...
+      state.data.categories.forEach((cat, catIdx) => {
         html += `
-          <div class="form-group">
-            <label style="color: ${isTop ? '#38bdf8' : '#34d399'}">
-              構面 ${idx + 1} (${isTop ? '上半部' : '下半部'}) [B${idx + 2}]
-            </label>
-            <input type="text" value="${cat.name}" oninput="updateCategory(${idx}, this.value)">
-            <div class="sub-items-grid">
-              <input type="text" placeholder="${colLetter}2" value="${cat.subs[0]}" oninput="updateSub(${idx}, 0, this.value)">
-              <input type="text" placeholder="${colLetter}3" value="${cat.subs[1]}" oninput="updateSub(${idx}, 1, this.value)">
-              <input type="text" placeholder="${colLetter}4" value="${cat.subs[2]}" oninput="updateSub(${idx}, 2, this.value)">
+          <div class="node-editor">
+            <div class="node-header-row">
+              <span style="color:var(--accent-cyan); font-size:12px; font-weight:700;">#${catIdx + 1}</span>
+              <input type="text" value="${cat.name}" oninput="updateCatName(${catIdx}, this.value)">
+              <button class="btn-icon btn-danger" onclick="removeCategory(${catIdx})" title="刪除構面">✕</button>
+            </div>
+            <div style="padding-left: 12px; border-left: 2px solid var(--panel-border); margin-top:6px;">
+        `;
+
+        cat.subs.forEach((sub, subIdx) => {
+          html += `
+            <div class="sub-item-row">
+              <input type="text" value="${sub}" oninput="updateSubName(${catIdx}, ${subIdx}, this.value)">
+              <button class="btn-icon btn-danger" onclick="removeSubItem(${catIdx}, ${subIdx})">✕</button>
+            </div>
+          `;
+        });
+
+        html += `
+              <button class="btn-icon" style="margin-top:6px; background:#1e293b; color:var(--accent-cyan); border:1px solid #334155; width:100%;" onclick="addSubItem(${catIdx})">+ 新增子項</button>
             </div>
           </div>
         `;
       });
 
       container.innerHTML = html;
+      
+      const totalSubs = state.data.categories.reduce((acc, c) => acc + c.subs.length, 0);
+      document.getElementById('nodeCountInfo').textContent = `構面: ${state.data.categories.length} | 細項: ${totalSubs}`;
     }
 
-    function updateCore(val) { activeData.core = val; renderDiagram(); }
-    function updateCategory(catIdx, val) { activeData.categories[catIdx].name = val; renderDiagram(); }
-    function updateSub(catIdx, subIdx, val) { activeData.categories[catIdx].subs[subIdx] = val; renderDiagram(); }
-
+    // 渲染 SVG 圖形
     function renderDiagram() {
-      const svg = document.getElementById('fishboneSvg');
-      const W = 1400, H = 750;
-      const spineY = 375;
-      const headX = 120;
-      const tailX = 1320;
+      const group = document.getElementById('viewportGroup');
+      group.innerHTML = '';
 
-      let svgHTML = `
-        <defs>
-          <linearGradient id="spineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#38bdf8" />
-            <stop offset="100%" stop-color="#818cf8" />
-          </linearGradient>
-          <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
-          </marker>
-        </defs>
+      switch (state.layout) {
+        case 'fishbone': renderFishboneLayout(group); break;
+        case 'mindmap': renderMindMapLayout(group); break;
+        case 'tree': renderTreeLayout(group); break;
+        case 'matrix': renderMatrixLayout(group); break;
+      }
+    }
 
-        <!-- 主脊椎線 -->
-        <line x1="${tailX}" y1="${spineY}" x2="${headX + 90}" y2="${spineY}" stroke="url(#spineGrad)" stroke-width="6" marker-end="url(#arrow)" />
-
-        <!-- 魚頭 (A2 核心目標/問題) -->
-        <polygon points="${headX-10},${spineY} ${headX+90},${spineY-60} ${headX+90},${spineY+60}" fill="#facc15" stroke="#ca8a04" stroke-width="3" />
-        <rect x="20" y="${spineY-30}" width="140" height="60" rx="8" fill="#facc15" stroke="#ca8a04" stroke-width="2" />
-        <text x="90" y="${spineY}" class="node-text head-text">${activeData.core}</text>
+    /* 1. 魚骨圖佈局 */
+    function renderFishboneLayout(g) {
+      const W = 1600, H = 900, spineY = 450, headX = 160, tailX = 1500;
+      let html = `
+        <line x1="${tailX}" y1="${spineY}" x2="${headX + 90}" y2="${spineY}" stroke="url(#grad-spine)" stroke-width="6" marker-end="url(#arrow)" />
+        <g class="svg-node" onclick="state.focusedCategoryIndex = null; renderDiagram();">
+          <polygon points="${headX-10},${spineY} ${headX+90},${spineY-60} ${headX+90},${spineY+60}" fill="#fbbf24" />
+          <rect x="25" y="${spineY-32}" width="150" height="64" rx="8" fill="#fbbf24" />
+          <text x="100" y="${spineY}" class="text-core">${state.data.core}</text>
+        </g>
       `;
 
-      // 4 根在上方 (進車數, 單車金額, 滿意度, 流程)，4 根在下方 (零件, 代步車, 技能, 人力)
-      const topX = [1180, 920, 660, 400];
-      const botX = [1180, 920, 660, 400];
+      const cats = state.data.categories;
+      const count = cats.length;
+      const topCats = cats.filter((_, i) => i % 2 === 0);
+      const botCats = cats.filter((_, i) => i % 2 !== 0);
 
-      activeData.categories.forEach((cat, idx) => {
-        const isTop = idx < 4;
-        const boneRootX = isTop ? topX[idx] : botX[idx - 4];
+      cats.forEach((cat, idx) => {
+        const isTop = idx % 2 === 0;
+        const colIdx = Math.floor(idx / 2);
+        const colTotal = Math.ceil(count / 2);
+        const startX = tailX - (tailX - headX - 250) * ((colIdx + 0.6) / colTotal);
+        
         const boneLen = 220;
-        const angle = isTop ? -60 : 60; // 傾斜角度
+        const angle = isTop ? -55 : 55;
         const rad = (angle * Math.PI) / 180;
-
-        const tipX = boneRootX + boneLen * Math.cos(rad);
+        const tipX = startX + boneLen * Math.cos(rad);
         const tipY = spineY + boneLen * Math.sin(rad);
 
-        // 主骨連線
-        svgHTML += `
-          <line x1="${boneRootX}" y1="${spineY}" x2="${tipX}" y2="${tipY}" stroke="#64748b" stroke-width="4" stroke-linecap="round" />
-          
-          <!-- 主骨標題方塊 (B2:B9) -->
-          <rect x="${tipX - 65}" y="${isTop ? tipY - 32 : tipY}" width="130" height="32" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
-          <text x="${tipX}" y="${isTop ? tipY - 16 : tipY + 16}" class="node-text main-text">${cat.name}</text>
+        const isDim = state.focusedCategoryIndex !== null && state.focusedCategoryIndex !== idx;
+        const isFocus = state.focusedCategoryIndex === idx;
+
+        html += `
+          <g class="svg-node ${isDim ? 'dimmed' : ''} ${isFocus ? 'focused' : ''}" onclick="state.focusedCategoryIndex = ${idx}; renderDiagram();">
+            <line x1="${startX}" y1="${spineY}" x2="${tipX}" y2="${tipY}" stroke="#64748b" stroke-width="4" stroke-linecap="round" />
+            <rect x="${tipX - 70}" y="${isTop ? tipY - 34 : tipY}" width="140" height="34" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
+            <text x="${tipX}" y="${isTop ? tipY - 17 : tipY + 17}" class="text-branch">${cat.name}</text>
         `;
 
-        // 3 根次骨 (細項)
         cat.subs.forEach((sub, subIdx) => {
-          const ratio = (subIdx + 1) / 4;
-          const subRootX = boneRootX + (tipX - boneRootX) * ratio;
+          const ratio = (subIdx + 1) / (cat.subs.length + 1);
+          const subRootX = startX + (tipX - startX) * ratio;
           const subRootY = spineY + (tipY - spineY) * ratio;
-          const subLen = 100;
+          const subLen = 110;
           const subEndX = subRootX - subLen;
 
-          svgHTML += `
-            <line x1="${subRootX}" y1="${subRootY}" x2="${subEndX}" y2="${subRootY}" stroke="#475569" stroke-width="2" stroke-dasharray="2,2" />
-            <rect x="${subEndX - 100}" y="${subRootY - 12}" width="105" height="24" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1" />
-            <text x="${subEndX - 47}" y="${subRootY}" class="node-text sub-text">${sub}</text>
+          html += `
+            <line x1="${subRootX}" y1="${subRootY}" x2="${subEndX}" y2="${subRootY}" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <rect x="${subEndX - 105}" y="${subRootY - 13}" width="110" height="26" rx="4" fill="#1e293b" stroke="#334155" />
+            <text x="${subEndX - 50}" y="${subRootY}" class="text-leaf">${sub}</text>
           `;
         });
+
+        html += `</g>`;
       });
 
-      svg.innerHTML = svgHTML;
+      g.innerHTML = html;
     }
 
+    /* 2. 放射心智圖佈局 */
+    function renderMindMapLayout(g) {
+      const centerX = 800, centerY = 450;
+      let html = `
+        <g class="svg-node" onclick="state.focusedCategoryIndex = null; renderDiagram();">
+          <circle cx="${centerX}" cy="${centerY}" r="65" fill="#fbbf24" stroke="#d97706" stroke-width="3" />
+          <text x="${centerX}" y="${centerY}" class="text-core" style="font-size:14px;">${state.data.core}</text>
+        </g>
+      `;
+
+      const cats = state.data.categories;
+      const n = cats.length;
+
+      cats.forEach((cat, idx) => {
+        const angle = (idx * 2 * Math.PI) / n - Math.PI / 2;
+        const rMain = 240;
+        const mainX = centerX + rMain * Math.cos(angle);
+        const mainY = centerY + rMain * Math.sin(angle);
+
+        const isDim = state.focusedCategoryIndex !== null && state.focusedCategoryIndex !== idx;
+        const isFocus = state.focusedCategoryIndex === idx;
+
+        // 貝茲曲線連接主節點
+        const cpX = centerX + (rMain * 0.5) * Math.cos(angle);
+        const cpY = centerY + (rMain * 0.5) * Math.sin(angle);
+
+        html += `
+          <g class="svg-node ${isDim ? 'dimmed' : ''} ${isFocus ? 'focused' : ''}" onclick="state.focusedCategoryIndex = ${idx}; renderDiagram();">
+            <path d="M ${centerX} ${centerY} Q ${cpX} ${cpY} ${mainX} ${mainY}" fill="none" stroke="#0284c7" stroke-width="3.5" />
+            <rect x="${mainX - 60}" y="${mainY - 18}" width="120" height="36" rx="18" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
+            <text x="${mainX}" y="${mainY}" class="text-branch">${cat.name}</text>
+        `;
+
+        // 放射子節點
+        const subCount = cat.subs.length;
+        cat.subs.forEach((sub, subIdx) => {
+          const spread = 0.45; // 弧度擴展角
+          const subAngle = angle + (subIdx - (subCount - 1) / 2) * (spread / Math.max(subCount, 1));
+          const rSub = 170;
+          const subX = mainX + rSub * Math.cos(subAngle);
+          const subY = mainY + rSub * Math.sin(subAngle);
+
+          html += `
+            <path d="M ${mainX} ${mainY} Q ${(mainX+subX)/2} ${(mainY+subY)/2} ${subX} ${subY}" fill="none" stroke="#334155" stroke-width="1.8" />
+            <rect x="${subX - 50}" y="${subY - 12}" width="100" height="24" rx="4" fill="#1e293b" stroke="#475569" />
+            <text x="${subX}" y="${subY}" class="text-leaf">${sub}</text>
+          `;
+        });
+
+        html += `</g>`;
+      });
+
+      g.innerHTML = html;
+    }
+
+    /* 3. 樹狀階層架構佈局 */
+    function renderTreeLayout(g) {
+      const startX = 800, startY = 80;
+      let html = `
+        <g class="svg-node" onclick="state.focusedCategoryIndex = null; renderDiagram();">
+          <rect x="${startX - 90}" y="${startY}" width="180" height="46" rx="8" fill="#fbbf24" />
+          <text x="${startX}" y="${startY + 23}" class="text-core">${state.data.core}</text>
+        </g>
+      `;
+
+      const cats = state.data.categories;
+      const n = cats.length;
+      const totalWidth = 1450;
+      const stepX = totalWidth / Math.max(n, 1);
+      const branchY = 260;
+
+      cats.forEach((cat, idx) => {
+        const catX = (1600 - totalWidth) / 2 + stepX * (idx + 0.5);
+        const isDim = state.focusedCategoryIndex !== null && state.focusedCategoryIndex !== idx;
+        const isFocus = state.focusedCategoryIndex === idx;
+
+        html += `
+          <g class="svg-node ${isDim ? 'dimmed' : ''} ${isFocus ? 'focused' : ''}" onclick="state.focusedCategoryIndex = ${idx}; renderDiagram();">
+            <path d="M ${startX} ${startY + 46} V 180 H ${catX} V ${branchY}" fill="none" stroke="#0284c7" stroke-width="2" />
+            <rect x="${catX - 65}" y="${branchY}" width="130" height="34" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
+            <text x="${catX}" y="${branchY + 17}" class="text-branch">${cat.name}</text>
+        `;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const leafY = branchY + 70 + subIdx * 50;
+          html += `
+            <path d="M ${catX} ${branchY + 34} V ${leafY + 14} H ${catX - 10}" fill="none" stroke="#475569" stroke-width="1.5" />
+            <rect x="${catX - 55}" y="${leafY}" width="110" height="28" rx="4" fill="#1e293b" stroke="#334155" />
+            <text x="${catX}" y="${leafY + 14}" class="text-leaf">${sub}</text>
+          `;
+        });
+
+        html += `</g>`;
+      });
+
+      g.innerHTML = html;
+    }
+
+    /* 4. 矩陣看板佈局 */
+    function renderMatrixLayout(g) {
+      const cats = state.data.categories;
+      const cols = 4;
+      const cardW = 320, cardH = 260, gap = 30;
+      const startX = (1600 - (cols * cardW + (cols - 1) * gap)) / 2;
+      const startY = 120;
+
+      let html = `
+        <text x="800" y="60" class="text-core" style="fill:#fbbf24; font-size:22px;">[ 核心主題 ]  ${state.data.core}</text>
+      `;
+
+      cats.forEach((cat, idx) => {
+        const c = idx % cols;
+        const r = Math.floor(idx / cols);
+        const x = startX + c * (cardW + gap);
+        const y = startY + r * (cardH + gap);
+
+        const isDim = state.focusedCategoryIndex !== null && state.focusedCategoryIndex !== idx;
+        const isFocus = state.focusedCategoryIndex === idx;
+
+        html += `
+          <g class="svg-node ${isDim ? 'dimmed' : ''} ${isFocus ? 'focused' : ''}" onclick="state.focusedCategoryIndex = ${idx}; renderDiagram();">
+            <rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" rx="10" fill="#131b2e" stroke="#1e293b" stroke-width="2" />
+            <rect x="${x}" y="${y}" width="${cardW}" height="42" rx="10" fill="#0284c7" />
+            <text x="${x + cardW / 2}" y="${y + 21}" class="text-branch">${cat.name}</text>
+        `;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const itemY = y + 56 + subIdx * 45;
+          html += `
+            <rect x="${x + 12}" y="${itemY}" width="${cardW - 24}" height="32" rx="5" fill="#090d16" stroke="#1e293b" />
+            <text x="${x + 24}" y="${itemY + 16}" style="fill:#38bdf8; font-size:12px; dominant-baseline:central;">▸</text>
+            <text x="${x + 40}" y="${itemY + 16}" class="text-leaf" style="text-anchor:start;">${sub}</text>
+          `;
+        });
+
+        html += `</g>`;
+      });
+
+      g.innerHTML = html;
+    }
+
+    // 匯出 SVG
     function exportSVG() {
-      const svg = document.getElementById('fishboneSvg');
+      const svg = document.getElementById('mainSvg');
       const serializer = new XMLSerializer();
       const source = serializer.serializeToString(svg);
       const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `魚骨圖_${activeData.core}.svg`;
+      a.download = `${state.data.core}_${state.layout}.svg`;
       a.click();
     }
 
-    // 初始化
-    renderForm();
-    renderDiagram();
+    function renderAll() {
+      renderEditor();
+      renderDiagram();
+    }
+
+    // 初始化渲染
+    renderAll();
   </script>
 </body>
 </html>
