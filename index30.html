@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未結工單監控行動系統</title>
+    <!-- PapaParse 解析 CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --bg-body: #f4f6f9;
+            --navbar-bg: #111827;
+            --card-bg: #ffffff;
+            --border-card: #e5e7eb;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --text-light: #9ca3af;
+            
+            /* 橫幅樣式 */
+            --strip-yellow-bg: #fffbeb;
+            --strip-yellow-border: #fef3c7;
+            --strip-red-bg: #fef2f2;
+            --strip-red-border: #fee2e2;
+
+            /* 徽章色票 */
+            --pill-warn-bg: #fef3c7;
+            --pill-warn-text: #b45309;
+            --pill-danger-bg: #fee2e2;
+            --pill-danger-text: #b91c1c;
+            --pill-info-bg: #e0f2fe;
+            --pill-info-text: #0369a1;
+
+            --btn-blue: #2563eb;
+            --btn-blue-hover: #1d4ed8;
+            --btn-green: #059669;
+            --alert-red: #dc2626;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-body);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 導航列 */
+        .navbar {
+            background-color: var(--navbar-bg);
+            color: #ffffff;
+            padding: 12px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-sub {
+            font-size: 0.75rem;
+            color: #94a3af;
+            margin-top: 3px;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-sync {
+            background: var(--btn-blue);
+            color: #ffffff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-sync:hover { background: var(--btn-blue-hover); }
+
+        .main-container {
+            max-width: 1440px;
+            margin: 18px auto;
+            padding: 0 20px;
+        }
+
+        /* 兩層式篩選標籤 */
+        .filter-wrapper {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 14px 18px;
+            border: 1px solid var(--border-card);
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .row-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 75px;
+        }
+
+        .tab-btn {
+            background: #f3f4f6;
+            border: 1px solid transparent;
+            color: #4b5563;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s;
+        }
+        .tab-btn:hover { background: #e5e7eb; }
+        .tab-btn.active {
+            background: #1e293b;
+            color: #ffffff;
+        }
+        .tab-count {
+            background: rgba(0,0,0,0.08);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        .tab-btn.active .tab-count {
+            background: rgba(255,255,255,0.25);
+            color: #ffffff;
+        }
+
+        /* 搜尋列 */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .search-box {
+            flex: 1;
+            padding: 10px 16px;
+            background: #ffffff;
+            border: 1px solid var(--border-card);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search-box:focus { border-color: var(--btn-blue); }
+
+        /* 卡片網格佈局 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+            gap: 16px;
+        }
+        .order-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-card);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 卡片上層 */
+        .card-top {
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .car-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #111827;
+        }
+        .category-pill {
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.72rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .card-meta {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .btn-copy-main {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: var(--btn-blue);
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-copy-main:hover {
+            background: var(--btn-blue);
+            color: #ffffff;
+        }
+
+        /* 週期橫條 (仿參考圖黃色橫幅) */
+        .cycle-strip {
+            background: var(--strip-yellow-bg);
+            border-top: 1px solid var(--strip-yellow-border);
+            border-bottom: 1px solid var(--strip-yellow-border);
+            padding: 8px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.84rem;
+        }
+        .cycle-strip.danger {
+            background: var(--strip-red-bg);
+            border-top-color: var(--strip-red-border);
+            border-bottom-color: var(--strip-red-border);
+        }
+        .strip-days {
+            font-weight: 700;
+            color: #1f2937;
+        }
+        .pill-status {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .badge-warn { background: #fde047; color: #713f12; }
+        .badge-danger { background: #fca5a5; color: #7f1d1d; }
+        .badge-blue { background: #bae6fd; color: #0c4a6e; }
+
+        /* 卡片明細內容 */
+        .card-content {
+            padding: 14px 18px;
+            font-size: 0.84rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            row-gap: 8px;
+            color: #374151;
+        }
+        .info-label {
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+        .price-text {
+            font-weight: 700;
+            color: #111827;
+        }
+        .price-high {
+            color: var(--alert-red) !important;
+            font-weight: 800;
+        }
+
+        /* 雲端備註輸入區 */
+        .custom-note-block {
+            grid-column: span 2;
+            border-top: 1px dashed var(--border-card);
+            padding-top: 10px;
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cloud-hint {
+            font-size: 0.72rem;
+            color: var(--btn-green);
+            font-weight: 600;
+            display: none;
+        }
+        .note-input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.83rem;
+            background-color: #f8fafc;
+            color: #1e293b;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+        .note-input:focus {
+            background-color: #ffffff;
+            border-color: var(--btn-blue);
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div>
+            <div class="navbar-title">
+                <span>🚗</span> 未結工單監控行動系統
+            </div>
+            <div class="navbar-sub" id="statusTime">雲端雙向同步連線中...</div>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-sync" onclick="loadAllData()">🔄 全面同步雲端</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+
+        <!-- 兩層式篩選標籤 -->
+        <div class="filter-wrapper">
+            <!-- 業務維度 -->
+            <div class="filter-row">
+                <span class="row-title">業務維度：</span>
+                <button class="tab-btn active" onclick="setCategoryFilter('ALL', this)">全部工單 <span class="tab-count" id="c-all">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('PAINT', this)">鈑烤 <span class="tab-count" id="c-paint">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('PDI', this)">PDI <span class="tab-count" id="c-pdi">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('PDI_INSUR', this)">PDI水險 <span class="tab-count" id="c-pdi-insur">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('CLAIM_APPLY', this)">索賠申請中 <span class="tab-count" id="c-claim-apply">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('OVER_60', this)">長置 &ge; 60天 <span class="tab-count" id="c-60">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('OVER_30', this)">滯留 30~59天 <span class="tab-count" id="c-30">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('HIGH_AMT', this)">高額未結 (&ge;5萬) <span class="tab-count" id="c-amt">0</span></button>
+                <button class="tab-btn" onclick="setCategoryFilter('HAS_NOTE', this)">☁️ 雲端已有備註 <span class="tab-count" id="c-has-note">0</span></button>
+            </div>
+
+            <!-- 服務專員 -->
+            <div class="filter-row" id="saFilterRow">
+                <span class="row-title">服務專員：</span>
+                <button class="tab-btn active" onclick="setSaFilter('ALL', this)">全部專員 <span class="tab-count" id="sa-c-all">0</span></button>
+            </div>
+        </div>
+
+        <!-- 搜尋列 -->
+        <div class="toolbar">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 搜尋車牌、工單號、車型、接待、技師、雲端追蹤備註..." oninput="renderCards()">
+        </div>
+
+        <!-- 卡片網格 -->
+        <div class="cards-grid" id="cardsGrid">
+            <div style="grid-column: span 2; text-align:center; padding: 60px; color: var(--text-light);">雲端資料同步中...</div>
+        </div>
+    </div>
+
+    <script>
+        // 工單原始明細 CSV 網址
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
+        
+        // 已帶入你的 Google Apps Script Web App 網址
+        const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
+
+        let orders = [];
+        let cloudNotes = {};
+        let activeCategory = 'ALL';
+        let activeSa = 'ALL';
+        let debounceTimers = {};
+
+        async function loadAllData() {
+            const statusElem = document.getElementById('statusTime');
+            statusElem.innerText = '正在同步試算表與雲端備註...';
+
+            await fetchCloudNotes();
+
+            Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
+                download: true,
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    parseData(results.data);
+                    statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()} (雲端雙向連線正常)`;
+                },
+                error: function(err) {
+                    console.error(err);
+                    statusElem.innerText = '工單讀取失敗，請確認網路連線';
+                }
+            });
+        }
+
+        async function fetchCloudNotes() {
+            try {
+                const res = await fetch(`${API_NOTE_URL}?t=${Date.now()}`);
+                cloudNotes = await res.json();
+                renderCounts();
+                renderCards();
+            } catch (err) {
+                console.error("無法讀取雲端備註:", err);
+            }
+        }
+
+        function handleNoteInput(orderNo, value, hintId) {
+            cloudNotes[orderNo] = value.trim();
+            renderCounts();
+
+            const hint = document.getElementById(hintId);
+            if (hint) {
+                hint.style.display = 'inline';
+                hint.style.color = '#d97706';
+                hint.innerText = '上傳雲端中...';
+            }
+
+            clearTimeout(debounceTimers[orderNo]);
+            debounceTimers[orderNo] = setTimeout(async () => {
+                try {
+                    await fetch(API_NOTE_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderNo: orderNo, note: value.trim() })
+                    });
+                    if (hint) {
+                        hint.innerText = '✓ 雲端已同步';
+                        hint.style.color = '#059669';
+                        setTimeout(() => { hint.style.display = 'none'; }, 2000);
+                    }
+                } catch (err) {
+                    if (hint) {
+                        hint.innerText = '✗ 雲端儲存失敗';
+                        hint.style.color = '#dc2626';
+                    }
+                }
+            }, 600);
+        }
+
+        function parseData(rows) {
+            let headerIdx = -1;
+            let headers = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                const r = rows[i].map(c => String(c).trim());
+                if (r.includes('工單類別') && r.includes('工單號碼')) {
+                    headerIdx = i;
+                    headers = r;
+                    break;
+                }
+            }
+
+            if (headerIdx === -1) return;
+
+            orders = [];
+            for (let i = headerIdx + 1; i < rows.length; i++) {
+                const r = rows[i];
+                if (r.length < 2) continue;
+
+                let obj = {};
+                headers.forEach((h, idx) => {
+                    obj[h] = r[idx] ? String(r[idx]).trim() : '';
+                });
+
+                if (obj['工單號碼'] || obj['牌照號碼']) {
+                    orders.push(obj);
+                }
+            }
+
+            renderCounts();
+            renderSaButtons();
+            renderCards();
+        }
+
+        function isPaint(o) {
+            const t = o['工單類別'] || '';
+            return t.includes('鈑') || t.includes('噴') || t.includes('烤');
+        }
+        function isPdi(o) {
+            const raw = `${o['工單類別']} ${o['車主']} ${o['工單號碼']}`.toUpperCase();
+            return (raw.includes('PDI') || raw.includes('新車')) && !raw.includes('水險');
+        }
+        function isPdiInsur(o) {
+            const raw = `${o['工單類別']} ${o['車主']} ${o['工單號碼']} ${o['理賠案號']}`.toUpperCase();
+            return raw.includes('水險') || (raw.includes('PDI') && (o['工單類別'].includes('保險') || o['工單類別'].includes('索賠')));
+        }
+        function isClaimApply(o) {
+            const s = o['狀態'] || '';
+            const t = o['工單類別'] || '';
+            return s.includes('索賠申請中') || (t.includes('索賠') && s.includes('申請'));
+        }
+
+        function renderCounts() {
+            let cPaint = 0, cPdi = 0, cPdiInsur = 0, cClaimApply = 0, c60 = 0, c30 = 0, cAmt = 0, cHasNote = 0;
+
+            orders.forEach(o => {
+                const days = parseInt(o['進廠天數'], 10) || 0;
+                const amt = parseFloat((o['合計金額'] || '0').replace(/,/g, '')) || 0;
+                const orderNo = o['工單號碼'] || '';
+
+                if (isPaint(o)) cPaint++;
+                if (isPdi(o)) cPdi++;
+                if (isPdiInsur(o)) cPdiInsur++;
+                if (isClaimApply(o)) cClaimApply++;
+
+                if (days >= 60) c60++;
+                else if (days >= 30) c30++;
+
+                if (amt >= 50000) cAmt++;
+                if (cloudNotes[orderNo]) cHasNote++;
+            });
+
+            document.getElementById('c-all').innerText = orders.length;
+            document.getElementById('c-paint').innerText = cPaint;
+            document.getElementById('c-pdi').innerText = cPdi;
+            document.getElementById('c-pdi-insur').innerText = cPdiInsur;
+            document.getElementById('c-claim-apply').innerText = cClaimApply;
+            document.getElementById('c-60').innerText = c60;
+            document.getElementById('c-30').innerText = c30;
+            document.getElementById('c-amt').innerText = cAmt;
+            document.getElementById('c-has-note').innerText = cHasNote;
+        }
+
+        function renderSaButtons() {
+            const saRow = document.getElementById('saFilterRow');
+            saRow.innerHTML = `
+                <span class="row-title">服務專員：</span>
+                <button class="tab-btn ${activeSa === 'ALL' ? 'active' : ''}" onclick="setSaFilter('ALL', this)">全部專員 <span class="tab-count">${orders.length}</span></button>
+            `;
+
+            const saCounts = {};
+            orders.forEach(o => {
+                const sa = o['接待'] || '未指派';
+                saCounts[sa] = (saCounts[sa] || 0) + 1;
+            });
+
+            Object.keys(saCounts).sort((a, b) => saCounts[b] - saCounts[a]).forEach(sa => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${activeSa === sa ? 'active' : ''}`;
+                btn.innerHTML = `${sa} <span class="tab-count">${saCounts[sa]}</span>`;
+                btn.onclick = () => setSaFilter(sa, btn);
+                saRow.appendChild(btn);
+            });
+        }
+
+        function setCategoryFilter(type, btn) {
+            activeCategory = type;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCards();
+        }
+
+        function setSaFilter(sa, btn) {
+            activeSa = sa;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCards();
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            const filtered = orders.filter(o => {
+                const days = parseInt(o['進廠天數'], 10) || 0;
+                const amt = parseFloat((o['合計金額'] || '0').replace(/,/g, '')) || 0;
+                const sa = o['接待'] || '未指派';
+                const orderNo = o['工單號碼'] || '';
+                const myNote = cloudNotes[orderNo] || '';
+
+                const fullText = `${orderNo} ${o['牌照號碼']} ${o['品牌']} ${o['車型']} ${o['接待']} ${o['技師']} ${o['狀態']} ${myNote}`.toLowerCase();
+
+                if (activeCategory === 'PAINT' && !isPaint(o)) return false;
+                if (activeCategory === 'PDI' && !isPdi(o)) return false;
+                if (activeCategory === 'PDI_INSUR' && !isPdiInsur(o)) return false;
+                if (activeCategory === 'CLAIM_APPLY' && !isClaimApply(o)) return false;
+                if (activeCategory === 'OVER_60' && days < 60) return false;
+                if (activeCategory === 'OVER_30' && (days < 30 || days >= 60)) return false;
+                if (activeCategory === 'HIGH_AMT' && amt < 50000) return false;
+                if (activeCategory === 'HAS_NOTE' && !myNote) return false;
+
+                if (activeSa !== 'ALL' && sa !== activeSa) return false;
+                if (searchVal && !fullText.includes(searchVal)) return false;
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; padding: 60px; color: var(--text-light);">無符合條件的工單</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(o => {
+                const orderNo = o['工單號碼'] || '';
+                const days = parseInt(o['進廠天數'], 10) || 0;
+                const amtVal = parseFloat((o['合計金額'] || '0').replace(/,/g, '')) || 0;
+                const isHighAmt = amtVal >= 50000;
+                const isOver60 = days >= 60;
+                const isOver30 = days >= 30;
+
+                const myNote = cloudNotes[orderNo] || '';
+                const hintId = `hint_${orderNo}`;
+
+                const copyText = `【未結工單追蹤】車牌: ${o['牌照號碼'] || '-'} | 工單: ${orderNo} | 車型: ${o['品牌'] || ''} ${o['車型'] || ''} | 接待: ${o['接待'] || '未指派'} | 技師: ${o['技師'] || '未指派'} | 進廠: ${days}天 | 金額: $${amtVal.toLocaleString()} | 狀態: ${o['狀態'] || '-'} | 雲端備註: ${myNote || '無'}`;
+
+                return `
+                    <div class="order-card">
+                        <div class="card-top">
+                            <div>
+                                <div class="car-heading">
+                                    <span>${o['品牌'] || ''} ${o['車型'] || ''}</span>
+                                    <span class="category-pill">${o['工單類別'] || '工單'}</span>
+                                </div>
+                                <div class="card-meta">
+                                    車牌：<strong>${o['牌照號碼'] || '-'}</strong> ｜ 工單：${orderNo}
+                                </div>
+                            </div>
+                            <button class="btn-copy-main" onclick="copyText('${copyText.replace(/'/g, "\\'")}')">📋 複製追蹤</button>
+                        </div>
+
+                        <!-- 週期橫條 (仿參考圖黃色橫幅) -->
+                        <div class="cycle-strip ${isOver60 ? 'danger' : ''}">
+                            <div class="strip-days">⏱️ 進廠天數：<strong>${days} 天</strong></div>
+                            <div>
+                                <span class="pill-status ${isOver60 ? 'badge-danger' : isOver30 ? 'badge-warn' : 'badge-blue'}">
+                                    ${isOver60 ? '🚨 長置 60+ 天' : isOver30 ? '⚠️ 滯留 30~59 天' : '正常週期'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 卡片詳細欄位 -->
+                        <div class="card-content">
+                            <div><span class="info-label">服務專員：</span><strong>${o['接待'] || '未指派'}</strong></div>
+                            <div><span class="info-label">主修技師：</span>${o['技師'] || '未指派'}</div>
+                            <div><span class="info-label">工單狀態：</span><strong>${o['狀態'] || '-'}</strong></div>
+                            <div>
+                                <span class="info-label">合計金額：</span>
+                                <span class="price-text ${isHighAmt ? 'price-high' : ''}">$${amtVal.toLocaleString()}</span>
+                            </div>
+
+                            <!-- 雲端同步備註輸入區 -->
+                            <div class="custom-note-block">
+                                <div class="note-header">
+                                    <span class="note-title">☁️ 雲端追蹤備註 (全廠同步)：</span>
+                                    <span class="cloud-hint" id="${hintId}"></span>
+                                </div>
+                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="在此輸入進度，所有人即時看見..." oninput="handleNoteInput('${orderNo}', this.value, '${hintId}')">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已複製工單追蹤資訊：\n\n' + text);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', loadAllData);
+    </script>
+</body>
+</html>
