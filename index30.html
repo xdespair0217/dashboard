@@ -106,13 +106,13 @@
             border-radius: 10px;
             gap: 4px;
             flex: 1;
-            max-width: 480px;
+            max-width: 580px;
         }
         .mode-btn {
             flex: 1;
-            padding: 9px 12px;
+            padding: 9px 8px;
             text-align: center;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: #475569;
             background: transparent;
@@ -123,7 +123,7 @@
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             white-space: nowrap;
         }
         .mode-btn.active {
@@ -134,7 +134,7 @@
 
         /* 專案專用動態下拉膠囊選單 */
         .project-select-capsule {
-            display: none; /* 僅在專案模式下顯示 */
+            display: none;
             align-items: center;
             background: #ffffff;
             border: 1px solid #cbd5e1;
@@ -509,13 +509,16 @@
     <!-- 頂端雙軌切換導航列 -->
     <div class="mode-switcher-container">
         <div class="dual-track-nav">
-            <!-- 軌道一：固定主業務模組 (未來新功能直接在後面追加按鈕) -->
+            <!-- 軌道一：三大主業務模組 -->
             <div class="primary-modes">
                 <button class="mode-btn active" id="mainTab_ORDERS" onclick="switchMainTrack('ORDERS')">
-                    <span>🚗 未結工單監控</span>
+                    <span>🚗 未結工單</span>
                 </button>
                 <button class="mode-btn" id="mainTab_PROJECT" onclick="switchMainTrack('PROJECT')">
-                    <span>🎯 原廠召回專案</span>
+                    <span>🎯 原廠召回</span>
+                </button>
+                <button class="mode-btn" id="mainTab_PARTS" onclick="switchMainTrack('PARTS')">
+                    <span>📦 零件入庫</span>
                 </button>
             </div>
 
@@ -523,7 +526,7 @@
             <div class="project-select-capsule" id="projectSelectorContainer">
                 <span class="capsule-label">📌 目前專案：</span>
                 <select id="projectSelectDropdown" class="project-dropdown" onchange="onProjectSelectChanged(this.value)">
-                    <!-- 由 JavaScript 根據設定自動生成選項 -->
+                    <!-- JS 自動生成各專案選項 -->
                 </select>
             </div>
         </div>
@@ -555,7 +558,7 @@
             </div>
         </div>
 
-        <!-- 2. 原廠召回專案操作區 (全專案通用 KPI 看板) -->
+        <!-- 2. 原廠召回專案操作區 -->
         <div id="projectControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
@@ -613,8 +616,60 @@
             </div>
         </div>
 
+        <!-- 3. 零件入庫專用操作區 (南港+內湖) -->
+        <div id="partsControlBlock" style="display: none;">
+            <div class="project-kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">
+                        <span>📦 零件入庫統計 (南港保養廠 + 內湖保養廠)</span>
+                    </div>
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--btn-blue);" id="partsTotalSumText">
+                        年度累計：$0
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-blue);" id="partsCurrentMonthTotal">$0</div>
+                        <div class="kpi-lbl" id="partsCurrentMonthLbl">當期入庫額</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-green);" id="partsSupplierCount">0</div>
+                        <div class="kpi-lbl">供應廠商數</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" id="partsTopSupplierName">-</div>
+                        <div class="kpi-lbl">第一大供料廠</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--alert-red);" id="partsTopSupplierRatio">0%</div>
+                        <div class="kpi-lbl">首廠採購佔比</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-wrapper">
+                <div class="filter-scroll-container" id="partsMonthScrollRow">
+                    <span class="filter-label-chip">月份檢視：</span>
+                    <button class="tab-btn active" onclick="setPartsMonthFilter('YEAR_ALL', this)">🔥 全年廠商總排行</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('1月', this)">1月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('2月', this)">2月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('3月', this)">3月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('4月', this)">4月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('5月', this)">5月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('6月', this)">6月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('7月', this)">7月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('8月', this)">8月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('9月', this)">9月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('10月', this)">10月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('11月', this)">11月</button>
+                    <button class="tab-btn" onclick="setPartsMonthFilter('12月', this)">12月</button>
+                </div>
+            </div>
+        </div>
+
         <div class="toolbar">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="debounceRender()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱..." oninput="debounceRender()">
         </div>
 
         <div class="cards-grid" id="cardsGrid">
@@ -627,8 +682,10 @@
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
         // 2. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
+        // 3. 零件入庫 CSV (gid=543542937)
+        const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
 
-        // 3. 專案配置表（未來只要在此加入一行，選單與功能自動生成）
+        // 4. 召回專案配置表
         const PROJECT_CONFIGS = {
             'M5B': {
                 name: 'M5B 專案',
@@ -674,8 +731,8 @@
             }
         };
 
-        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT'
-        let currentSelectedProjectKey = 'M5B'; // 預設專案
+        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS'
+        let currentSelectedProjectKey = 'M5B';
 
         // 未結工單資料
         let orders = [];
@@ -688,6 +745,12 @@
         // 專案過濾
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
+
+        // 零件入庫資料
+        let isPartsLoaded = false;
+        let partsMonthMap = {}; // { '1月': [ { supplier, amount } ], ... }
+        let partsYearlyList = []; // [ { supplier, totalAmount } ]
+        let activePartsMonth = 'YEAR_ALL';
 
         // 分批渲染
         let currentRenderList = [];
@@ -703,7 +766,6 @@
             setupInfiniteScroll();
         }
 
-        // 動態注入下拉選單選項
         function initProjectDropdownOptions() {
             const dropdown = document.getElementById('projectSelectDropdown');
             dropdown.innerHTML = '';
@@ -726,27 +788,34 @@
             }, { passive: true });
         }
 
-        // 軌道一切換：ORDERS vs PROJECT
+        // 切換主軌道 (ORDERS / PROJECT / PARTS)
         function switchMainTrack(track) {
             currentMainTrack = track;
 
             document.getElementById('mainTab_ORDERS').classList.toggle('active', track === 'ORDERS');
             document.getElementById('mainTab_PROJECT').classList.toggle('active', track === 'PROJECT');
+            document.getElementById('mainTab_PARTS').classList.toggle('active', track === 'PARTS');
 
-            const isOrder = (track === 'ORDERS');
-            document.getElementById('ordersControlBlock').style.display = isOrder ? 'block' : 'none';
-            document.getElementById('projectControlBlock').style.display = isOrder ? 'none' : 'block';
-            document.getElementById('projectSelectorContainer').style.display = isOrder ? 'none' : 'inline-flex';
+            document.getElementById('ordersControlBlock').style.display = (track === 'ORDERS') ? 'block' : 'none';
+            document.getElementById('projectControlBlock').style.display = (track === 'PROJECT') ? 'block' : 'none';
+            document.getElementById('partsControlBlock').style.display = (track === 'PARTS') ? 'block' : 'none';
+            document.getElementById('projectSelectorContainer').style.display = (track === 'PROJECT') ? 'inline-flex' : 'none';
             document.getElementById('searchInput').value = '';
 
             if (track === 'PROJECT') {
                 switchActiveProject(currentSelectedProjectKey);
+            } else if (track === 'PARTS') {
+                if (!isPartsLoaded) {
+                    loadPartsData();
+                } else {
+                    renderPartsKPI();
+                    triggerOptimizedRender();
+                }
             } else {
                 triggerOptimizedRender();
             }
         }
 
-        // 下拉選單切換專案
         function onProjectSelectChanged(newKey) {
             currentSelectedProjectKey = newKey;
             switchActiveProject(newKey);
@@ -786,8 +855,10 @@
 
             if (currentMainTrack === 'ORDERS') {
                 loadOrdersData(() => { fetchCloudNotesJSONP(); });
-            } else {
+            } else if (currentMainTrack === 'PROJECT') {
                 loadSpecificProjectData(currentSelectedProjectKey);
+            } else if (currentMainTrack === 'PARTS') {
+                loadPartsData();
             }
         }
 
@@ -832,6 +903,107 @@
                     grid.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">${conf.name} 資料讀取失敗。</div>`;
                 }
             });
+        }
+
+        // 載入零件入庫 CSV (南港+內湖)
+        function loadPartsData() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入零件入庫資料中...</div>';
+
+            Papa.parse(`${PARTS_CSV_URL}&_t=${Date.now()}`, {
+                download: true,
+                header: false,
+                skipEmptyLines: false,
+                fastMode: true,
+                complete: function(results) {
+                    isPartsLoaded = true;
+                    parsePartsData(results.data);
+                    renderPartsKPI();
+                    triggerOptimizedRender();
+                },
+                error: function(err) {
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">零件入庫資料讀取失敗。</div>';
+                }
+            });
+        }
+
+        // 解析 12 個月雙欄格式：[廠商, 金額, 廠商, 金額...]
+        function parsePartsData(rows) {
+            partsMonthMap = {};
+            const yearlyMap = {};
+
+            for (let m = 1; m <= 12; m++) {
+                partsMonthMap[`${m}月`] = [];
+            }
+
+            // 尋找表頭行 (廠商, 1月...)
+            let headerRowIdx = -1;
+            for (let i = 0; i < Math.min(rows.length, 5); i++) {
+                const r = rows[i].map(c => String(c).trim());
+                if (r.includes('1月') || r.includes('廠商')) {
+                    headerRowIdx = i;
+                    break;
+                }
+            }
+
+            if (headerRowIdx === -1) headerRowIdx = 1;
+
+            // 遍歷所有數據行 (排除最後的 SUM 統計列)
+            for (let r = headerRowIdx + 1; r < rows.length; r++) {
+                const row = rows[r];
+                if (!row || row.length === 0) continue;
+                if (String(row[0]).trim().toUpperCase().includes('SUM')) break;
+
+                for (let m = 1; m <= 12; m++) {
+                    const colSup = (m - 1) * 2;
+                    const colAmt = colSup + 1;
+
+                    const sup = row[colSup] ? String(row[colSup]).trim() : '';
+                    const amtStr = row[colAmt] ? String(row[colAmt]).replace(/,/g, '').trim() : '0';
+                    const amt = parseFloat(amtStr) || 0;
+
+                    if (sup && sup !== '0' && amt > 0) {
+                        partsMonthMap[`${m}月`].push({ supplier: sup, amount: amt });
+                        yearlyMap[sup] = (yearlyMap[sup] || 0) + amt;
+                    }
+                }
+            }
+
+            partsYearlyList = Object.keys(yearlyMap).map(k => ({
+                supplier: k,
+                amount: yearlyMap[k]
+            })).sort((a, b) => b.amount - a.amount);
+        }
+
+        function setPartsMonthFilter(monthKey, btn) {
+            activePartsMonth = monthKey;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderPartsKPI();
+            triggerOptimizedRender();
+        }
+
+        function renderPartsKPI() {
+            let totalYearly = partsYearlyList.reduce((acc, cur) => acc + cur.amount, 0);
+            document.getElementById('partsTotalSumText').innerText = `年度累計：$${Math.round(totalYearly).toLocaleString()}`;
+
+            let targetList = [];
+            if (activePartsMonth === 'YEAR_ALL') {
+                targetList = partsYearlyList;
+                document.getElementById('partsCurrentMonthLbl').innerText = '全年累計入庫額';
+            } else {
+                targetList = partsMonthMap[activePartsMonth] || [];
+                document.getElementById('partsCurrentMonthLbl').innerText = `${activePartsMonth} 入庫總額`;
+            }
+
+            let periodTotal = targetList.reduce((acc, cur) => acc + cur.amount, 0);
+            let topSupplier = targetList[0] || { supplier: '無', amount: 0 };
+            let ratio = periodTotal > 0 ? ((topSupplier.amount / periodTotal) * 100).toFixed(1) : 0;
+
+            document.getElementById('partsCurrentMonthTotal').innerText = `$${Math.round(periodTotal).toLocaleString()}`;
+            document.getElementById('partsSupplierCount').innerText = `${targetList.length} 家`;
+            document.getElementById('partsTopSupplierName').innerText = topSupplier.supplier;
+            document.getElementById('partsTopSupplierRatio').innerText = `${ratio}%`;
         }
 
         function fetchCloudNotesJSONP() {
@@ -1210,7 +1382,7 @@
 
                     return true;
                 });
-            } else {
+            } else if (currentMainTrack === 'PROJECT') {
                 const conf = PROJECT_CONFIGS[currentSelectedProjectKey];
                 const list = conf ? conf.data : [];
 
@@ -1235,6 +1407,13 @@
 
                     return true;
                 });
+            } else if (currentMainTrack === 'PARTS') {
+                let rawList = (activePartsMonth === 'YEAR_ALL') ? partsYearlyList : (partsMonthMap[activePartsMonth] || []);
+                
+                currentRenderList = rawList.filter(item => {
+                    if (searchVal && !item.supplier.toLowerCase().includes(searchVal)) return false;
+                    return true;
+                });
             }
         }
 
@@ -1247,7 +1426,7 @@
             }
 
             const itemsToShow = currentRenderList.slice(0, visibleCount);
-            grid.innerHTML = itemsToShow.map(item => generateCardHtml(item)).join('');
+            grid.innerHTML = itemsToShow.map((item, idx) => generateCardHtml(item, idx)).join('');
 
             if (visibleCount < currentRenderList.length) {
                 const btn = document.createElement('button');
@@ -1267,7 +1446,7 @@
             visibleCount += CHUNK_SIZE;
 
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = nextItems.map(item => generateCardHtml(item)).join('');
+            tempDiv.innerHTML = nextItems.map((item, idx) => generateCardHtml(item, visibleCount - CHUNK_SIZE + idx)).join('');
             
             while (tempDiv.firstChild) {
                 grid.appendChild(tempDiv.firstChild);
@@ -1282,7 +1461,7 @@
             }
         }
 
-        function generateCardHtml(data) {
+        function generateCardHtml(data, index) {
             if (currentMainTrack === 'ORDERS') {
                 const o = data;
                 const orderNo = o['工單號碼'] || '';
@@ -1347,7 +1526,7 @@
                         </div>
                     </div>
                 `;
-            } else {
+            } else if (currentMainTrack === 'PROJECT') {
                 const p = data;
                 const currentProjName = PROJECT_CONFIGS[currentSelectedProjectKey] ? PROJECT_CONFIGS[currentSelectedProjectKey].name : '專案';
                 const plate = p['牌照號碼'] || '-';
@@ -1406,12 +1585,57 @@
                         </div>
                     </div>
                 `;
+            } else if (currentMainTrack === 'PARTS') {
+                const item = data;
+                const rank = (index || 0) + 1;
+                const periodTotal = (activePartsMonth === 'YEAR_ALL') ? 
+                    partsYearlyList.reduce((a, b) => a + b.amount, 0) : 
+                    (partsMonthMap[activePartsMonth] || []).reduce((a, b) => a + b.amount, 0);
+
+                const percent = periodTotal > 0 ? ((item.amount / periodTotal) * 100).toFixed(1) : 0;
+                const copyText = `【零件採購】廠商: ${item.supplier} | 入庫金額: $${Math.round(item.amount).toLocaleString()} | 佔比: ${percent}%`;
+
+                return `
+                    <div class="order-card">
+                        <div class="card-top">
+                            <div>
+                                <div class="car-heading">
+                                    <span>${item.supplier}</span>
+                                    <span class="category-pill" style="background:#e0f2fe; color:#0369a1;">排行第 ${rank} 名</span>
+                                </div>
+                                <div class="card-meta">
+                                    統計區間：<strong>${activePartsMonth === 'YEAR_ALL' ? '全年度累計' : activePartsMonth}</strong>
+                                </div>
+                            </div>
+                            <div class="top-btn-group">
+                                <button class="btn-copy-main" onclick="copyText('${copyText}')">📋 複製</button>
+                            </div>
+                        </div>
+
+                        <div class="cycle-strip">
+                            <div class="strip-days">採購佔比：<strong>${percent}%</strong></div>
+                            <div>
+                                <span class="pill-status badge-blue">南港＋內湖</span>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <div><span class="info-label">進貨總額：</span><span class="price-text price-high" style="font-size:1.05rem;">$${Math.round(item.amount).toLocaleString()}</span></div>
+                            <div><span class="info-label">供應等級：</span><strong>${rank <= 3 ? '🏆 核心主力廠' : '一般配合廠'}</strong></div>
+                            <div style="grid-column: span 2; margin-top: 4px;">
+                                <div class="progress-bar-wrap" style="height:6px;">
+                                    <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         }
 
         function copyText(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('已複製追蹤資訊：\n\n' + text);
+                alert('已複製資訊：\n\n' + text);
             });
         }
 
