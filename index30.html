@@ -86,7 +86,6 @@
         }
         .btn-sync:active { transform: scale(0.96); }
 
-        /* 頂端雙軌導航列 */
         .mode-switcher-container {
             max-width: 1440px;
             margin: 12px auto 0 auto;
@@ -132,7 +131,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        /* 專案專用動態下拉膠囊選單 */
         .project-select-capsule {
             display: none;
             align-items: center;
@@ -509,7 +507,6 @@
     <!-- 頂端雙軌切換導航列 -->
     <div class="mode-switcher-container">
         <div class="dual-track-nav">
-            <!-- 軌道一：三大主業務模組 -->
             <div class="primary-modes">
                 <button class="mode-btn active" id="mainTab_ORDERS" onclick="switchMainTrack('ORDERS')">
                     <span>🚗 未結工單</span>
@@ -522,11 +519,9 @@
                 </button>
             </div>
 
-            <!-- 軌道二：召回專案專屬動態膠囊下拉選單 -->
             <div class="project-select-capsule" id="projectSelectorContainer">
                 <span class="capsule-label">📌 目前專案：</span>
                 <select id="projectSelectDropdown" class="project-dropdown" onchange="onProjectSelectChanged(this.value)">
-                    <!-- JS 自動生成各專案選項 -->
                 </select>
             </div>
         </div>
@@ -731,7 +726,7 @@
             }
         };
 
-        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS'
+        let currentMainTrack = 'ORDERS';
         let currentSelectedProjectKey = 'M5B';
 
         // 未結工單資料
@@ -748,8 +743,8 @@
 
         // 零件入庫資料
         let isPartsLoaded = false;
-        let partsMonthMap = {}; // { '1月': [ { supplier, amount } ], ... }
-        let partsYearlyList = []; // [ { supplier, totalAmount } ]
+        let partsMonthMap = {};
+        let partsYearlyList = [];
         let activePartsMonth = 'YEAR_ALL';
 
         // 分批渲染
@@ -788,7 +783,6 @@
             }, { passive: true });
         }
 
-        // 切換主軌道 (ORDERS / PROJECT / PARTS)
         function switchMainTrack(track) {
             currentMainTrack = track;
 
@@ -905,7 +899,6 @@
             });
         }
 
-        // 載入零件入庫 CSV (南港+內湖)
         function loadPartsData() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入零件入庫資料中...</div>';
@@ -914,7 +907,6 @@
                 download: true,
                 header: false,
                 skipEmptyLines: false,
-                fastMode: true,
                 complete: function(results) {
                     isPartsLoaded = true;
                     parsePartsData(results.data);
@@ -927,7 +919,6 @@
             });
         }
 
-        // 解析 12 個月雙欄格式：[廠商, 金額, 廠商, 金額...]
         function parsePartsData(rows) {
             partsMonthMap = {};
             const yearlyMap = {};
@@ -936,38 +927,69 @@
                 partsMonthMap[`${m}月`] = [];
             }
 
-            // 尋找表頭行 (廠商, 1月...)
-            let headerRowIdx = -1;
-            for (let i = 0; i < Math.min(rows.length, 5); i++) {
-                const r = rows[i].map(c => String(c).trim());
-                if (r.includes('1月') || r.includes('廠商')) {
-                    headerRowIdx = i;
+            let headerIdx = -1;
+            for (let i = 0; i < Math.min(rows.length, 6); i++) {
+                const rowStr = rows[i].join(' ');
+                if (rowStr.includes('1月') && (rowStr.includes('2月') || rowStr.includes('廠商'))) {
+                    headerIdx = i;
                     break;
                 }
             }
 
-            if (headerRowIdx === -1) headerRowIdx = 1;
+            if (headerIdx === -1) headerIdx = 1;
 
-            // 遍歷所有數據行 (排除最後的 SUM 統計列)
-            for (let r = headerRowIdx + 1; r < rows.length; r++) {
-                const row = rows[r];
-                if (!row || row.length === 0) continue;
-                if (String(row[0]).trim().toUpperCase().includes('SUM')) break;
+            const monthColPairs = [];
+            const headerRow = rows[headerIdx];
 
-                for (let m = 1; m <= 12; m++) {
-                    const colSup = (m - 1) * 2;
-                    const colAmt = colSup + 1;
-
-                    const sup = row[colSup] ? String(row[colSup]).trim() : '';
-                    const amtStr = row[colAmt] ? String(row[colAmt]).replace(/,/g, '').trim() : '0';
-                    const amt = parseFloat(amtStr) || 0;
-
-                    if (sup && sup !== '0' && amt > 0) {
-                        partsMonthMap[`${m}月`].push({ supplier: sup, amount: amt });
-                        yearlyMap[sup] = (yearlyMap[sup] || 0) + amt;
+            for (let m = 1; m <= 12; m++) {
+                const targetMonth = `${m}月`;
+                let mCol = -1;
+                for (let c = 0; c < headerRow.length; c++) {
+                    if (String(headerRow[c]).trim() === targetMonth) {
+                        mCol = c;
+                        break;
                     }
                 }
+
+                if (mCol !== -1) {
+                    monthColPairs.push({
+                        month: targetMonth,
+                        supCol: mCol - 1,
+                        amtCol: mCol
+                    });
+                } else {
+                    monthColPairs.push({
+                        month: targetMonth,
+                        supCol: (m - 1) * 2,
+                        amtCol: (m - 1) * 2 + 1
+                    });
+                }
             }
+
+            for (let r = headerIdx + 1; r < rows.length; r++) {
+                const row = rows[r];
+                if (!row || row.length === 0) continue;
+                
+                const firstCell = String(row[0] || '').trim().toUpperCase();
+                if (firstCell.includes('SUM') || firstCell.includes('合計')) break;
+
+                monthColPairs.forEach(pair => {
+                    const sup = row[pair.supCol] ? String(row[pair.supCol]).replace(/["']/g, '').trim() : '';
+                    let amtRaw = row[pair.amtCol] ? String(row[pair.amtCol]).replace(/[$, "']/g, '').trim() : '0';
+                    
+                    if (amtRaw.includes('#') || isNaN(amtRaw)) amtRaw = '0';
+                    const amt = parseFloat(amtRaw) || 0;
+
+                    if (sup && isNaN(sup) && sup !== '0' && amt > 0) {
+                        partsMonthMap[pair.month].push({ supplier: sup, amount: amt });
+                        yearlyMap[sup] = (yearlyMap[sup] || 0) + amt;
+                    }
+                });
+            }
+
+            Object.keys(partsMonthMap).forEach(m => {
+                partsMonthMap[m].sort((a, b) => b.amount - a.amount);
+            });
 
             partsYearlyList = Object.keys(yearlyMap).map(k => ({
                 supplier: k,
