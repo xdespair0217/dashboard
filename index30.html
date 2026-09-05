@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>未結工單與專案監控系統</title>
+    <title>廠端即時監控系統</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
@@ -362,7 +362,6 @@
             border-color: var(--btn-blue);
         }
 
-        /* 專案專用 KPI 戰情報告區 */
         .project-kpi-card {
             background: #ffffff;
             border-radius: 10px;
@@ -444,14 +443,13 @@
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>🚗</span> 廠端即時監控系統</div>
-            <div class="navbar-sub" id="statusTime">連線就緒</div>
+            <div class="navbar-sub" id="statusTime">載入中...</div>
         </div>
         <div>
-            <button class="btn-sync" onclick="loadAllData()">🔄 重新整理</button>
+            <button class="btn-sync" onclick="forceRefreshData()">🔄 重新整理</button>
         </div>
     </div>
 
-    <!-- 頂端主視圖切換器 -->
     <div class="mode-switcher-container">
         <div class="mode-switcher">
             <button class="mode-btn active" id="modeBtnOrders" onclick="switchMainMode('ORDERS')">
@@ -465,7 +463,7 @@
 
     <div class="main-container">
 
-        <!-- ==================== 1. 未結工單操作區 ==================== -->
+        <!-- 1. 未結工單操作區 -->
         <div id="ordersControlBlock">
             <div class="filter-wrapper">
                 <div class="filter-scroll-container">
@@ -489,9 +487,8 @@
             </div>
         </div>
 
-        <!-- ==================== 2. M5B 專案操作區 ==================== -->
+        <!-- 2. M5B 專案操作區 -->
         <div id="projectControlBlock" style="display: none;">
-            <!-- KPI 進度看板 -->
             <div class="project-kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title">
@@ -509,7 +506,7 @@
                     </div>
                     <div class="kpi-item">
                         <div class="kpi-num" style="color:var(--btn-green);" id="kpiClosed">0</div>
-                        <div class="kpi-lbl">基盤已結案 (總改善)</div>
+                        <div class="kpi-lbl">基盤已結案 (改善)</div>
                     </div>
                     <div class="kpi-item">
                         <div class="kpi-num" style="color:var(--btn-blue);" id="kpiInFactory">0</div>
@@ -530,7 +527,6 @@
                 </div>
             </div>
 
-            <!-- 專案篩選標籤列 -->
             <div class="filter-wrapper">
                 <div class="filter-scroll-container">
                     <span class="filter-label-chip">專案進度：</span>
@@ -549,23 +545,18 @@
             </div>
         </div>
 
-        <!-- 搜尋列 -->
         <div class="toolbar">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="renderCards()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="triggerRender()">
         </div>
 
-        <!-- 卡片清單網格 -->
         <div class="cards-grid" id="cardsGrid">
             <div style="text-align:center; padding: 50px; color: var(--text-light);">資料載入中，請稍候...</div>
         </div>
     </div>
 
     <script>
-        // 1. 未結工單 CSV (gid=0)
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
-        // 2. M5B_MONITOR 輕量化專用 CSV (gid=243058371)
         const PROJECT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv';
-        // 3. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
 
         let currentMainMode = 'ORDERS';
@@ -581,6 +572,17 @@
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
+        let renderScheduled = false;
+
+        function triggerRender() {
+            if (renderScheduled) return;
+            renderScheduled = true;
+            requestAnimationFrame(() => {
+                renderCards();
+                renderScheduled = false;
+            });
+        }
+
         function switchMainMode(mode) {
             currentMainMode = mode;
             document.getElementById('modeBtnOrders').classList.toggle('active', mode === 'ORDERS');
@@ -590,77 +592,106 @@
             document.getElementById('projectControlBlock').style.display = (mode === 'PROJECT') ? 'block' : 'none';
 
             document.getElementById('searchInput').value = '';
-            renderCards();
+            triggerRender();
         }
 
-        function loadAllData() {
-            const statusElem = document.getElementById('statusTime');
-            statusElem.innerText = '同步中...';
+        // 初始化：先讀取快取（0.05 秒開卡），再背景連線更新
+        function initApp() {
+            restoreFromCache();
+            loadAllData(false);
+        }
 
-            let tasksDone = 0;
-            const finishOne = () => {
-                tasksDone++;
-                if (tasksDone >= 2) {
-                    statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
+        function forceRefreshData() {
+            loadAllData(true);
+        }
+
+        function restoreFromCache() {
+            try {
+                const cachedOrders = localStorage.getItem('CACHE_ORDERS');
+                const cachedProj = localStorage.getItem('CACHE_PROJ');
+                const cachedNotes = localStorage.getItem('CACHE_NOTES');
+                const cachedClosed = localStorage.getItem('CACHE_CLOSED');
+
+                if (cachedNotes) cloudNotes = JSON.parse(cachedNotes);
+                if (cachedClosed) closedOrderSet = new Set(JSON.parse(cachedClosed));
+
+                if (cachedOrders) {
+                    orders = JSON.parse(cachedOrders);
+                    renderCounts();
+                    renderSaButtons();
                 }
-            };
+                if (cachedProj) {
+                    projectList = JSON.parse(cachedProj);
+                    renderProjectKPI();
+                    renderProjectStaffButtons();
+                }
 
-            // 異步啟動備註載入 (4秒防護超時)
-            fetchCloudNotesJSONP();
+                if (cachedOrders || cachedProj) {
+                    document.getElementById('statusTime').innerText = '顯示快取中... (同步最新)';
+                    triggerRender();
+                }
+            } catch (e) {
+                console.warn("快取讀取略過:", e);
+            }
+        }
 
-            // 載入未結工單
-            Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
+        function loadAllData(isForce) {
+            const statusElem = document.getElementById('statusTime');
+            const cacheBuster = isForce ? `&_t=${Date.now()}` : '';
+
+            // 1. 背景異步讀取 GAS 備註（不卡死 UI）
+            fetchCloudNotesJSONP(cacheBuster);
+
+            // 2. 載入未結工單
+            Papa.parse(`${SHEET_CSV_URL}${cacheBuster}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
+                fastMode: true,
                 complete: function(results) {
                     parseData(results.data);
-                    finishOne();
-                },
-                error: function(err) {
-                    console.error("未結工單讀取失敗:", err);
-                    finishOne();
+                    statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
                 }
             });
 
-            // 載入 M5B_MONITOR 輕量資料
-            Papa.parse(`${PROJECT_CSV_URL}&_t=${Date.now()}`, {
+            // 3. 載入 M5B 精簡監控表
+            Papa.parse(`${PROJECT_CSV_URL}${cacheBuster}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
+                fastMode: true,
                 complete: function(results) {
                     parseProjectData(results.data);
-                    finishOne();
-                },
-                error: function(err) {
-                    console.error("M5B 專案讀取失敗:", err);
-                    finishOne();
                 }
             });
         }
 
-        function fetchCloudNotesJSONP() {
+        function fetchCloudNotesJSONP(cb) {
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
             
             const timer = setTimeout(() => {
                 delete window[callbackName];
                 script.remove();
-            }, 4000);
+            }, 3500);
 
             window[callbackName] = function(data) {
                 clearTimeout(timer);
                 if (data) {
                     cloudNotes = data.notes || {};
                     closedOrderSet = new Set(data.closedOrders || []);
+                    try {
+                        localStorage.setItem('CACHE_NOTES', JSON.stringify(cloudNotes));
+                        localStorage.setItem('CACHE_CLOSED', JSON.stringify(Array.from(closedOrderSet)));
+                    } catch (e) {}
                 }
                 renderCounts();
-                if (currentMainMode === 'ORDERS') renderCards();
+                if (currentMainMode === 'ORDERS') triggerRender();
                 delete window[callbackName];
                 script.remove();
             };
 
-            script.src = `${API_NOTE_URL}?callback=${callbackName}&_t=${Date.now()}`;
+            script.src = `${API_NOTE_URL}?callback=${callbackName}${cb}`;
             script.onerror = function() { 
                 clearTimeout(timer);
                 script.remove(); 
@@ -673,40 +704,31 @@
 
             closedOrderSet.add(orderNo);
             renderCounts();
-            renderCards();
-
-            const formData = new URLSearchParams();
-            formData.append('orderNo', orderNo);
-            formData.append('action', 'CLOSE_ORDER');
+            triggerRender();
 
             fetch(API_NOTE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
+                body: `orderNo=${encodeURIComponent(orderNo)}&action=CLOSE_ORDER`
             });
         }
 
         function reopenWorkOrder(orderNo) {
             closedOrderSet.delete(orderNo);
             renderCounts();
-            renderCards();
-
-            const formData = new URLSearchParams();
-            formData.append('orderNo', orderNo);
-            formData.append('action', 'REOPEN_ORDER');
+            triggerRender();
 
             fetch(API_NOTE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
+                body: `orderNo=${encodeURIComponent(orderNo)}&action=REOPEN_ORDER`
             });
         }
 
         function handleNoteInput(orderNo, value, hintId) {
             cloudNotes[orderNo] = value.trim();
-            renderCounts();
 
             const hint = document.getElementById(hintId);
             if (hint) {
@@ -717,26 +739,16 @@
 
             clearTimeout(debounceTimers[orderNo]);
             debounceTimers[orderNo] = setTimeout(() => {
-                const formData = new URLSearchParams();
-                formData.append('orderNo', orderNo);
-                formData.append('note', value.trim());
-                formData.append('action', 'UPDATE_NOTE');
-
                 fetch(API_NOTE_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString()
+                    body: `orderNo=${encodeURIComponent(orderNo)}&note=${encodeURIComponent(value.trim())}&action=UPDATE_NOTE`
                 }).then(() => {
                     if (hint) {
                         hint.innerText = '✓ 雲端已存';
                         hint.style.color = '#059669';
                         setTimeout(() => { hint.style.display = 'none'; }, 2000);
-                    }
-                }).catch(() => {
-                    if (hint) {
-                        hint.innerText = '✗ 儲存失敗';
-                        hint.style.color = '#dc2626';
                     }
                 });
             }, 600);
@@ -772,16 +784,18 @@
                 }
             }
 
+            try {
+                localStorage.setItem('CACHE_ORDERS', JSON.stringify(orders));
+            } catch (e) {}
+
             renderCounts();
             renderSaButtons();
-            if (currentMainMode === 'ORDERS') renderCards();
+            if (currentMainMode === 'ORDERS') triggerRender();
         }
 
-        // 解析預過濾後的 M5B_MONITOR 輕量資料
         function parseProjectData(rows) {
             if (!rows || rows.length < 2) return;
 
-            // 取得表頭（第一列）
             const headers = rows[0].map(c => String(c).trim());
             projectList = [];
 
@@ -799,9 +813,13 @@
                 }
             }
 
+            try {
+                localStorage.setItem('CACHE_PROJ', JSON.stringify(projectList));
+            } catch (e) {}
+
             renderProjectKPI();
             renderProjectStaffButtons();
-            if (currentMainMode === 'PROJECT') renderCards();
+            if (currentMainMode === 'PROJECT') triggerRender();
         }
 
         function isPaint(o) {
@@ -963,35 +981,35 @@
             activeCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerRender();
         }
 
         function setSaFilter(sa, btn) {
             activeSa = sa;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerRender();
         }
 
         function setProjCategoryFilter(type, btn) {
             activeProjCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerRender();
         }
 
         function setProjStaffFilter(staff, btn) {
             activeProjStaff = staff;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerRender();
         }
 
         function renderCards() {
             const grid = document.getElementById('cardsGrid');
             const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
 
-            // ==================== 渲染未結工單 ====================
+            // 1. 渲染未結工單
             if (currentMainMode === 'ORDERS') {
                 const filtered = orders.filter(o => {
                     const orderNo = o['工單號碼'] || '';
@@ -1097,7 +1115,7 @@
                 return;
             }
 
-            // ==================== 渲染 M5B 專案卡片 ====================
+            // 2. 渲染 M5B 專案卡片
             const filteredProj = projectList.filter(p => {
                 const isResp = isNeihuProjectResp(p);
                 const status = (p['狀態'] || '').trim();
@@ -1190,7 +1208,7 @@
             });
         }
 
-        window.addEventListener('DOMContentLoaded', loadAllData);
+        window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
