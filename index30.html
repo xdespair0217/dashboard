@@ -109,7 +109,7 @@
             border: none;
             border-radius: 7px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -171,7 +171,7 @@
             align-items: center;
             gap: 4px;
             flex-shrink: 0;
-            transition: all 0.15s;
+            transition: background 0.1s, color 0.1s;
         }
         .tab-btn.active {
             background: #1e293b;
@@ -215,6 +215,8 @@
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            content-visibility: auto;
+            contain-intrinsic-size: 200px;
         }
 
         .card-top {
@@ -428,6 +430,19 @@
             font-weight: 700;
         }
 
+        .load-more-btn {
+            grid-column: 1 / -1;
+            background: #e2e8f0;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .load-more-btn:active { background: #cbd5e1; }
+
         @media (max-width: 768px) {
             .cards-grid { grid-template-columns: 1fr; gap: 12px; }
             .navbar { padding: 10px 14px; }
@@ -547,7 +562,7 @@
         </div>
 
         <div class="toolbar">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="renderCards()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="debounceRender()">
         </div>
 
         <div class="cards-grid" id="cardsGrid">
@@ -570,19 +585,32 @@
         let debounceTimers = {};
 
         let projectList = [];
-        let isProjectLoaded = false; // 懶加載標記
+        let isProjectLoaded = false;
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
-        // 頁面初次啟動：只加載未結工單（瞬間載入）
+        // 分批加載控制（效能核心）
+        let currentRenderList = [];
+        let visibleCount = 30; 
+        const CHUNK_SIZE = 30;
+
         function initApp() {
             loadOrdersData(() => {
-                // 工單出來後，再背景偷偷讀取備註，不拖慢畫面
-                setTimeout(fetchCloudNotesJSONP, 300);
+                setTimeout(fetchCloudNotesJSONP, 400);
             });
+            setupInfiniteScroll();
         }
 
-        // 切換主模式
+        function setupInfiniteScroll() {
+            window.addEventListener('scroll', () => {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                    if (visibleCount < currentRenderList.length) {
+                        appendNextChunk();
+                    }
+                }
+            }, { passive: true });
+        }
+
         function switchMainMode(mode) {
             currentMainMode = mode;
             document.getElementById('modeBtnOrders').classList.toggle('active', mode === 'ORDERS');
@@ -594,13 +622,12 @@
 
             if (mode === 'PROJECT') {
                 if (!isProjectLoaded) {
-                    // 第一次點進專案才去下載專案表
                     loadProjectData();
                 } else {
-                    renderCards();
+                    triggerOptimizedRender();
                 }
             } else {
-                renderCards();
+                triggerOptimizedRender();
             }
         }
 
@@ -609,15 +636,12 @@
             statusElem.innerText = '同步中...';
 
             if (currentMainMode === 'ORDERS') {
-                loadOrdersData(() => {
-                    fetchCloudNotesJSONP();
-                });
+                loadOrdersData(() => { fetchCloudNotesJSONP(); });
             } else {
                 loadProjectData();
             }
         }
 
-        // 1. 純讀取未結工單
         function loadOrdersData(callback) {
             const statusElem = document.getElementById('statusTime');
             Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
@@ -631,13 +655,11 @@
                     if (callback) callback();
                 },
                 error: function(err) {
-                    console.error("未結工單讀取錯誤:", err);
-                    document.getElementById('cardsGrid').innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">工單讀取失敗，請確認網路連線。</div>';
+                    console.error("工單讀取錯誤:", err);
                 }
             });
         }
 
-        // 2. 只有切換到專案才懶加載
         function loadProjectData() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 M5B 專案資料中...</div>';
@@ -652,13 +674,11 @@
                     parseProjectData(results.data);
                 },
                 error: function(err) {
-                    console.error("M5B 專案分頁讀取錯誤:", err);
                     grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">M5B 專案資料讀取失敗。</div>';
                 }
             });
         }
 
-        // 3. 背景非同步備註 (超時 3 秒自動略過)
         function fetchCloudNotesJSONP() {
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
@@ -675,7 +695,7 @@
                     closedOrderSet = new Set(data.closedOrders || []);
                 }
                 renderCounts();
-                if (currentMainMode === 'ORDERS') renderCards();
+                if (currentMainMode === 'ORDERS') triggerOptimizedRender();
                 delete window[callbackName];
                 script.remove();
             };
@@ -693,7 +713,7 @@
 
             closedOrderSet.add(orderNo);
             renderCounts();
-            renderCards();
+            triggerOptimizedRender();
 
             fetch(API_NOTE_URL, {
                 method: 'POST',
@@ -706,7 +726,7 @@
         function reopenWorkOrder(orderNo) {
             closedOrderSet.delete(orderNo);
             renderCounts();
-            renderCards();
+            triggerOptimizedRender();
 
             fetch(API_NOTE_URL, {
                 method: 'POST',
@@ -775,7 +795,7 @@
 
             renderCounts();
             renderSaButtons();
-            if (currentMainMode === 'ORDERS') renderCards();
+            if (currentMainMode === 'ORDERS') triggerOptimizedRender();
         }
 
         function parseProjectData(rows) {
@@ -800,7 +820,7 @@
 
             renderProjectKPI();
             renderProjectStaffButtons();
-            if (currentMainMode === 'PROJECT') renderCards();
+            if (currentMainMode === 'PROJECT') triggerOptimizedRender();
         }
 
         function isPaint(o) {
@@ -958,41 +978,54 @@
             });
         }
 
+        // 點擊事件優先反饋：先改按鈕外觀，下一幀再啟動資料重繪
         function setCategoryFilter(type, btn) {
             activeCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerOptimizedRender();
         }
 
         function setSaFilter(sa, btn) {
             activeSa = sa;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerOptimizedRender();
         }
 
         function setProjCategoryFilter(type, btn) {
             activeProjCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerOptimizedRender();
         }
 
         function setProjStaffFilter(staff, btn) {
             activeProjStaff = staff;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderCards();
+            triggerOptimizedRender();
         }
 
-        function renderCards() {
-            const grid = document.getElementById('cardsGrid');
+        let debounceTimer;
+        function debounceRender() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(triggerOptimizedRender, 180);
+        }
+
+        function triggerOptimizedRender() {
+            requestAnimationFrame(() => {
+                filterCurrentData();
+                visibleCount = CHUNK_SIZE;
+                renderVisibleCards();
+            });
+        }
+
+        function filterCurrentData() {
             const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
 
-            // 1. 渲染未結工單
             if (currentMainMode === 'ORDERS') {
-                const filtered = orders.filter(o => {
+                currentRenderList = orders.filter(o => {
                     const orderNo = o['工單號碼'] || '';
                     const isClosed = closedOrderSet.has(orderNo);
 
@@ -1006,7 +1039,6 @@
                     const amt = parseFloat((o['合計金額'] || '0').replace(/,/g, '')) || 0;
                     const sa = o['接待'] || '未指派';
                     const myNote = cloudNotes[orderNo] || '';
-                    const fullText = `${orderNo} ${o['牌照號碼']} ${o['品牌']} ${o['車型']} ${o['接待']} ${o['技師']} ${o['狀態']} ${myNote}`.toLowerCase();
 
                     if (activeCategory === 'PAINT' && !isPaint(o)) return false;
                     if (activeCategory === 'PDI' && !isPdi(o)) return false;
@@ -1018,111 +1050,151 @@
                     if (activeCategory === 'HAS_NOTE' && !myNote) return false;
 
                     if (activeSa !== 'ALL' && sa !== activeSa) return false;
-                    if (searchVal && !fullText.includes(searchVal)) return false;
+
+                    if (searchVal) {
+                        const fullText = `${orderNo} ${o['牌照號碼']} ${o['品牌']} ${o['車型']} ${o['接待']} ${o['技師']} ${o['狀態']} ${myNote}`.toLowerCase();
+                        if (!fullText.includes(searchVal)) return false;
+                    }
 
                     return true;
                 });
+            } else {
+                currentRenderList = projectList.filter(p => {
+                    const isResp = isNeihuProjectResp(p);
+                    const status = (p['狀態'] || '').trim();
+                    const factory = (p['服務廠'] || '').trim();
+                    const staff = (p['關懷指派'] || '未指派').trim();
 
-                if (filtered.length === 0) {
-                    grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">無符合條件的未結工單</div>';
-                    return;
-                }
+                    if (activeProjCategory === 'RESP_ALL' && !isResp) return false;
+                    if (activeProjCategory === 'RESP_VALID' && (!isResp || status !== '有效')) return false;
+                    if (activeProjCategory === 'RESP_IN' && (!isResp || status !== '已進廠')) return false;
+                    if (activeProjCategory === 'RESP_CLOSED' && (!isResp || status !== '結案')) return false;
+                    if (activeProjCategory === 'CROSS_NEIHU' && (isResp || !factory.includes('內湖') || status !== '結案')) return false;
 
-                grid.innerHTML = filtered.map(o => {
-                    const orderNo = o['工單號碼'] || '';
-                    const days = parseInt(o['進廠天數'], 10) || 0;
-                    const amtVal = parseFloat((o['合計金額'] || '0').replace(/,/g, '')) || 0;
-                    const isHighAmt = amtVal >= 50000;
-                    const isOver60 = days >= 60;
-                    const isOver30 = days >= 30;
-                    const isClosed = closedOrderSet.has(orderNo);
+                    if (activeProjStaff !== 'ALL' && staff !== activeProjStaff) return false;
 
-                    const myNote = cloudNotes[orderNo] || '';
-                    const hintId = `hint_${orderNo}`;
+                    if (searchVal) {
+                        const fullText = `${p['牌照號碼']} ${p['車型']} ${p['行動電話']} ${p['工單號碼']} ${p['服務廠']} ${staff} ${p['狀態']}`.toLowerCase();
+                        if (!fullText.includes(searchVal)) return false;
+                    }
 
-                    const copyText = `【未結追蹤】車牌: ${o['牌照號碼'] || '-'} | 工單: ${orderNo} | 車型: ${o['品牌'] || ''} ${o['車型'] || ''} | 接待: ${o['接待'] || '未指派'} | 技師: ${o['技師'] || '未指派'} | 進廠: ${days}天 | 金額: $${amtVal.toLocaleString()} | 狀態: ${o['狀態'] || '-'} | 備註: ${myNote || '無'}`;
+                    return true;
+                });
+            }
+        }
 
-                    return `
-                        <div class="order-card" style="${isClosed ? 'opacity:0.85; border-color:#cbd5e1;' : ''}">
-                            <div class="card-top">
-                                <div>
-                                    <div class="car-heading">
-                                        <span>${o['品牌'] || ''} ${o['車型'] || ''}</span>
-                                        <span class="category-pill">${o['工單類別'] || '工單'}</span>
-                                        ${isClosed ? '<span class="category-pill" style="background:#e2e8f0; color:#475569;">已結案</span>' : ''}
-                                    </div>
-                                    <div class="card-meta">
-                                        車牌：<strong>${o['牌照號碼'] || '-'}</strong> ｜ 工單：${orderNo}
-                                    </div>
+        // 僅繪製當前批次的卡片（保持 DOM 輕盈）
+        function renderVisibleCards() {
+            const grid = document.getElementById('cardsGrid');
+
+            if (currentRenderList.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">無符合條件的項目</div>';
+                return;
+            }
+
+            const itemsToShow = currentRenderList.slice(0, visibleCount);
+            grid.innerHTML = itemsToShow.map(item => generateCardHtml(item)).join('');
+
+            if (visibleCount < currentRenderList.length) {
+                const btn = document.createElement('button');
+                btn.className = 'load-more-btn';
+                btn.innerText = `顯示更多 (還有 ${currentRenderList.length - visibleCount} 筆)...`;
+                btn.onclick = appendNextChunk;
+                grid.appendChild(btn);
+            }
+        }
+
+        function appendNextChunk() {
+            const grid = document.getElementById('cardsGrid');
+            const loadBtn = grid.querySelector('.load-more-btn');
+            if (loadBtn) loadBtn.remove();
+
+            const nextItems = currentRenderList.slice(visibleCount, visibleCount + CHUNK_SIZE);
+            visibleCount += CHUNK_SIZE;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = nextItems.map(item => generateCardHtml(item)).join('');
+            
+            while (tempDiv.firstChild) {
+                grid.appendChild(tempDiv.firstChild);
+            }
+
+            if (visibleCount < currentRenderList.length) {
+                const btn = document.createElement('button');
+                btn.className = 'load-more-btn';
+                btn.innerText = `顯示更多 (還有 ${currentRenderList.length - visibleCount} 筆)...`;
+                btn.onclick = appendNextChunk;
+                grid.appendChild(btn);
+            }
+        }
+
+        function generateCardHtml(data) {
+            if (currentMainMode === 'ORDERS') {
+                const o = data;
+                const orderNo = o['工單號碼'] || '';
+                const days = parseInt(o['進廠天數'], 10) || 0;
+                const amtVal = parseFloat((o['合計金額'] || '0').replace(/,/g, '')) || 0;
+                const isHighAmt = amtVal >= 50000;
+                const isOver60 = days >= 60;
+                const isOver30 = days >= 30;
+                const isClosed = closedOrderSet.has(orderNo);
+
+                const myNote = cloudNotes[orderNo] || '';
+                const hintId = `hint_${orderNo}`;
+                const copyText = `【未結追蹤】車牌: ${o['牌照號碼'] || '-'} | 工單: ${orderNo} | 車型: ${o['品牌'] || ''} ${o['車型'] || ''} | 接待: ${o['接待'] || '未指派'} | 技師: ${o['技師'] || '未指派'} | 進廠: ${days}天 | 金額: $${amtVal.toLocaleString()} | 狀態: ${o['狀態'] || '-'} | 備註: ${myNote || '無'}`;
+
+                return `
+                    <div class="order-card" style="${isClosed ? 'opacity:0.85; border-color:#cbd5e1;' : ''}">
+                        <div class="card-top">
+                            <div>
+                                <div class="car-heading">
+                                    <span>${o['品牌'] || ''} ${o['車型'] || ''}</span>
+                                    <span class="category-pill">${o['工單類別'] || '工單'}</span>
+                                    ${isClosed ? '<span class="category-pill" style="background:#e2e8f0; color:#475569;">已結案</span>' : ''}
                                 </div>
-                                <div class="top-btn-group">
-                                    <button class="btn-copy-main" onclick="copyText('${copyText.replace(/'/g, "\\'")}')">📋 複製</button>
-                                    ${!isClosed ? 
-                                        `<button class="btn-close-order" onclick="closeWorkOrder('${orderNo}')">🗑️ 結案</button>` : 
-                                        `<button class="btn-reopen" onclick="reopenWorkOrder('${orderNo}')">↩️ 復原</button>`
-                                    }
+                                <div class="card-meta">
+                                    車牌：<strong>${o['牌照號碼'] || '-'}</strong> ｜ 工單：${orderNo}
                                 </div>
                             </div>
-
-                            <div class="cycle-strip ${isOver60 ? 'danger' : ''}">
-                                <div class="strip-days">⏱️ 進廠：<strong>${days} 天</strong></div>
-                                <div>
-                                    <span class="pill-status ${isOver60 ? 'badge-danger' : isOver30 ? 'badge-warn' : 'badge-blue'}">
-                                        ${isOver60 ? '🚨 長置 60+天' : isOver30 ? '⚠️ 滯留 30~59天' : '正常週期'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="card-content">
-                                <div><span class="info-label">專員：</span><strong>${o['接待'] || '未指派'}</strong></div>
-                                <div><span class="info-label">技師：</span>${o['技師'] || '未指派'}</div>
-                                <div><span class="info-label">狀態：</span><strong>${o['狀態'] || '-'}</strong></div>
-                                <div>
-                                    <span class="info-label">合計金額：</span>
-                                    <span class="price-text ${isHighAmt ? 'price-high' : ''}">$${amtVal.toLocaleString()}</span>
-                                </div>
-
-                                <div class="custom-note-block">
-                                    <div class="note-header">
-                                        <span class="note-title">☁️ 雲端備註：</span>
-                                        <span class="cloud-hint" id="${hintId}"></span>
-                                    </div>
-                                    <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="輸入進度，全廠同步..." oninput="handleNoteInput('${orderNo}', this.value, '${hintId}')">
-                                </div>
+                            <div class="top-btn-group">
+                                <button class="btn-copy-main" onclick="copyText('${copyText.replace(/'/g, "\\'")}')">📋 複製</button>
+                                ${!isClosed ? 
+                                    `<button class="btn-close-order" onclick="closeWorkOrder('${orderNo}')">🗑️ 結案</button>` : 
+                                    `<button class="btn-reopen" onclick="reopenWorkOrder('${orderNo}')">↩️ 復原</button>`
+                                }
                             </div>
                         </div>
-                    `;
-                }).join('');
-                return;
-            }
 
-            // 2. 渲染 M5B 專案卡片
-            const filteredProj = projectList.filter(p => {
-                const isResp = isNeihuProjectResp(p);
-                const status = (p['狀態'] || '').trim();
-                const factory = (p['服務廠'] || '').trim();
-                const staff = (p['關懷指派'] || '未指派').trim();
+                        <div class="cycle-strip ${isOver60 ? 'danger' : ''}">
+                            <div class="strip-days">⏱️ 進廠：<strong>${days} 天</strong></div>
+                            <div>
+                                <span class="pill-status ${isOver60 ? 'badge-danger' : isOver30 ? 'badge-warn' : 'badge-blue'}">
+                                    ${isOver60 ? '🚨 長置 60+天' : isOver30 ? '⚠️ 滯留 30~59天' : '正常週期'}
+                                </span>
+                            </div>
+                        </div>
 
-                if (activeProjCategory === 'RESP_ALL' && !isResp) return false;
-                if (activeProjCategory === 'RESP_VALID' && (!isResp || status !== '有效')) return false;
-                if (activeProjCategory === 'RESP_IN' && (!isResp || status !== '已進廠')) return false;
-                if (activeProjCategory === 'RESP_CLOSED' && (!isResp || status !== '結案')) return false;
-                if (activeProjCategory === 'CROSS_NEIHU' && (isResp || !factory.includes('內湖') || status !== '結案')) return false;
+                        <div class="card-content">
+                            <div><span class="info-label">專員：</span><strong>${o['接待'] || '未指派'}</strong></div>
+                            <div><span class="info-label">技師：</span>${o['技師'] || '未指派'}</div>
+                            <div><span class="info-label">狀態：</span><strong>${o['狀態'] || '-'}</strong></div>
+                            <div>
+                                <span class="info-label">合計金額：</span>
+                                <span class="price-text ${isHighAmt ? 'price-high' : ''}">$${amtVal.toLocaleString()}</span>
+                            </div>
 
-                if (activeProjStaff !== 'ALL' && staff !== activeProjStaff) return false;
-
-                const fullText = `${p['牌照號碼']} ${p['車型']} ${p['行動電話']} ${p['工單號碼']} ${p['服務廠']} ${staff} ${p['狀態']}`.toLowerCase();
-                if (searchVal && !fullText.includes(searchVal)) return false;
-
-                return true;
-            });
-
-            if (filteredProj.length === 0) {
-                grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">無符合條件的專案車輛</div>';
-                return;
-            }
-
-            grid.innerHTML = filteredProj.map(p => {
+                            <div class="custom-note-block">
+                                <div class="note-header">
+                                    <span class="note-title">☁️ 雲端備註：</span>
+                                    <span class="cloud-hint" id="${hintId}"></span>
+                                </div>
+                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="輸入進度，全廠同步..." oninput="handleNoteInput('${orderNo}', this.value, '${hintId}')">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const p = data;
                 const plate = p['牌照號碼'] || '-';
                 const model = p['車型'] || '-';
                 const status = (p['狀態'] || '有效').trim();
@@ -1136,7 +1208,6 @@
                 const isClosed = status === '結案';
                 const isInFactory = status === '已進廠';
                 const isValid = status === '有效';
-
                 const copyText = `【M5B專案】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
 
                 return `
@@ -1180,7 +1251,7 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+            }
         }
 
         function copyText(text) {
