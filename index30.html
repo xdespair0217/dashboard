@@ -443,13 +443,14 @@
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>🚗</span> 廠端即時監控系統</div>
-            <div class="navbar-sub" id="statusTime">載入中...</div>
+            <div class="navbar-sub" id="statusTime">連線就緒</div>
         </div>
         <div>
-            <button class="btn-sync" onclick="forceRefreshData()">🔄 重新整理</button>
+            <button class="btn-sync" onclick="refreshCurrentView()">🔄 重新整理</button>
         </div>
     </div>
 
+    <!-- 頂端模式切換 -->
     <div class="mode-switcher-container">
         <div class="mode-switcher">
             <button class="mode-btn active" id="modeBtnOrders" onclick="switchMainMode('ORDERS')">
@@ -546,7 +547,7 @@
         </div>
 
         <div class="toolbar">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="triggerRender()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="renderCards()">
         </div>
 
         <div class="cards-grid" id="cardsGrid">
@@ -569,20 +570,19 @@
         let debounceTimers = {};
 
         let projectList = [];
+        let isProjectLoaded = false; // 懶加載標記
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
-        let renderScheduled = false;
-
-        function triggerRender() {
-            if (renderScheduled) return;
-            renderScheduled = true;
-            requestAnimationFrame(() => {
-                renderCards();
-                renderScheduled = false;
+        // 頁面初次啟動：只加載未結工單（瞬間載入）
+        function initApp() {
+            loadOrdersData(() => {
+                // 工單出來後，再背景偷偷讀取備註，不拖慢畫面
+                setTimeout(fetchCloudNotesJSONP, 300);
             });
         }
 
+        // 切換主模式
         function switchMainMode(mode) {
             currentMainMode = mode;
             document.getElementById('modeBtnOrders').classList.toggle('active', mode === 'ORDERS');
@@ -590,60 +590,37 @@
 
             document.getElementById('ordersControlBlock').style.display = (mode === 'ORDERS') ? 'block' : 'none';
             document.getElementById('projectControlBlock').style.display = (mode === 'PROJECT') ? 'block' : 'none';
-
             document.getElementById('searchInput').value = '';
-            triggerRender();
-        }
 
-        // 初始化：先讀取快取（0.05 秒開卡），再背景連線更新
-        function initApp() {
-            restoreFromCache();
-            loadAllData(false);
-        }
-
-        function forceRefreshData() {
-            loadAllData(true);
-        }
-
-        function restoreFromCache() {
-            try {
-                const cachedOrders = localStorage.getItem('CACHE_ORDERS');
-                const cachedProj = localStorage.getItem('CACHE_PROJ');
-                const cachedNotes = localStorage.getItem('CACHE_NOTES');
-                const cachedClosed = localStorage.getItem('CACHE_CLOSED');
-
-                if (cachedNotes) cloudNotes = JSON.parse(cachedNotes);
-                if (cachedClosed) closedOrderSet = new Set(JSON.parse(cachedClosed));
-
-                if (cachedOrders) {
-                    orders = JSON.parse(cachedOrders);
-                    renderCounts();
-                    renderSaButtons();
+            if (mode === 'PROJECT') {
+                if (!isProjectLoaded) {
+                    // 第一次點進專案才去下載專案表
+                    loadProjectData();
+                } else {
+                    renderCards();
                 }
-                if (cachedProj) {
-                    projectList = JSON.parse(cachedProj);
-                    renderProjectKPI();
-                    renderProjectStaffButtons();
-                }
-
-                if (cachedOrders || cachedProj) {
-                    document.getElementById('statusTime').innerText = '顯示快取中... (同步最新)';
-                    triggerRender();
-                }
-            } catch (e) {
-                console.warn("快取讀取略過:", e);
+            } else {
+                renderCards();
             }
         }
 
-        function loadAllData(isForce) {
+        function refreshCurrentView() {
             const statusElem = document.getElementById('statusTime');
-            const cacheBuster = isForce ? `&_t=${Date.now()}` : '';
+            statusElem.innerText = '同步中...';
 
-            // 1. 背景異步讀取 GAS 備註（不卡死 UI）
-            fetchCloudNotesJSONP(cacheBuster);
+            if (currentMainMode === 'ORDERS') {
+                loadOrdersData(() => {
+                    fetchCloudNotesJSONP();
+                });
+            } else {
+                loadProjectData();
+            }
+        }
 
-            // 2. 載入未結工單
-            Papa.parse(`${SHEET_CSV_URL}${cacheBuster}`, {
+        // 1. 純讀取未結工單
+        function loadOrdersData(callback) {
+            const statusElem = document.getElementById('statusTime');
+            Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -651,47 +628,59 @@
                 complete: function(results) {
                     parseData(results.data);
                     statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
+                    if (callback) callback();
+                },
+                error: function(err) {
+                    console.error("未結工單讀取錯誤:", err);
+                    document.getElementById('cardsGrid').innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">工單讀取失敗，請確認網路連線。</div>';
                 }
             });
+        }
 
-            // 3. 載入 M5B 精簡監控表
-            Papa.parse(`${PROJECT_CSV_URL}${cacheBuster}`, {
+        // 2. 只有切換到專案才懶加載
+        function loadProjectData() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 M5B 專案資料中...</div>';
+
+            Papa.parse(`${PROJECT_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
                 fastMode: true,
                 complete: function(results) {
+                    isProjectLoaded = true;
                     parseProjectData(results.data);
+                },
+                error: function(err) {
+                    console.error("M5B 專案分頁讀取錯誤:", err);
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">M5B 專案資料讀取失敗。</div>';
                 }
             });
         }
 
-        function fetchCloudNotesJSONP(cb) {
+        // 3. 背景非同步備註 (超時 3 秒自動略過)
+        function fetchCloudNotesJSONP() {
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
             
             const timer = setTimeout(() => {
                 delete window[callbackName];
                 script.remove();
-            }, 3500);
+            }, 3000);
 
             window[callbackName] = function(data) {
                 clearTimeout(timer);
                 if (data) {
                     cloudNotes = data.notes || {};
                     closedOrderSet = new Set(data.closedOrders || []);
-                    try {
-                        localStorage.setItem('CACHE_NOTES', JSON.stringify(cloudNotes));
-                        localStorage.setItem('CACHE_CLOSED', JSON.stringify(Array.from(closedOrderSet)));
-                    } catch (e) {}
                 }
                 renderCounts();
-                if (currentMainMode === 'ORDERS') triggerRender();
+                if (currentMainMode === 'ORDERS') renderCards();
                 delete window[callbackName];
                 script.remove();
             };
 
-            script.src = `${API_NOTE_URL}?callback=${callbackName}${cb}`;
+            script.src = `${API_NOTE_URL}?callback=${callbackName}&_t=${Date.now()}`;
             script.onerror = function() { 
                 clearTimeout(timer);
                 script.remove(); 
@@ -704,7 +693,7 @@
 
             closedOrderSet.add(orderNo);
             renderCounts();
-            triggerRender();
+            renderCards();
 
             fetch(API_NOTE_URL, {
                 method: 'POST',
@@ -717,7 +706,7 @@
         function reopenWorkOrder(orderNo) {
             closedOrderSet.delete(orderNo);
             renderCounts();
-            triggerRender();
+            renderCards();
 
             fetch(API_NOTE_URL, {
                 method: 'POST',
@@ -784,13 +773,9 @@
                 }
             }
 
-            try {
-                localStorage.setItem('CACHE_ORDERS', JSON.stringify(orders));
-            } catch (e) {}
-
             renderCounts();
             renderSaButtons();
-            if (currentMainMode === 'ORDERS') triggerRender();
+            if (currentMainMode === 'ORDERS') renderCards();
         }
 
         function parseProjectData(rows) {
@@ -813,13 +798,9 @@
                 }
             }
 
-            try {
-                localStorage.setItem('CACHE_PROJ', JSON.stringify(projectList));
-            } catch (e) {}
-
             renderProjectKPI();
             renderProjectStaffButtons();
-            if (currentMainMode === 'PROJECT') triggerRender();
+            if (currentMainMode === 'PROJECT') renderCards();
         }
 
         function isPaint(o) {
@@ -981,28 +962,28 @@
             activeCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            triggerRender();
+            renderCards();
         }
 
         function setSaFilter(sa, btn) {
             activeSa = sa;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            triggerRender();
+            renderCards();
         }
 
         function setProjCategoryFilter(type, btn) {
             activeProjCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            triggerRender();
+            renderCards();
         }
 
         function setProjStaffFilter(staff, btn) {
             activeProjStaff = staff;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            triggerRender();
+            renderCards();
         }
 
         function renderCards() {
