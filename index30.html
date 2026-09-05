@@ -86,6 +86,7 @@
         }
         .btn-sync:active { transform: scale(0.96); }
 
+        /* 頂端多專案切換頁籤 */
         .mode-switcher-container {
             max-width: 1440px;
             margin: 12px auto 0 auto;
@@ -97,9 +98,11 @@
             padding: 4px;
             border-radius: 10px;
             gap: 4px;
+            overflow-x: auto;
         }
         .mode-btn {
             flex: 1;
+            min-width: 120px;
             padding: 9px 12px;
             text-align: center;
             font-size: 0.88rem;
@@ -114,6 +117,7 @@
             justify-content: center;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
         .mode-btn.active {
             background: #ffffff;
@@ -465,14 +469,17 @@
         </div>
     </div>
 
-    <!-- 頂端模式切換 -->
+    <!-- 頂端模式切換 (支援多專案擴充) -->
     <div class="mode-switcher-container">
         <div class="mode-switcher">
-            <button class="mode-btn active" id="modeBtnOrders" onclick="switchMainMode('ORDERS')">
+            <button class="mode-btn active" id="modeBtn_ORDERS" onclick="switchMainMode('ORDERS')">
                 <span>🚗 未結工單監控</span>
             </button>
-            <button class="mode-btn" id="modeBtnProject" onclick="switchMainMode('PROJECT')">
+            <button class="mode-btn" id="modeBtn_M5B" onclick="switchMainMode('M5B')">
                 <span>🎯 M5B 專案進度</span>
+            </button>
+            <button class="mode-btn" id="modeBtn_M5F" onclick="switchMainMode('M5F')">
+                <span>🎯 M5F 專案進度</span>
             </button>
         </div>
     </div>
@@ -503,12 +510,12 @@
             </div>
         </div>
 
-        <!-- 2. M5B 專案操作區 -->
+        <!-- 2. 原廠召回專案操作區 (動態適配 M5B / M5F 等所有專案) -->
         <div id="projectControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title">
-                        <span>🎯 M5B 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)</span>
+                        <span id="kpiTitleText">🎯 專案內湖責任盤進度 (昆陽/南港/內湖銷售基盤)</span>
                     </div>
                     <div style="font-size:0.8rem; font-weight:700; color:var(--btn-green);" id="kpiPercentText">
                         達成率：0%
@@ -544,7 +551,7 @@
             </div>
 
             <div class="filter-wrapper">
-                <div class="filter-scroll-container">
+                <div class="filter-scroll-container" id="projCategoryFilterRow">
                     <span class="filter-label-chip">專案進度：</span>
                     <button class="tab-btn active" onclick="setProjCategoryFilter('RESP_ALL', this)">全部責任盤 <span class="tab-count" id="proj-c-all">0</span></button>
                     <button class="tab-btn" onclick="setProjCategoryFilter('RESP_VALID', this)">🚨 尚未回廠待邀約 <span class="tab-count" id="proj-c-valid">0</span></button>
@@ -571,12 +578,32 @@
     </div>
 
     <script>
+        // 1. 未結工單 CSV (gid=0)
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
-        const PROJECT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv';
+        // 2. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
 
-        let currentMainMode = 'ORDERS';
+        // 3. 專案配置表（未來只要在這裡追加即可）
+        const PROJECT_CONFIGS = {
+            'M5B': {
+                name: 'M5B',
+                title: '🎯 M5B 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
+                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv',
+                data: [],
+                isLoaded: false
+            },
+            'M5F': {
+                name: 'M5F',
+                title: '🎯 M5F 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
+                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1259894212&single=true&output=csv',
+                data: [],
+                isLoaded: false
+            }
+        };
 
+        let currentMainMode = 'ORDERS'; // 'ORDERS' | 'M5B' | 'M5F' ...
+
+        // 未結工單專用資料
         let orders = [];
         let cloudNotes = {};
         let closedOrderSet = new Set();
@@ -584,14 +611,13 @@
         let activeSa = 'ALL';
         let debounceTimers = {};
 
-        let projectList = [];
-        let isProjectLoaded = false;
+        // 專案專用篩選
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
-        // 分批加載控制（效能核心）
+        // 分批渲染
         let currentRenderList = [];
-        let visibleCount = 30; 
+        let visibleCount = 30;
         const CHUNK_SIZE = 30;
 
         function initApp() {
@@ -611,23 +637,48 @@
             }, { passive: true });
         }
 
+        // 切換主模式 (ORDERS, M5B, M5F...)
         function switchMainMode(mode) {
             currentMainMode = mode;
-            document.getElementById('modeBtnOrders').classList.toggle('active', mode === 'ORDERS');
-            document.getElementById('modeBtnProject').classList.toggle('active', mode === 'PROJECT');
 
-            document.getElementById('ordersControlBlock').style.display = (mode === 'ORDERS') ? 'block' : 'none';
-            document.getElementById('projectControlBlock').style.display = (mode === 'PROJECT') ? 'block' : 'none';
+            // 樣式更新
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`modeBtn_${mode}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const isOrderMode = (mode === 'ORDERS');
+            document.getElementById('ordersControlBlock').style.display = isOrderMode ? 'block' : 'none';
+            document.getElementById('projectControlBlock').style.display = isOrderMode ? 'none' : 'block';
             document.getElementById('searchInput').value = '';
 
-            if (mode === 'PROJECT') {
-                if (!isProjectLoaded) {
-                    loadProjectData();
-                } else {
-                    triggerOptimizedRender();
+            // 重設專案篩選按鈕狀態
+            activeProjCategory = 'RESP_ALL';
+            activeProjStaff = 'ALL';
+            resetProjFilterButtons();
+
+            if (!isOrderMode) {
+                const conf = PROJECT_CONFIGS[mode];
+                if (conf) {
+                    document.getElementById('kpiTitleText').innerText = conf.title;
+                    if (!conf.isLoaded) {
+                        loadSpecificProjectData(mode);
+                    } else {
+                        renderProjectKPI(conf.data);
+                        renderProjectStaffButtons(conf.data);
+                        triggerOptimizedRender();
+                    }
                 }
             } else {
                 triggerOptimizedRender();
+            }
+        }
+
+        function resetProjFilterButtons() {
+            const row = document.getElementById('projCategoryFilterRow');
+            if (row) {
+                row.querySelectorAll('.tab-btn').forEach((b, idx) => {
+                    b.classList.toggle('active', idx === 0);
+                });
             }
         }
 
@@ -638,10 +689,11 @@
             if (currentMainMode === 'ORDERS') {
                 loadOrdersData(() => { fetchCloudNotesJSONP(); });
             } else {
-                loadProjectData();
+                loadSpecificProjectData(currentMainMode);
             }
         }
 
+        // 載入未結工單
         function loadOrdersData(callback) {
             const statusElem = document.getElementById('statusTime');
             Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
@@ -660,21 +712,28 @@
             });
         }
 
-        function loadProjectData() {
-            const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 M5B 專案資料中...</div>';
+        // 載入指定專案 (M5B / M5F)
+        function loadSpecificProjectData(projKey) {
+            const conf = PROJECT_CONFIGS[projKey];
+            if (!conf) return;
 
-            Papa.parse(`${PROJECT_CSV_URL}&_t=${Date.now()}`, {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = `<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 ${conf.name} 專案資料中...</div>`;
+
+            Papa.parse(`${conf.csvUrl}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
                 fastMode: true,
                 complete: function(results) {
-                    isProjectLoaded = true;
-                    parseProjectData(results.data);
+                    conf.isLoaded = true;
+                    conf.data = parseProjectData(results.data);
+                    renderProjectKPI(conf.data);
+                    renderProjectStaffButtons(conf.data);
+                    triggerOptimizedRender();
                 },
                 error: function(err) {
-                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">M5B 專案資料讀取失敗。</div>';
+                    grid.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">${conf.name} 專案資料讀取失敗。</div>`;
                 }
             });
         }
@@ -799,10 +858,10 @@
         }
 
         function parseProjectData(rows) {
-            if (!rows || rows.length < 2) return;
+            if (!rows || rows.length < 2) return [];
 
             const headers = rows[0].map(c => String(c).trim());
-            projectList = [];
+            const list = [];
 
             for (let i = 1; i < rows.length; i++) {
                 const r = rows[i];
@@ -814,13 +873,10 @@
                 });
 
                 if (obj['牌照號碼']) {
-                    projectList.push(obj);
+                    list.push(obj);
                 }
             }
-
-            renderProjectKPI();
-            renderProjectStaffButtons();
-            if (currentMainMode === 'PROJECT') triggerOptimizedRender();
+            return list;
         }
 
         function isPaint(o) {
@@ -885,7 +941,7 @@
             document.getElementById('c-closed').innerText = cClosed;
         }
 
-        function renderProjectKPI() {
+        function renderProjectKPI(list) {
             let targetCount = 0;
             let closedCount = 0;
             let inCount = 0;
@@ -893,7 +949,7 @@
             let crossCount = 0;
             let neihuDoneCount = 0;
 
-            projectList.forEach(p => {
+            list.forEach(p => {
                 const isResp = isNeihuProjectResp(p);
                 const status = (p['狀態'] || '').trim();
                 const factory = (p['服務廠'] || '').trim();
@@ -929,7 +985,7 @@
             document.getElementById('proj-c-in').innerText = inCount;
             document.getElementById('proj-c-closed').innerText = closedCount;
             document.getElementById('proj-c-cross').innerText = crossCount;
-            document.getElementById('proj-c-full').innerText = projectList.length;
+            document.getElementById('proj-c-full').innerText = list.length;
         }
 
         function renderSaButtons() {
@@ -955,16 +1011,17 @@
             });
         }
 
-        function renderProjectStaffButtons() {
+        function renderProjectStaffButtons(list) {
             const staffRow = document.getElementById('projStaffFilterRow');
+            const respList = list.filter(p => isNeihuProjectResp(p));
+
             staffRow.innerHTML = `
                 <span class="filter-label-chip">關懷專員：</span>
-                <button class="tab-btn ${activeProjStaff === 'ALL' ? 'active' : ''}" onclick="setProjStaffFilter('ALL', this)">全部專員 <span class="tab-count" id="proj-sa-all">${projectList.filter(p => isNeihuProjectResp(p)).length}</span></button>
+                <button class="tab-btn ${activeProjStaff === 'ALL' ? 'active' : ''}" onclick="setProjStaffFilter('ALL', this)">全部專員 <span class="tab-count" id="proj-sa-all">${respList.length}</span></button>
             `;
 
             const staffCounts = {};
-            projectList.forEach(p => {
-                if (!isNeihuProjectResp(p)) return;
+            respList.forEach(p => {
                 const st = p['關懷指派'] || '未指派';
                 staffCounts[st] = (staffCounts[st] || 0) + 1;
             });
@@ -978,7 +1035,6 @@
             });
         }
 
-        // 點擊事件優先反饋：先改按鈕外觀，下一幀再啟動資料重繪
         function setCategoryFilter(type, btn) {
             activeCategory = type;
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1059,7 +1115,10 @@
                     return true;
                 });
             } else {
-                currentRenderList = projectList.filter(p => {
+                const conf = PROJECT_CONFIGS[currentMainMode];
+                const list = conf ? conf.data : [];
+
+                currentRenderList = list.filter(p => {
                     const isResp = isNeihuProjectResp(p);
                     const status = (p['狀態'] || '').trim();
                     const factory = (p['服務廠'] || '').trim();
@@ -1083,7 +1142,6 @@
             }
         }
 
-        // 僅繪製當前批次的卡片（保持 DOM 輕盈）
         function renderVisibleCards() {
             const grid = document.getElementById('cardsGrid');
 
@@ -1195,6 +1253,7 @@
                 `;
             } else {
                 const p = data;
+                const currentProjName = currentMainMode; // 'M5B' or 'M5F'
                 const plate = p['牌照號碼'] || '-';
                 const model = p['車型'] || '-';
                 const status = (p['狀態'] || '有效').trim();
@@ -1208,7 +1267,7 @@
                 const isClosed = status === '結案';
                 const isInFactory = status === '已進廠';
                 const isValid = status === '有效';
-                const copyText = `【M5B專案】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
+                const copyText = `【${currentProjName}專案】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
 
                 return `
                     <div class="order-card" style="${isClosed ? 'opacity:0.85; border-color:#cbd5e1;' : ''}">
