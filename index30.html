@@ -86,30 +86,33 @@
         }
         .btn-sync:active { transform: scale(0.96); }
 
-        /* 頂端多專案水平滑動切換列 */
+        /* 頂端雙軌導航列 */
         .mode-switcher-container {
             max-width: 1440px;
             margin: 12px auto 0 auto;
             padding: 0 12px;
         }
-        .mode-switcher {
+        .dual-track-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .primary-modes {
             display: flex;
             background: #e2e8f0;
             padding: 4px;
             border-radius: 10px;
             gap: 4px;
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
+            flex: 1;
+            max-width: 480px;
         }
-        .mode-switcher::-webkit-scrollbar { display: none; }
-
         .mode-btn {
-            flex: 0 0 auto;
-            padding: 8px 14px;
+            flex: 1;
+            padding: 9px 12px;
             text-align: center;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 700;
             color: #475569;
             background: transparent;
@@ -120,12 +123,41 @@
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            white-space: nowrap;
         }
         .mode-btn.active {
             background: #ffffff;
             color: #0f172a;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* 專案專用動態下拉膠囊選單 */
+        .project-select-capsule {
+            display: none; /* 僅在專案模式下顯示 */
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 4px 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            gap: 6px;
+        }
+        .capsule-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .project-dropdown {
+            border: none;
+            background: transparent;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #1e293b;
+            cursor: pointer;
+            outline: none;
+            padding: 4px 6px;
         }
 
         .main-container {
@@ -456,6 +488,9 @@
             .card-top { padding: 10px 12px; }
             .card-content { padding: 10px 12px; }
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .dual-track-nav { flex-direction: column; align-items: stretch; }
+            .primary-modes { max-width: 100%; }
+            .project-select-capsule { justify-content: space-between; }
         }
     </style>
 </head>
@@ -471,30 +506,26 @@
         </div>
     </div>
 
-    <!-- 頂端模式切換 (已掛載 6 大召回專案) -->
+    <!-- 頂端雙軌切換導航列 -->
     <div class="mode-switcher-container">
-        <div class="mode-switcher">
-            <button class="mode-btn active" id="modeBtn_ORDERS" onclick="switchMainMode('ORDERS')">
-                <span>🚗 未結工單監控</span>
-            </button>
-            <button class="mode-btn" id="modeBtn_M5B" onclick="switchMainMode('M5B')">
-                <span>🎯 M5B</span>
-            </button>
-            <button class="mode-btn" id="modeBtn_M5F" onclick="switchMainMode('M5F')">
-                <span>🎯 M5F</span>
-            </button>
-            <button class="mode-btn" id="modeBtn_F626" onclick="switchMainMode('F626')">
-                <span>🎯 F626</span>
-            </button>
-            <button class="mode-btn" id="modeBtn_G3L" onclick="switchMainMode('G3L')">
-                <span>🎯 G3L</span>
-            </button>
-            <button class="mode-btn" id="modeBtn_M5K" onclick="switchMainMode('M5K')">
-                <span>🎯 M5K</span>
-            </button>
-            <button class="mode-btn" id="modeBtn_M4E" onclick="switchMainMode('M4E')">
-                <span>🎯 M4E</span>
-            </button>
+        <div class="dual-track-nav">
+            <!-- 軌道一：固定主業務模組 (未來新功能直接在後面追加按鈕) -->
+            <div class="primary-modes">
+                <button class="mode-btn active" id="mainTab_ORDERS" onclick="switchMainTrack('ORDERS')">
+                    <span>🚗 未結工單監控</span>
+                </button>
+                <button class="mode-btn" id="mainTab_PROJECT" onclick="switchMainTrack('PROJECT')">
+                    <span>🎯 原廠召回專案</span>
+                </button>
+            </div>
+
+            <!-- 軌道二：召回專案專屬動態膠囊下拉選單 -->
+            <div class="project-select-capsule" id="projectSelectorContainer">
+                <span class="capsule-label">📌 目前專案：</span>
+                <select id="projectSelectDropdown" class="project-dropdown" onchange="onProjectSelectChanged(this.value)">
+                    <!-- 由 JavaScript 根據設定自動生成選項 -->
+                </select>
+            </div>
         </div>
     </div>
 
@@ -524,12 +555,12 @@
             </div>
         </div>
 
-        <!-- 2. 原廠召回專案操作區 (動態適配所有專案) -->
+        <!-- 2. 原廠召回專案操作區 (全專案通用 KPI 看板) -->
         <div id="projectControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title">
-                        <span id="kpiTitleText">🎯 專案內湖責任盤進度 (昆陽/南港/內湖銷售基盤)</span>
+                        <span id="kpiTitleText">🎯 專案責任盤進度</span>
                     </div>
                     <div style="font-size:0.8rem; font-weight:700; color:var(--btn-green);" id="kpiPercentText">
                         達成率：0%
@@ -597,45 +628,45 @@
         // 2. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
 
-        // 3. 多專案統一配置表
+        // 3. 專案配置表（未來只要在此加入一行，選單與功能自動生成）
         const PROJECT_CONFIGS = {
             'M5B': {
-                name: 'M5B',
+                name: 'M5B 專案',
                 title: '🎯 M5B 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv',
                 data: [],
                 isLoaded: false
             },
             'M5F': {
-                name: 'M5F',
+                name: 'M5F 專案',
                 title: '🎯 M5F 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1259894212&single=true&output=csv',
                 data: [],
                 isLoaded: false
             },
             'F626': {
-                name: 'F626',
+                name: 'F626 專案',
                 title: '🎯 F626 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1858686330&single=true&output=csv',
                 data: [],
                 isLoaded: false
             },
             'G3L': {
-                name: 'G3L',
+                name: 'G3L 專案',
                 title: '🎯 G3L 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=967738403&single=true&output=csv',
                 data: [],
                 isLoaded: false
             },
             'M5K': {
-                name: 'M5K',
+                name: 'M5K 專案',
                 title: '🎯 M5K 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1482657870&single=true&output=csv',
                 data: [],
                 isLoaded: false
             },
             'M4E': {
-                name: 'M4E',
+                name: 'M4E 專案',
                 title: '🎯 M4E 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=935724217&single=true&output=csv',
                 data: [],
@@ -643,7 +674,8 @@
             }
         };
 
-        let currentMainMode = 'ORDERS';
+        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT'
+        let currentSelectedProjectKey = 'M5B'; // 預設專案
 
         // 未結工單資料
         let orders = [];
@@ -653,7 +685,7 @@
         let activeSa = 'ALL';
         let debounceTimers = {};
 
-        // 專案篩選
+        // 專案過濾
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
@@ -663,10 +695,25 @@
         const CHUNK_SIZE = 30;
 
         function initApp() {
+            initProjectDropdownOptions();
+
             loadOrdersData(() => {
                 setTimeout(fetchCloudNotesJSONP, 400);
             });
             setupInfiniteScroll();
+        }
+
+        // 動態注入下拉選單選項
+        function initProjectDropdownOptions() {
+            const dropdown = document.getElementById('projectSelectDropdown');
+            dropdown.innerHTML = '';
+            Object.keys(PROJECT_CONFIGS).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = PROJECT_CONFIGS[key].name;
+                dropdown.appendChild(opt);
+            });
+            dropdown.value = currentSelectedProjectKey;
         }
 
         function setupInfiniteScroll() {
@@ -679,35 +726,47 @@
             }, { passive: true });
         }
 
-        function switchMainMode(mode) {
-            currentMainMode = mode;
+        // 軌道一切換：ORDERS vs PROJECT
+        function switchMainTrack(track) {
+            currentMainTrack = track;
 
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById(`modeBtn_${mode}`);
-            if (activeBtn) activeBtn.classList.add('active');
+            document.getElementById('mainTab_ORDERS').classList.toggle('active', track === 'ORDERS');
+            document.getElementById('mainTab_PROJECT').classList.toggle('active', track === 'PROJECT');
 
-            const isOrderMode = (mode === 'ORDERS');
-            document.getElementById('ordersControlBlock').style.display = isOrderMode ? 'block' : 'none';
-            document.getElementById('projectControlBlock').style.display = isOrderMode ? 'none' : 'block';
+            const isOrder = (track === 'ORDERS');
+            document.getElementById('ordersControlBlock').style.display = isOrder ? 'block' : 'none';
+            document.getElementById('projectControlBlock').style.display = isOrder ? 'none' : 'block';
+            document.getElementById('projectSelectorContainer').style.display = isOrder ? 'none' : 'inline-flex';
             document.getElementById('searchInput').value = '';
 
+            if (track === 'PROJECT') {
+                switchActiveProject(currentSelectedProjectKey);
+            } else {
+                triggerOptimizedRender();
+            }
+        }
+
+        // 下拉選單切換專案
+        function onProjectSelectChanged(newKey) {
+            currentSelectedProjectKey = newKey;
+            switchActiveProject(newKey);
+        }
+
+        function switchActiveProject(projKey) {
             activeProjCategory = 'RESP_ALL';
             activeProjStaff = 'ALL';
             resetProjFilterButtons();
 
-            if (!isOrderMode) {
-                const conf = PROJECT_CONFIGS[mode];
-                if (conf) {
-                    document.getElementById('kpiTitleText').innerText = conf.title;
-                    if (!conf.isLoaded) {
-                        loadSpecificProjectData(mode);
-                    } else {
-                        renderProjectKPI(conf.data);
-                        renderProjectStaffButtons(conf.data);
-                        triggerOptimizedRender();
-                    }
-                }
+            const conf = PROJECT_CONFIGS[projKey];
+            if (!conf) return;
+
+            document.getElementById('kpiTitleText').innerText = conf.title;
+
+            if (!conf.isLoaded) {
+                loadSpecificProjectData(projKey);
             } else {
+                renderProjectKPI(conf.data);
+                renderProjectStaffButtons(conf.data);
                 triggerOptimizedRender();
             }
         }
@@ -725,10 +784,10 @@
             const statusElem = document.getElementById('statusTime');
             statusElem.innerText = '同步中...';
 
-            if (currentMainMode === 'ORDERS') {
+            if (currentMainTrack === 'ORDERS') {
                 loadOrdersData(() => { fetchCloudNotesJSONP(); });
             } else {
-                loadSpecificProjectData(currentMainMode);
+                loadSpecificProjectData(currentSelectedProjectKey);
             }
         }
 
@@ -755,7 +814,7 @@
             if (!conf) return;
 
             const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = `<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 ${conf.name} 專案資料中...</div>`;
+            grid.innerHTML = `<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 ${conf.name} 資料中...</div>`;
 
             Papa.parse(`${conf.csvUrl}&_t=${Date.now()}`, {
                 download: true,
@@ -770,7 +829,7 @@
                     triggerOptimizedRender();
                 },
                 error: function(err) {
-                    grid.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">${conf.name} 專案資料讀取失敗。</div>`;
+                    grid.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">${conf.name} 資料讀取失敗。</div>`;
                 }
             });
         }
@@ -791,7 +850,7 @@
                     closedOrderSet = new Set(data.closedOrders || []);
                 }
                 renderCounts();
-                if (currentMainMode === 'ORDERS') triggerOptimizedRender();
+                if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
                 delete window[callbackName];
                 script.remove();
             };
@@ -891,7 +950,7 @@
 
             renderCounts();
             renderSaButtons();
-            if (currentMainMode === 'ORDERS') triggerOptimizedRender();
+            if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
         }
 
         function parseProjectData(rows) {
@@ -1117,7 +1176,7 @@
         function filterCurrentData() {
             const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
 
-            if (currentMainMode === 'ORDERS') {
+            if (currentMainTrack === 'ORDERS') {
                 currentRenderList = orders.filter(o => {
                     const orderNo = o['工單號碼'] || '';
                     const isClosed = closedOrderSet.has(orderNo);
@@ -1152,7 +1211,7 @@
                     return true;
                 });
             } else {
-                const conf = PROJECT_CONFIGS[currentMainMode];
+                const conf = PROJECT_CONFIGS[currentSelectedProjectKey];
                 const list = conf ? conf.data : [];
 
                 currentRenderList = list.filter(p => {
@@ -1224,7 +1283,7 @@
         }
 
         function generateCardHtml(data) {
-            if (currentMainMode === 'ORDERS') {
+            if (currentMainTrack === 'ORDERS') {
                 const o = data;
                 const orderNo = o['工單號碼'] || '';
                 const days = parseInt(o['進廠天數'], 10) || 0;
@@ -1290,7 +1349,7 @@
                 `;
             } else {
                 const p = data;
-                const currentProjName = currentMainMode;
+                const currentProjName = PROJECT_CONFIGS[currentSelectedProjectKey] ? PROJECT_CONFIGS[currentSelectedProjectKey].name : '專案';
                 const plate = p['牌照號碼'] || '-';
                 const model = p['車型'] || '-';
                 const status = (p['狀態'] || '有效').trim();
@@ -1304,7 +1363,7 @@
                 const isClosed = status === '結案';
                 const isInFactory = status === '已進廠';
                 const isValid = status === '有效';
-                const copyText = `【${currentProjName}專案】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
+                const copyText = `【${currentProjName}】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
 
                 return `
                     <div class="order-card" style="${isClosed ? 'opacity:0.85; border-color:#cbd5e1;' : ''}">
