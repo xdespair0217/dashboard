@@ -49,6 +49,75 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* 密碼鎖定畫面 */
+        #authOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0f172a;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 28px 24px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center;
+            color: #ffffff;
+        }
+        .auth-card h2 {
+            margin: 0 0 8px 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+        .auth-card p {
+            margin: 0 0 20px 0;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 4px;
+            outline: none;
+            margin-bottom: 14px;
+        }
+        .auth-input:focus { border-color: var(--btn-blue); }
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--btn-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .auth-btn:active { transform: scale(0.98); }
+        .auth-error {
+            color: #f87171;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: none;
+        }
+
         .navbar {
             background-color: var(--navbar-bg);
             color: #ffffff;
@@ -579,6 +648,17 @@
 </head>
 <body>
 
+    <!-- 密碼驗證遮罩 (9527) -->
+    <div id="authOverlay">
+        <div class="auth-card">
+            <h2>🔒 系統安全驗證</h2>
+            <p>請輸入廠端授權代碼以存取監控數據</p>
+            <input type="password" id="authPasswordInput" class="auth-input" placeholder="••••" maxlength="8" pattern="[0-9]*" inputmode="numeric" onkeydown="if(event.key==='Enter') checkAuthPassword()">
+            <button class="auth-btn" onclick="checkAuthPassword()">解鎖系統</button>
+            <div class="auth-error" id="authErrorMsg">⚠️ 授權密碼錯誤，請重新輸入</div>
+        </div>
+    </div>
+
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>🚗</span> 廠端即時監控系統</div>
@@ -866,6 +946,37 @@
     </div>
 
     <script>
+        // ==================== 🔒 密碼驗證邏輯 (9527) ====================
+        const SYSTEM_AUTH_KEY = '9527';
+
+        function verifySystemAuth() {
+            const isAuthed = sessionStorage.getItem('SHANGPENG_AUTH_OK');
+            if (isAuthed === 'true') {
+                const overlay = document.getElementById('authOverlay');
+                if (overlay) overlay.style.display = 'none';
+                startApp();
+            } else {
+                const pwdInput = document.getElementById('authPasswordInput');
+                if (pwdInput) pwdInput.focus();
+            }
+        }
+
+        function checkAuthPassword() {
+            const val = document.getElementById('authPasswordInput').value.trim();
+            const errMsg = document.getElementById('authErrorMsg');
+
+            if (val === SYSTEM_AUTH_KEY) {
+                sessionStorage.setItem('SHANGPENG_AUTH_OK', 'true');
+                document.getElementById('authOverlay').style.display = 'none';
+                startApp();
+            } else {
+                errMsg.style.display = 'block';
+                document.getElementById('authPasswordInput').value = '';
+                document.getElementById('authPasswordInput').focus();
+            }
+        }
+
+        // ==================== 系統資料源配置 ====================
         // 1. 未結工單 CSV (gid=0)
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
         // 2. GAS 備註 API
@@ -954,9 +1065,8 @@
         let visibleCount = 30;
         const CHUNK_SIZE = 30;
 
-        function initApp() {
+        function startApp() {
             initProjectDropdownOptions();
-
             loadOrdersData(() => {
                 setTimeout(fetchCloudNotesJSONP, 400);
             });
@@ -1416,7 +1526,7 @@
                 if (!orderNo || orderNo.includes('計') || orderNo.includes('SUM')) continue;
 
                 const uncollected = parseFloat((obj['未結金額'] || '0').replace(/,/g, '')) || 0;
-                if (uncollected <= 0) continue; // 只納入尚有欠款的記錄
+                if (uncollected <= 0) continue;
 
                 obj['_uncollected'] = uncollected;
                 obj['_age'] = parseInt(obj['帳齡'], 10) || 0;
@@ -1479,7 +1589,6 @@
             document.getElementById('arKpiOver60Amt').innerText = `$${Math.round(over60Amt).toLocaleString()}`;
             document.getElementById('arKpiOver60Count').innerText = `🚨 帳齡≥60天 (${over60Count}筆)`;
 
-            // 按鈕上的數量
             document.getElementById('ar-c-all').innerText = arList.length;
             document.getElementById('ar-c-insur').innerText = insurCount;
             document.getElementById('ar-c-warranty').innerText = warrantyCount;
@@ -1504,7 +1613,6 @@
                 saAmts[sa] = (saAmts[sa] || 0) + item._uncollected;
             });
 
-            // 依待催金額由大到小排序專員按鈕
             Object.keys(saAmts).sort((a, b) => saAmts[b] - saAmts[a]).forEach(sa => {
                 const btn = document.createElement('button');
                 btn.className = `tab-btn ${activeArSa === sa ? 'active' : ''}`;
@@ -2186,13 +2294,27 @@
                 const uncollected = item._uncollected || 0;
                 const age = item._age || 0;
                 const sa = item._sa || '未指派';
-                const note = item['備註'] || '';
+                const note = (item['備註'] || '').replace(/\r?\n/g, ' ').trim();
                 const phone = item['電話'] || '';
 
                 const isOver60 = age >= 60;
                 const isOver30 = age >= 30;
 
-                const copyText = `【未收款對帳】工單: ${orderNo} | 發票: ${invNo} (${invDate}) | 車牌: ${plate} | 帳款對象: ${target} | 未收金額: $${Math.round(uncollected).toLocaleString()} | 帳齡: ${age}天 | 專員: ${sa}`;
+                // 專門貼 LINE 的分段排版
+                const lineCopyText = [
+                    '📋【未收款對帳追蹤】',
+                    '━━━━━━━━━━━━',
+                    `▪ 工單號碼：${orderNo}`,
+                    `▪ 車牌號碼：${plate}`,
+                    `▪ 車主名稱：${owner}`,
+                    `▪ 帳款對象：${target}`,
+                    `▪ 未收金額：$${Math.round(uncollected).toLocaleString()}`,
+                    `▪ 帳齡天數：${age} 天`,
+                    `▪ 發票資訊：${invNo} (${invDate})`,
+                    `▪ 服務專員：${sa}`,
+                    note ? `▪ 備註資訊：${note}` : '',
+                    '━━━━━━━━━━━━'
+                ].filter(Boolean).join('\n');
 
                 return `
                     <div class="order-card" style="${isOver60 ? 'border-left: 4px solid #dc2626;' : ''}">
@@ -2207,7 +2329,7 @@
                                 </div>
                             </div>
                             <div class="top-btn-group">
-                                <button class="btn-copy-main" onclick="copyText('${copyText.replace(/'/g, "\\'")}')">📋 複製</button>
+                                <button class="btn-copy-main" onclick="copyText(\`${lineCopyText.replace(/`/g, "\\`")}\`)">📋 複製</button>
                             </div>
                         </div>
 
@@ -2236,7 +2358,7 @@
                             </div>` : ''}
                             ${note ? `
                             <div style="grid-column: span 2; background:#f8fafc; padding:6px 8px; border-radius:6px; font-size:0.78rem; color:#475569; border:1px solid #e2e8f0;">
-                                <span class="info-label">📝 對帳備註：</span>${note.replace(/\n/g, ' ｜ ')}
+                                <span class="info-label">📝 對帳備註：</span>${note}
                             </div>` : ''}
                         </div>
                     </div>
@@ -2246,11 +2368,11 @@
 
         function copyText(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('已複製對帳資訊：\n\n' + text);
+                alert('已複製對帳資訊（LINE 排版）：\n\n' + text);
             });
         }
 
-        window.addEventListener('DOMContentLoaded', initApp);
+        window.addEventListener('DOMContentLoaded', verifySystemAuth);
     </script>
 </body>
 </html>
