@@ -105,13 +105,13 @@
             border-radius: 10px;
             gap: 4px;
             flex: 1;
-            max-width: 680px;
+            max-width: 780px;
         }
         .mode-btn {
             flex: 1;
             padding: 9px 8px;
             text-align: center;
-            font-size: 0.83rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: #475569;
             background: transparent;
@@ -514,10 +514,10 @@
             border-top: 2px solid #cbd5e1;
         }
 
-        /* 📱 手機端底部導航列專用優化 */
+        /* 📱 手機端底部導航優化 */
         @media (max-width: 768px) {
             body {
-                padding-bottom: 74px; /* 預留底部選單安全高度，防止擋住最底下的卡片 */
+                padding-bottom: 74px;
             }
             .cards-grid { grid-template-columns: 1fr; gap: 12px; }
             .navbar { padding: 10px 14px; }
@@ -526,7 +526,6 @@
             .card-content { padding: 10px 12px; }
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 
-            /* 頂部隱藏原主按鈕列，轉移至手機底部 */
             .mode-switcher-container {
                 margin: 6px auto 0 auto;
                 padding: 0 8px;
@@ -546,7 +545,7 @@
                 border-top: 1px solid #e2e8f0;
                 box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
                 border-radius: 0;
-                padding: 6px 8px;
+                padding: 6px 4px;
                 padding-bottom: calc(6px + env(safe-area-inset-bottom));
                 z-index: 99;
                 display: flex;
@@ -555,8 +554,8 @@
             .mode-btn {
                 flex-direction: column;
                 gap: 2px;
-                padding: 6px 4px;
-                font-size: 0.72rem;
+                padding: 5px 2px;
+                font-size: 0.7rem;
                 border-radius: 6px;
                 color: #64748b;
             }
@@ -567,10 +566,9 @@
                 font-weight: 800;
             }
             .mode-btn span {
-                font-size: 0.72rem;
+                font-size: 0.7rem;
             }
 
-            /* 專案下拉膠囊置頂在搜尋列上方，方便手機單手切換 */
             .project-select-capsule {
                 width: 100%;
                 justify-content: space-between;
@@ -591,7 +589,7 @@
         </div>
     </div>
 
-    <!-- 雙軌導航列：電腦在頂端，手機主要功能固定在底部 -->
+    <!-- 導航列：電腦在頂端，手機主要功能固定在底部 -->
     <div class="mode-switcher-container">
         <div class="dual-track-nav">
             <div class="primary-modes">
@@ -606,6 +604,9 @@
                 </button>
                 <button class="mode-btn" id="mainTab_YANGMEI" onclick="switchMainTrack('YANGMEI')">
                     <span>🏭 楊梅專屬</span>
+                </button>
+                <button class="mode-btn" id="mainTab_AR" onclick="switchMainTrack('AR')">
+                    <span>💳 未收款</span>
                 </button>
             </div>
 
@@ -804,8 +805,59 @@
             </div>
         </div>
 
+        <!-- 5. 未收款 (應收帳款催收) 操作區 -->
+        <div id="arControlBlock" style="display: none;">
+            <div class="project-kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">
+                        <span>💳 有發票未收款監控 (應收帳款明細)</span>
+                    </div>
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--alert-red);" id="arTotalSumText">
+                        未收總額：$0
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--alert-red);" id="arKpiTotalAmt">$0</div>
+                        <div class="kpi-lbl" id="arKpiTotalCount">未結清總額 (0筆)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-blue);" id="arKpiInsurAmt">$0</div>
+                        <div class="kpi-lbl" id="arKpiInsurCount">保險理賠待請 (0筆)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-green);" id="arKpiWarrantyAmt">$0</div>
+                        <div class="kpi-lbl" id="arKpiWarrantyCount">保固索賠款 (0筆)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:#b91c1c;" id="arKpiOver60Amt">$0</div>
+                        <div class="kpi-lbl" id="arKpiOver60Count">🚨 帳齡≥60天 (0筆)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-wrapper">
+                <div class="filter-scroll-container" id="arCategoryFilterRow">
+                    <span class="filter-label-chip">帳款分類：</span>
+                    <button class="tab-btn active" onclick="setArCategoryFilter('ALL', this)">全部未收 <span class="tab-count" id="ar-c-all">0</span></button>
+                    <button class="tab-btn" onclick="setArCategoryFilter('INSUR', this)">🏢 保險待請 <span class="tab-count" id="ar-c-insur">0</span></button>
+                    <button class="tab-btn" onclick="setArCategoryFilter('WARRANTY', this)">🛡️ 原廠保固 <span class="tab-count" id="ar-c-warranty">0</span></button>
+                    <button class="tab-btn" onclick="setArCategoryFilter('SELF', this)">👤 自付欠款 <span class="tab-count" id="ar-c-self">0</span></button>
+                    <button class="tab-btn" onclick="setArCategoryFilter('INTERNAL', this)">🔄 內部轉帳 <span class="tab-count" id="ar-c-internal">0</span></button>
+                    <button class="tab-btn" style="color:#b91c1c; background:#fee2e2;" onclick="setArCategoryFilter('OVER_60', this)">🚨 帳齡&ge;60天 <span class="tab-count" id="ar-c-60">0</span></button>
+                    <button class="tab-btn" onclick="setArCategoryFilter('OVER_30', this)">⚠️ 30~59天 <span class="tab-count" id="ar-c-30">0</span></button>
+                </div>
+
+                <div class="filter-scroll-container" id="arSaFilterRow">
+                    <span class="filter-label-chip">專員：</span>
+                    <button class="tab-btn active" onclick="setArSaFilter('ALL', this)">全部專員 <span class="tab-count" id="ar-sa-all">0</span></button>
+                </div>
+            </div>
+        </div>
+
         <div class="toolbar" id="toolbarContainer">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱..." oninput="debounceRender()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱、發票號碼..." oninput="debounceRender()">
         </div>
 
         <div class="cards-grid" id="cardsGrid">
@@ -820,8 +872,10 @@
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
         // 3. 零件入庫 CSV (gid=543542937)
         const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
+        // 4. 未收款 CSV (gid=809519769)
+        const AR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=809519769&single=true&output=csv';
 
-        // 4. 召回專案配置表
+        // 5. 召回專案配置表
         const PROJECT_CONFIGS = {
             'M5B': {
                 name: 'M5B 專案',
@@ -867,7 +921,7 @@
             }
         };
 
-        let currentMainTrack = 'ORDERS';
+        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI' | 'AR'
         let currentSelectedProjectKey = 'M5B';
 
         // 未結工單資料
@@ -888,6 +942,12 @@
         let partsYearlyList = [];
         let monthTotalMap = {};
         let activePartsMonth = 'YEAR_ALL';
+
+        // 未收款 (AR) 資料
+        let isArLoaded = false;
+        let arList = [];
+        let activeArCategory = 'ALL';
+        let activeArSa = 'ALL';
 
         // 分批渲染
         let currentRenderList = [];
@@ -932,11 +992,13 @@
             document.getElementById('mainTab_PROJECT').classList.toggle('active', track === 'PROJECT');
             document.getElementById('mainTab_PARTS').classList.toggle('active', track === 'PARTS');
             document.getElementById('mainTab_YANGMEI').classList.toggle('active', track === 'YANGMEI');
+            document.getElementById('mainTab_AR').classList.toggle('active', track === 'AR');
 
             document.getElementById('ordersControlBlock').style.display = (track === 'ORDERS') ? 'block' : 'none';
             document.getElementById('projectControlBlock').style.display = (track === 'PROJECT') ? 'block' : 'none';
             document.getElementById('partsControlBlock').style.display = (track === 'PARTS') ? 'block' : 'none';
             document.getElementById('yangmeiControlBlock').style.display = (track === 'YANGMEI') ? 'block' : 'none';
+            document.getElementById('arControlBlock').style.display = (track === 'AR') ? 'block' : 'none';
             
             document.getElementById('toolbarContainer').style.display = (track === 'YANGMEI') ? 'none' : 'block';
             document.getElementById('cardsGrid').style.display = (track === 'YANGMEI') ? 'none' : 'grid';
@@ -957,6 +1019,14 @@
                     } else {
                         renderYangmeiAnalysis();
                     }
+                }
+            } else if (track === 'AR') {
+                if (!isArLoaded) {
+                    loadArData();
+                } else {
+                    renderArKPI();
+                    renderArSaButtons();
+                    triggerOptimizedRender();
                 }
             } else {
                 triggerOptimizedRender();
@@ -1008,6 +1078,8 @@
                 loadPartsData(() => {
                     if (currentMainTrack === 'YANGMEI') renderYangmeiAnalysis();
                 });
+            } else if (currentMainTrack === 'AR') {
+                loadArData();
             }
         }
 
@@ -1293,6 +1365,170 @@
             });
         }
 
+        // ==================== 💳 未收款 (AR) 模組核心邏輯 ====================
+        function loadArData() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入未收款資料中...</div>';
+
+            Papa.parse(`${AR_CSV_URL}&_t=${Date.now()}`, {
+                download: true,
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    isArLoaded = true;
+                    parseArData(results.data);
+                    renderArKPI();
+                    renderArSaButtons();
+                    triggerOptimizedRender();
+                },
+                error: function(err) {
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">未收款資料讀取失敗。</div>';
+                }
+            });
+        }
+
+        function parseArData(rows) {
+            let headerIdx = -1;
+            let headers = [];
+
+            for (let i = 0; i < Math.min(rows.length, 25); i++) {
+                const r = rows[i].map(c => String(c).trim());
+                if (r.includes('交易單號') && (r.includes('未結金額') || r.includes('帳款對象'))) {
+                    headerIdx = i;
+                    headers = r;
+                    break;
+                }
+            }
+
+            if (headerIdx === -1) return;
+
+            arList = [];
+            for (let i = headerIdx + 1; i < rows.length; i++) {
+                const r = rows[i];
+                if (!r || r.length < 5) continue;
+
+                let obj = {};
+                headers.forEach((h, idx) => {
+                    obj[h] = r[idx] ? String(r[idx]).trim() : '';
+                });
+
+                const orderNo = obj['交易單號'] || '';
+                if (!orderNo || orderNo.includes('計') || orderNo.includes('SUM')) continue;
+
+                const uncollected = parseFloat((obj['未結金額'] || '0').replace(/,/g, '')) || 0;
+                if (uncollected <= 0) continue; // 只納入尚有欠款的記錄
+
+                obj['_uncollected'] = uncollected;
+                obj['_age'] = parseInt(obj['帳齡'], 10) || 0;
+                obj['_type'] = obj['帳款對象別'] || '其他';
+                obj['_sa'] = obj['服務專員'] || '未指派';
+
+                arList.push(obj);
+            }
+        }
+
+        function renderArKPI() {
+            let totalAmt = 0;
+            let insurAmt = 0, insurCount = 0;
+            let warrantyAmt = 0, warrantyCount = 0;
+            let selfAmt = 0, selfCount = 0;
+            let internalAmt = 0, internalCount = 0;
+            let over60Amt = 0, over60Count = 0;
+            let over30Amt = 0, over30Count = 0;
+
+            arList.forEach(item => {
+                const amt = item._uncollected;
+                const age = item._age;
+                const type = item._type;
+
+                totalAmt += amt;
+
+                if (type.includes('保險')) {
+                    insurAmt += amt;
+                    insurCount++;
+                } else if (type.includes('保固') || type.includes('索賠')) {
+                    warrantyAmt += amt;
+                    warrantyCount++;
+                } else if (type.includes('自付')) {
+                    selfAmt += amt;
+                    selfCount++;
+                } else if (type.includes('內部轉帳')) {
+                    internalAmt += amt;
+                    internalCount++;
+                }
+
+                if (age >= 60) {
+                    over60Amt += amt;
+                    over60Count++;
+                } else if (age >= 30) {
+                    over30Amt += amt;
+                    over30Count++;
+                }
+            });
+
+            document.getElementById('arTotalSumText').innerText = `未收總額：$${Math.round(totalAmt).toLocaleString()}`;
+            document.getElementById('arKpiTotalAmt').innerText = `$${Math.round(totalAmt).toLocaleString()}`;
+            document.getElementById('arKpiTotalCount').innerText = `未結清總額 (${arList.length}筆)`;
+
+            document.getElementById('arKpiInsurAmt').innerText = `$${Math.round(insurAmt).toLocaleString()}`;
+            document.getElementById('arKpiInsurCount').innerText = `保險理賠待請 (${insurCount}筆)`;
+
+            document.getElementById('arKpiWarrantyAmt').innerText = `$${Math.round(warrantyAmt).toLocaleString()}`;
+            document.getElementById('arKpiWarrantyCount').innerText = `保固索賠款 (${warrantyCount}筆)`;
+
+            document.getElementById('arKpiOver60Amt').innerText = `$${Math.round(over60Amt).toLocaleString()}`;
+            document.getElementById('arKpiOver60Count').innerText = `🚨 帳齡≥60天 (${over60Count}筆)`;
+
+            // 按鈕上的數量
+            document.getElementById('ar-c-all').innerText = arList.length;
+            document.getElementById('ar-c-insur').innerText = insurCount;
+            document.getElementById('ar-c-warranty').innerText = warrantyCount;
+            document.getElementById('ar-c-self').innerText = selfCount;
+            document.getElementById('ar-c-internal').innerText = internalCount;
+            document.getElementById('ar-c-60').innerText = over60Count;
+            document.getElementById('ar-c-30').innerText = over30Count;
+        }
+
+        function renderArSaButtons() {
+            const row = document.getElementById('arSaFilterRow');
+            row.innerHTML = `
+                <span class="filter-label-chip">專員：</span>
+                <button class="tab-btn ${activeArSa === 'ALL' ? 'active' : ''}" onclick="setArSaFilter('ALL', this)">全部專員 <span class="tab-count">${arList.length}</span></button>
+            `;
+
+            const saCounts = {};
+            const saAmts = {};
+            arList.forEach(item => {
+                const sa = item._sa || '未指派';
+                saCounts[sa] = (saCounts[sa] || 0) + 1;
+                saAmts[sa] = (saAmts[sa] || 0) + item._uncollected;
+            });
+
+            // 依待催金額由大到小排序專員按鈕
+            Object.keys(saAmts).sort((a, b) => saAmts[b] - saAmts[a]).forEach(sa => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${activeArSa === sa ? 'active' : ''}`;
+                btn.innerHTML = `${sa} <span class="tab-count">${saCounts[sa]}</span>`;
+                btn.onclick = () => setArSaFilter(sa, btn);
+                row.appendChild(btn);
+            });
+        }
+
+        function setArCategoryFilter(type, btn) {
+            activeArCategory = type;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
+        function setArSaFilter(sa, btn) {
+            activeArSa = sa;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
+        // ==================== 雲端備註 & 工單結案 ====================
         function fetchCloudNotesJSONP() {
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
@@ -1701,6 +1937,28 @@
                     if (searchVal && !item.supplier.toLowerCase().includes(searchVal)) return false;
                     return true;
                 });
+            } else if (currentMainTrack === 'AR') {
+                currentRenderList = arList.filter(item => {
+                    const type = item._type;
+                    const age = item._age;
+                    const sa = item._sa;
+
+                    if (activeArCategory === 'INSUR' && !type.includes('保險')) return false;
+                    if (activeArCategory === 'WARRANTY' && (!type.includes('保固') && !type.includes('索賠'))) return false;
+                    if (activeArCategory === 'SELF' && !type.includes('自付')) return false;
+                    if (activeArCategory === 'INTERNAL' && !type.includes('內部轉帳')) return false;
+                    if (activeArCategory === 'OVER_60' && age < 60) return false;
+                    if (activeArCategory === 'OVER_30' && (age < 30 || age >= 60)) return false;
+
+                    if (activeArSa !== 'ALL' && sa !== activeArSa) return false;
+
+                    if (searchVal) {
+                        const fullText = `${item['交易單號']} ${item['牌照號碼']} ${item['車主']} ${item['帳款對象']} ${item['發票號碼']} ${item['服務專員']} ${item['備註']}`.toLowerCase();
+                        if (!fullText.includes(searchVal)) return false;
+                    }
+
+                    return true;
+                });
             }
         }
 
@@ -1917,12 +2175,78 @@
                         </div>
                     </div>
                 `;
+            } else if (currentMainTrack === 'AR') {
+                const item = data;
+                const orderNo = item['交易單號'] || '-';
+                const invNo = item['發票號碼'] || '-';
+                const invDate = item['發票日期'] || '-';
+                const plate = item['牌照號碼'] || '-';
+                const owner = item['車主'] || '-';
+                const target = item['帳款對象'] || '-';
+                const uncollected = item._uncollected || 0;
+                const age = item._age || 0;
+                const sa = item._sa || '未指派';
+                const note = item['備註'] || '';
+                const phone = item['電話'] || '';
+
+                const isOver60 = age >= 60;
+                const isOver30 = age >= 30;
+
+                const copyText = `【未收款對帳】工單: ${orderNo} | 發票: ${invNo} (${invDate}) | 車牌: ${plate} | 帳款對象: ${target} | 未收金額: $${Math.round(uncollected).toLocaleString()} | 帳齡: ${age}天 | 專員: ${sa}`;
+
+                return `
+                    <div class="order-card" style="${isOver60 ? 'border-left: 4px solid #dc2626;' : ''}">
+                        <div class="card-top">
+                            <div>
+                                <div class="car-heading">
+                                    <span>${target}</span>
+                                    <span class="category-pill" style="background:#f1f5f9; color:#334155;">${item._type}</span>
+                                </div>
+                                <div class="card-meta">
+                                    發票：<strong>${invNo}</strong> ｜ 開立日：${invDate}
+                                </div>
+                            </div>
+                            <div class="top-btn-group">
+                                <button class="btn-copy-main" onclick="copyText('${copyText.replace(/'/g, "\\'")}')">📋 複製</button>
+                            </div>
+                        </div>
+
+                        <div class="cycle-strip ${isOver60 ? 'danger' : ''}">
+                            <div class="strip-days">帳齡：<strong>${age} 天</strong></div>
+                            <div>
+                                <span class="pill-status ${isOver60 ? 'badge-danger' : isOver30 ? 'badge-warn' : 'badge-green'}">
+                                    ${isOver60 ? '🚨 嚴重逾期 60+天' : isOver30 ? '⚠️ 催收期 30~59天' : '正常週期'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <div><span class="info-label">工單號碼：</span><strong>${orderNo}</strong></div>
+                            <div><span class="info-label">車牌號碼：</span><strong>${plate}</strong></div>
+                            <div><span class="info-label">車主名稱：</span>${owner}</div>
+                            <div><span class="info-label">服務專員：</span><strong>${sa}</strong></div>
+                            <div style="grid-column: span 2;">
+                                <span class="info-label">未收金額：</span>
+                                <span class="price-text price-high" style="font-size:1.15rem;">$${Math.round(uncollected).toLocaleString()}</span>
+                            </div>
+                            ${phone ? `
+                            <div style="grid-column: span 2;">
+                                <span class="info-label">聯絡電話：</span>
+                                <a href="tel:${phone}" class="tel-btn">📞 ${phone}</a>
+                            </div>` : ''}
+                            ${note ? `
+                            <div style="grid-column: span 2; background:#f8fafc; padding:6px 8px; border-radius:6px; font-size:0.78rem; color:#475569; border:1px solid #e2e8f0;">
+                                <span class="info-label">📝 對帳備註：</span>${note.replace(/\n/g, ' ｜ ')}
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
             }
         }
 
         function copyText(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('已複製資訊：\n\n' + text);
+                alert('已複製對帳資訊：\n\n' + text);
             });
         }
 
