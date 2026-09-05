@@ -86,7 +86,7 @@
         }
         .btn-sync:active { transform: scale(0.96); }
 
-        /* 頂端多專案切換頁籤 */
+        /* 頂端多專案水平滑動切換列 */
         .mode-switcher-container {
             max-width: 1440px;
             margin: 12px auto 0 auto;
@@ -99,13 +99,17 @@
             border-radius: 10px;
             gap: 4px;
             overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
+        .mode-switcher::-webkit-scrollbar { display: none; }
+
         .mode-btn {
-            flex: 1;
-            min-width: 120px;
-            padding: 9px 12px;
+            flex: 0 0 auto;
+            padding: 8px 14px;
             text-align: center;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: #475569;
             background: transparent;
@@ -113,11 +117,10 @@
             border-radius: 7px;
             cursor: pointer;
             transition: all 0.15s ease;
-            display: flex;
+            display: inline-flex;
             justify-content: center;
             align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            gap: 4px;
         }
         .mode-btn.active {
             background: #ffffff;
@@ -149,7 +152,6 @@
             gap: 6px;
             padding-bottom: 3px;
             -webkit-overflow-scrolling: touch;
-            -ms-overflow-style: none;
             scrollbar-width: none;
         }
         .filter-scroll-container::-webkit-scrollbar { display: none; }
@@ -469,17 +471,29 @@
         </div>
     </div>
 
-    <!-- 頂端模式切換 (支援多專案擴充) -->
+    <!-- 頂端模式切換 (已掛載 6 大召回專案) -->
     <div class="mode-switcher-container">
         <div class="mode-switcher">
             <button class="mode-btn active" id="modeBtn_ORDERS" onclick="switchMainMode('ORDERS')">
                 <span>🚗 未結工單監控</span>
             </button>
             <button class="mode-btn" id="modeBtn_M5B" onclick="switchMainMode('M5B')">
-                <span>🎯 M5B 專案進度</span>
+                <span>🎯 M5B</span>
             </button>
             <button class="mode-btn" id="modeBtn_M5F" onclick="switchMainMode('M5F')">
-                <span>🎯 M5F 專案進度</span>
+                <span>🎯 M5F</span>
+            </button>
+            <button class="mode-btn" id="modeBtn_F626" onclick="switchMainMode('F626')">
+                <span>🎯 F626</span>
+            </button>
+            <button class="mode-btn" id="modeBtn_G3L" onclick="switchMainMode('G3L')">
+                <span>🎯 G3L</span>
+            </button>
+            <button class="mode-btn" id="modeBtn_M5K" onclick="switchMainMode('M5K')">
+                <span>🎯 M5K</span>
+            </button>
+            <button class="mode-btn" id="modeBtn_M4E" onclick="switchMainMode('M4E')">
+                <span>🎯 M4E</span>
             </button>
         </div>
     </div>
@@ -510,7 +524,7 @@
             </div>
         </div>
 
-        <!-- 2. 原廠召回專案操作區 (動態適配 M5B / M5F 等所有專案) -->
+        <!-- 2. 原廠召回專案操作區 (動態適配所有專案) -->
         <div id="projectControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
@@ -583,7 +597,7 @@
         // 2. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
 
-        // 3. 專案配置表（未來只要在這裡追加即可）
+        // 3. 多專案統一配置表
         const PROJECT_CONFIGS = {
             'M5B': {
                 name: 'M5B',
@@ -598,12 +612,40 @@
                 csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1259894212&single=true&output=csv',
                 data: [],
                 isLoaded: false
+            },
+            'F626': {
+                name: 'F626',
+                title: '🎯 F626 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
+                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1858686330&single=true&output=csv',
+                data: [],
+                isLoaded: false
+            },
+            'G3L': {
+                name: 'G3L',
+                title: '🎯 G3L 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
+                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=967738403&single=true&output=csv',
+                data: [],
+                isLoaded: false
+            },
+            'M5K': {
+                name: 'M5K',
+                title: '🎯 M5K 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
+                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1482657870&single=true&output=csv',
+                data: [],
+                isLoaded: false
+            },
+            'M4E': {
+                name: 'M4E',
+                title: '🎯 M4E 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
+                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=935724217&single=true&output=csv',
+                data: [],
+                isLoaded: false
             }
         };
 
-        let currentMainMode = 'ORDERS'; // 'ORDERS' | 'M5B' | 'M5F' ...
+        let currentMainMode = 'ORDERS';
 
-        // 未結工單專用資料
+        // 未結工單資料
         let orders = [];
         let cloudNotes = {};
         let closedOrderSet = new Set();
@@ -611,7 +653,7 @@
         let activeSa = 'ALL';
         let debounceTimers = {};
 
-        // 專案專用篩選
+        // 專案篩選
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
@@ -637,11 +679,9 @@
             }, { passive: true });
         }
 
-        // 切換主模式 (ORDERS, M5B, M5F...)
         function switchMainMode(mode) {
             currentMainMode = mode;
 
-            // 樣式更新
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             const activeBtn = document.getElementById(`modeBtn_${mode}`);
             if (activeBtn) activeBtn.classList.add('active');
@@ -651,7 +691,6 @@
             document.getElementById('projectControlBlock').style.display = isOrderMode ? 'none' : 'block';
             document.getElementById('searchInput').value = '';
 
-            // 重設專案篩選按鈕狀態
             activeProjCategory = 'RESP_ALL';
             activeProjStaff = 'ALL';
             resetProjFilterButtons();
@@ -693,7 +732,6 @@
             }
         }
 
-        // 載入未結工單
         function loadOrdersData(callback) {
             const statusElem = document.getElementById('statusTime');
             Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
@@ -712,7 +750,6 @@
             });
         }
 
-        // 載入指定專案 (M5B / M5F)
         function loadSpecificProjectData(projKey) {
             const conf = PROJECT_CONFIGS[projKey];
             if (!conf) return;
@@ -1253,7 +1290,7 @@
                 `;
             } else {
                 const p = data;
-                const currentProjName = currentMainMode; // 'M5B' or 'M5F'
+                const currentProjName = currentMainMode;
                 const plate = p['牌照號碼'] || '-';
                 const model = p['車型'] || '-';
                 const status = (p['狀態'] || '有效').trim();
