@@ -86,7 +86,6 @@
         }
         .btn-sync:active { transform: scale(0.96); }
 
-        /* 主模式切換頁籤 */
         .mode-switcher-container {
             max-width: 1440px;
             margin: 12px auto 0 auto;
@@ -128,7 +127,6 @@
             padding: 0 12px;
         }
 
-        /* 標籤橫向滑動列 */
         .filter-wrapper {
             background: #ffffff;
             border-radius: 8px;
@@ -364,7 +362,7 @@
             border-color: var(--btn-blue);
         }
 
-        /* 專案專用戰情報告區 */
+        /* 專案專用 KPI 戰情報告區 */
         .project-kpi-card {
             background: #ffffff;
             border-radius: 10px;
@@ -467,10 +465,9 @@
 
     <div class="main-container">
 
-        <!-- ==================== 1. 未結工單專用操作區 ==================== -->
+        <!-- ==================== 1. 未結工單操作區 ==================== -->
         <div id="ordersControlBlock">
             <div class="filter-wrapper">
-                <!-- 業務維度 -->
                 <div class="filter-scroll-container">
                     <span class="filter-label-chip">業務：</span>
                     <button class="tab-btn active" onclick="setCategoryFilter('ALL', this)">全部 <span class="tab-count" id="c-all">0</span></button>
@@ -485,7 +482,6 @@
                     <button class="tab-btn" style="color:#b91c1c; background:#fff1f2;" onclick="setCategoryFilter('CLOSED_LIST', this)">🗄️已結案歷史 <span class="tab-count" id="c-closed">0</span></button>
                 </div>
 
-                <!-- 專員列（左右滑動） -->
                 <div class="filter-scroll-container" id="saFilterRow">
                     <span class="filter-label-chip">專員：</span>
                     <button class="tab-btn active" onclick="setSaFilter('ALL', this)">全部專員 <span class="tab-count" id="sa-c-all">0</span></button>
@@ -493,7 +489,7 @@
             </div>
         </div>
 
-        <!-- ==================== 2. M5B 專案專用操作區 ==================== -->
+        <!-- ==================== 2. M5B 專案操作區 ==================== -->
         <div id="projectControlBlock" style="display: none;">
             <!-- KPI 進度看板 -->
             <div class="project-kpi-card">
@@ -543,7 +539,7 @@
                     <button class="tab-btn" onclick="setProjCategoryFilter('RESP_IN', this)">⚙️ 進廠中 <span class="tab-count" id="proj-c-in">0</span></button>
                     <button class="tab-btn" onclick="setProjCategoryFilter('RESP_CLOSED', this)">✅ 已結案 <span class="tab-count" id="proj-c-closed">0</span></button>
                     <button class="tab-btn" onclick="setProjCategoryFilter('CROSS_NEIHU', this)">🌐 外點轉入內湖施作 <span class="tab-count" id="proj-c-cross">0</span></button>
-                    <button class="tab-btn" onclick="setProjCategoryFilter('ALL_LIST', this)">📋 全專案100台總冊 <span class="tab-count" id="proj-c-full">0</span></button>
+                    <button class="tab-btn" onclick="setProjCategoryFilter('ALL_LIST', this)">📋 全專案名冊 <span class="tab-count" id="proj-c-full">0</span></button>
                 </div>
 
                 <div class="filter-scroll-container" id="projStaffFilterRow">
@@ -553,9 +549,9 @@
             </div>
         </div>
 
-        <!-- 搜尋工具列 -->
+        <!-- 搜尋列 -->
         <div class="toolbar">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、車主電話..." oninput="renderCards()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、電話..." oninput="renderCards()">
         </div>
 
         <!-- 卡片清單網格 -->
@@ -565,15 +561,15 @@
     </div>
 
     <script>
-        // 未結工單 CSV (gid=0)
+        // 1. 未結工單 CSV (gid=0)
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
-        // M5B 專案進度 CSV (gid=1541994159)
-        const PROJECT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1541994159&single=true&output=csv';
+        // 2. M5B_MONITOR 輕量化專用 CSV (gid=243058371)
+        const PROJECT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv';
+        // 3. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
 
-        let currentMainMode = 'ORDERS'; // 'ORDERS' | 'PROJECT'
+        let currentMainMode = 'ORDERS';
 
-        // 未結工單資料
         let orders = [];
         let cloudNotes = {};
         let closedOrderSet = new Set();
@@ -581,7 +577,6 @@
         let activeSa = 'ALL';
         let debounceTimers = {};
 
-        // M5B 專案資料
         let projectList = [];
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
@@ -602,46 +597,44 @@
             const statusElem = document.getElementById('statusTime');
             statusElem.innerText = '同步中...';
 
-            let loadedTasks = 0;
-            const totalTasks = 2;
-
-            function checkComplete() {
-                loadedTasks++;
-                if (loadedTasks >= totalTasks) {
+            let tasksDone = 0;
+            const finishOne = () => {
+                tasksDone++;
+                if (tasksDone >= 2) {
                     statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
                 }
-            }
+            };
 
-            // 1. 異步載入雲端備註（超時防呆，不阻塞畫面）
+            // 異步啟動備註載入 (4秒防護超時)
             fetchCloudNotesJSONP();
 
-            // 2. 載入未結工單 CSV
+            // 載入未結工單
             Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
                 complete: function(results) {
                     parseData(results.data);
-                    checkComplete();
+                    finishOne();
                 },
                 error: function(err) {
-                    console.error("未結工單讀取錯誤:", err);
-                    checkComplete();
+                    console.error("未結工單讀取失敗:", err);
+                    finishOne();
                 }
             });
 
-            // 3. 載入 M5B 專案 CSV
+            // 載入 M5B_MONITOR 輕量資料
             Papa.parse(`${PROJECT_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
                 complete: function(results) {
                     parseProjectData(results.data);
-                    checkComplete();
+                    finishOne();
                 },
                 error: function(err) {
-                    console.error("M5B 專案分頁讀取錯誤:", err);
-                    checkComplete();
+                    console.error("M5B 專案讀取失敗:", err);
+                    finishOne();
                 }
             });
         }
@@ -650,15 +643,13 @@
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
             
-            // 5 秒超時保護
-            const timeoutTimer = setTimeout(() => {
+            const timer = setTimeout(() => {
                 delete window[callbackName];
                 script.remove();
-                console.warn("GAS 備註連線逾時，先使用本地快取");
-            }, 5000);
+            }, 4000);
 
             window[callbackName] = function(data) {
-                clearTimeout(timeoutTimer);
+                clearTimeout(timer);
                 if (data) {
                     cloudNotes = data.notes || {};
                     closedOrderSet = new Set(data.closedOrders || []);
@@ -671,17 +662,14 @@
 
             script.src = `${API_NOTE_URL}?callback=${callbackName}&_t=${Date.now()}`;
             script.onerror = function() { 
-                clearTimeout(timeoutTimer);
+                clearTimeout(timer);
                 script.remove(); 
             };
             document.body.appendChild(script);
         }
 
-        // 結案刪單功能
         function closeWorkOrder(orderNo) {
-            if (!confirm(`確定將工單【${orderNo}】標記為已結案並從看板移除？\n(後續可至「已結案歷史」分頁查看或復原)`)) {
-                return;
-            }
+            if (!confirm(`確定將工單【${orderNo}】標記為已結案並從看板移除？`)) return;
 
             closedOrderSet.add(orderNo);
             renderCounts();
@@ -699,7 +687,6 @@
             });
         }
 
-        // 復原結案
         function reopenWorkOrder(orderNo) {
             closedOrderSet.delete(orderNo);
             renderCounts();
@@ -717,7 +704,6 @@
             });
         }
 
-        // 雲端備註輸入
         function handleNoteInput(orderNo, value, hintId) {
             cloudNotes[orderNo] = value.trim();
             renderCounts();
@@ -756,7 +742,6 @@
             }, 600);
         }
 
-        // 解析未結工單
         function parseData(rows) {
             let headerIdx = -1;
             let headers = [];
@@ -792,24 +777,15 @@
             if (currentMainMode === 'ORDERS') renderCards();
         }
 
-        // 解析 M5B 專案資料
+        // 解析預過濾後的 M5B_MONITOR 輕量資料
         function parseProjectData(rows) {
-            let headerIdx = -1;
-            let headers = [];
+            if (!rows || rows.length < 2) return;
 
-            for (let i = 0; i < rows.length; i++) {
-                const r = rows[i].map(c => String(c).trim());
-                if (r.includes('牌照號碼') && (r.includes('車型') || r.includes('狀態'))) {
-                    headerIdx = i;
-                    headers = r;
-                    break;
-                }
-            }
-
-            if (headerIdx === -1) return;
-
+            // 取得表頭（第一列）
+            const headers = rows[0].map(c => String(c).trim());
             projectList = [];
-            for (let i = headerIdx + 1; i < rows.length; i++) {
+
+            for (let i = 1; i < rows.length; i++) {
                 const r = rows[i];
                 if (r.length < 2) continue;
 
@@ -818,7 +794,7 @@
                     obj[h] = r[idx] ? String(r[idx]).trim() : '';
                 });
 
-                if (obj['牌照號碼'] || obj['VIN#']) {
+                if (obj['牌照號碼']) {
                     projectList.push(obj);
                 }
             }
@@ -846,7 +822,6 @@
             return s.includes('索賠申請中') || (t.includes('索賠') && s.includes('申請'));
         }
 
-        // 判定內湖責任盤 (銷售據點包含：昆陽、南港、內湖)
         function isNeihuProjectResp(p) {
             const sp = (p['銷售據點'] || '').trim();
             return sp.includes('昆陽') || sp.includes('南港') || sp.includes('內湖');
@@ -1137,7 +1112,7 @@
 
                 if (activeProjStaff !== 'ALL' && staff !== activeProjStaff) return false;
 
-                const fullText = `${p['牌照號碼']} ${p['車型']} ${p['聯絡人']} ${p['行動電話']} ${p['工單號碼']} ${p['服務廠']} ${staff} ${p['狀態']}`.toLowerCase();
+                const fullText = `${p['牌照號碼']} ${p['車型']} ${p['行動電話']} ${p['工單號碼']} ${p['服務廠']} ${staff} ${p['狀態']}`.toLowerCase();
                 if (searchVal && !fullText.includes(searchVal)) return false;
 
                 return true;
@@ -1156,15 +1131,14 @@
                 const orderNo = p['工單號碼'] || '-';
                 const sales = p['銷售據點'] || '-';
                 const staff = p['關懷指派'] || '未指派';
-                const owner = p['聯絡人'] || p['車主'] || '-';
-                const phone = String(p['行動電話'] || p['車主行動電話'] || '').replace(/\.0$/, '');
+                const phone = String(p['行動電話'] || '').replace(/\.0$/, '');
                 const lastIn = p['最後進廠日'] || '-';
 
                 const isClosed = status === '結案';
                 const isInFactory = status === '已進廠';
                 const isValid = status === '有效';
 
-                const copyText = `【M5B專案】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 聯絡人: ${owner} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
+                const copyText = `【M5B專案】車牌: ${plate} | 車型: ${model} | 狀態: ${status} | 電話: ${phone} | 專員: ${staff} | 最後進廠: ${lastIn}`;
 
                 return `
                     <div class="order-card" style="${isClosed ? 'opacity:0.85; border-color:#cbd5e1;' : ''}">
@@ -1195,15 +1169,14 @@
                         </div>
 
                         <div class="card-content">
-                            <div><span class="info-label">聯絡人：</span><strong>${owner}</strong></div>
                             <div>
                                 <span class="info-label">電話：</span>
                                 ${phone ? `<a href="tel:${phone}" class="tel-btn">📞 ${phone}</a>` : '無電話'}
                             </div>
                             <div><span class="info-label">關懷專員：</span><strong>${staff}</strong></div>
                             <div><span class="info-label">施作廠別：</span>${factory}</div>
-                            <div style="grid-column: span 2; border-top: 1px dashed #e2e8f0; padding-top: 6px; margin-top: 2px;">
-                                <span class="info-label">專案單號：</span>${orderNo !== '-' ? `<strong>${orderNo}</strong>` : '<span style="color:#94a3af;">(尚未開立專案工單)</span>'}
+                            <div>
+                                <span class="info-label">專案單號：</span>${orderNo !== '-' ? `<strong>${orderNo}</strong>` : '<span style="color:#94a3af;">(未開單)</span>'}
                             </div>
                         </div>
                     </div>
