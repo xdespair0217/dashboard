@@ -105,13 +105,13 @@
             border-radius: 10px;
             gap: 4px;
             flex: 1;
-            max-width: 580px;
+            max-width: 680px;
         }
         .mode-btn {
             flex: 1;
             padding: 9px 8px;
             text-align: center;
-            font-size: 0.85rem;
+            font-size: 0.83rem;
             font-weight: 700;
             color: #475569;
             background: transparent;
@@ -479,6 +479,42 @@
         }
         .load-more-btn:active { background: #cbd5e1; }
 
+        /* 楊梅專屬報表樣式 */
+        .report-table-wrapper {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid var(--border-card);
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+            min-width: 680px;
+        }
+        .report-table th {
+            background: #0f172a;
+            color: #ffffff;
+            padding: 10px 14px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+        .report-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+        .report-table tr:hover { background: #f8fafc; }
+        .report-table tr.total-row {
+            background: #f8fafc;
+            font-weight: 800;
+            border-top: 2px solid #cbd5e1;
+        }
+
         @media (max-width: 768px) {
             .cards-grid { grid-template-columns: 1fr; gap: 12px; }
             .navbar { padding: 10px 14px; }
@@ -504,7 +540,7 @@
         </div>
     </div>
 
-    <!-- 頂端雙軌切換導航列 -->
+    <!-- 頂端多軌切換導航列 -->
     <div class="mode-switcher-container">
         <div class="dual-track-nav">
             <div class="primary-modes">
@@ -516,6 +552,9 @@
                 </button>
                 <button class="mode-btn" id="mainTab_PARTS" onclick="switchMainTrack('PARTS')">
                     <span>📦 零件入庫</span>
+                </button>
+                <button class="mode-btn" id="mainTab_YANGMEI" onclick="switchMainTrack('YANGMEI')">
+                    <span>🏭 楊梅專屬監控</span>
                 </button>
             </div>
 
@@ -611,7 +650,7 @@
             </div>
         </div>
 
-        <!-- 3. 零件入庫專用操作區 (南港+內湖) -->
+        <!-- 3. 零件入庫專用操作區 -->
         <div id="partsControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
@@ -663,7 +702,59 @@
             </div>
         </div>
 
-        <div class="toolbar">
+        <!-- 4. 楊梅專屬對帳與監控操作區 -->
+        <div id="yangmeiControlBlock" style="display: none;">
+            <div class="project-kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">
+                        <span>🏭 楊梅專屬供貨戰情報告 (南港＋內湖)</span>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-copy-main" onclick="copyYangmeiReport()">📋 複製對帳報表</button>
+                        <button class="btn-copy-main" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155;" onclick="window.print()">🖨️ 列印報表</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-blue);" id="ymTotalSum">$0</div>
+                        <div class="kpi-lbl">楊梅年度累計入庫</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-green);" id="ymAvgMainSeason">$0</div>
+                        <div class="kpi-lbl">主汛期月均 (5~8月)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" id="ymMaxMonthRecord">-</div>
+                        <div class="kpi-lbl">單月最高紀錄</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--alert-red);" id="ymOverallRatio">0%</div>
+                        <div class="kpi-lbl">雙廠全年度總佔比</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>楊梅入庫金額 (NT$)</th>
+                            <th>雙廠當月總入庫 (NT$)</th>
+                            <th>採購佔比</th>
+                            <th>廠端供貨排名</th>
+                            <th>營運備註 / 供貨動向</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yangmeiTableBody">
+                        <!-- 由 JS 自動填入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="toolbar" id="toolbarContainer">
             <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱..." oninput="debounceRender()">
         </div>
 
@@ -726,7 +817,7 @@
             }
         };
 
-        let currentMainTrack = 'ORDERS';
+        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI'
         let currentSelectedProjectKey = 'M5B';
 
         // 未結工單資料
@@ -745,6 +836,7 @@
         let isPartsLoaded = false;
         let partsMonthMap = {};
         let partsYearlyList = [];
+        let monthTotalMap = {};
         let activePartsMonth = 'YEAR_ALL';
 
         // 分批渲染
@@ -789,21 +881,32 @@
             document.getElementById('mainTab_ORDERS').classList.toggle('active', track === 'ORDERS');
             document.getElementById('mainTab_PROJECT').classList.toggle('active', track === 'PROJECT');
             document.getElementById('mainTab_PARTS').classList.toggle('active', track === 'PARTS');
+            document.getElementById('mainTab_YANGMEI').classList.toggle('active', track === 'YANGMEI');
 
             document.getElementById('ordersControlBlock').style.display = (track === 'ORDERS') ? 'block' : 'none';
             document.getElementById('projectControlBlock').style.display = (track === 'PROJECT') ? 'block' : 'none';
             document.getElementById('partsControlBlock').style.display = (track === 'PARTS') ? 'block' : 'none';
+            document.getElementById('yangmeiControlBlock').style.display = (track === 'YANGMEI') ? 'block' : 'none';
+            
+            document.getElementById('toolbarContainer').style.display = (track === 'YANGMEI') ? 'none' : 'block';
+            document.getElementById('cardsGrid').style.display = (track === 'YANGMEI') ? 'none' : 'grid';
             document.getElementById('projectSelectorContainer').style.display = (track === 'PROJECT') ? 'inline-flex' : 'none';
             document.getElementById('searchInput').value = '';
 
             if (track === 'PROJECT') {
                 switchActiveProject(currentSelectedProjectKey);
-            } else if (track === 'PARTS') {
+            } else if (track === 'PARTS' || track === 'YANGMEI') {
                 if (!isPartsLoaded) {
-                    loadPartsData();
+                    loadPartsData(() => {
+                        if (track === 'YANGMEI') renderYangmeiAnalysis();
+                    });
                 } else {
-                    renderPartsKPI();
-                    triggerOptimizedRender();
+                    if (track === 'PARTS') {
+                        renderPartsKPI();
+                        triggerOptimizedRender();
+                    } else {
+                        renderYangmeiAnalysis();
+                    }
                 }
             } else {
                 triggerOptimizedRender();
@@ -851,8 +954,10 @@
                 loadOrdersData(() => { fetchCloudNotesJSONP(); });
             } else if (currentMainTrack === 'PROJECT') {
                 loadSpecificProjectData(currentSelectedProjectKey);
-            } else if (currentMainTrack === 'PARTS') {
-                loadPartsData();
+            } else if (currentMainTrack === 'PARTS' || currentMainTrack === 'YANGMEI') {
+                loadPartsData(() => {
+                    if (currentMainTrack === 'YANGMEI') renderYangmeiAnalysis();
+                });
             }
         }
 
@@ -899,7 +1004,7 @@
             });
         }
 
-        function loadPartsData() {
+        function loadPartsData(callback) {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入零件入庫資料中...</div>';
 
@@ -911,7 +1016,8 @@
                     isPartsLoaded = true;
                     parsePartsData(results.data);
                     renderPartsKPI();
-                    triggerOptimizedRender();
+                    if (callback) callback();
+                    if (currentMainTrack === 'PARTS') triggerOptimizedRender();
                 },
                 error: function(err) {
                     grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">零件入庫資料讀取失敗。</div>';
@@ -921,10 +1027,12 @@
 
         function parsePartsData(rows) {
             partsMonthMap = {};
+            monthTotalMap = {};
             const yearlyMap = {};
 
             for (let m = 1; m <= 12; m++) {
                 partsMonthMap[`${m}月`] = [];
+                monthTotalMap[`${m}月`] = 0;
             }
 
             let headerIdx = -1;
@@ -971,7 +1079,15 @@
                 if (!row || row.length === 0) continue;
                 
                 const firstCell = String(row[0] || '').trim().toUpperCase();
-                if (firstCell.includes('SUM') || firstCell.includes('合計')) break;
+                if (firstCell.includes('SUM') || firstCell.includes('合計')) {
+                    // 抓取官方統計底線作為精準分母
+                    monthColPairs.forEach(pair => {
+                        let sumAmtStr = row[pair.amtCol] ? String(row[pair.amtCol]).replace(/[$, "']/g, '').trim() : '0';
+                        let sumAmt = parseFloat(sumAmtStr) || 0;
+                        if (sumAmt > 0) monthTotalMap[pair.month] = sumAmt;
+                    });
+                    break;
+                }
 
                 monthColPairs.forEach(pair => {
                     const sup = row[pair.supCol] ? String(row[pair.supCol]).replace(/["']/g, '').trim() : '';
@@ -989,6 +1105,10 @@
 
             Object.keys(partsMonthMap).forEach(m => {
                 partsMonthMap[m].sort((a, b) => b.amount - a.amount);
+                // 若未讀到 SUM 統計列則由明細累計加總
+                if (!monthTotalMap[m] || monthTotalMap[m] === 0) {
+                    monthTotalMap[m] = partsMonthMap[m].reduce((sum, item) => sum + item.amount, 0);
+                }
             });
 
             partsYearlyList = Object.keys(yearlyMap).map(k => ({
@@ -1018,7 +1138,9 @@
                 document.getElementById('partsCurrentMonthLbl').innerText = `${activePartsMonth} 入庫總額`;
             }
 
-            let periodTotal = targetList.reduce((acc, cur) => acc + cur.amount, 0);
+            let periodTotal = (activePartsMonth === 'YEAR_ALL') ? 
+                totalYearly : (monthTotalMap[activePartsMonth] || 0);
+
             let topSupplier = targetList[0] || { supplier: '無', amount: 0 };
             let ratio = periodTotal > 0 ? ((topSupplier.amount / periodTotal) * 100).toFixed(1) : 0;
 
@@ -1026,6 +1148,105 @@
             document.getElementById('partsSupplierCount').innerText = `${targetList.length} 家`;
             document.getElementById('partsTopSupplierName').innerText = topSupplier.supplier;
             document.getElementById('partsTopSupplierRatio').innerText = `${ratio}%`;
+        }
+
+        // 渲染楊梅專屬監控報表
+        function renderYangmeiAnalysis() {
+            let ymTotal = 0;
+            let grandTotal = 0;
+            let mainSeasonTotal = 0; // 5~8月
+            let maxMonthName = '-';
+            let maxMonthVal = 0;
+
+            const tbody = document.getElementById('yangmeiTableBody');
+            tbody.innerHTML = '';
+
+            for (let m = 1; m <= 12; m++) {
+                const mKey = `${m}月`;
+                const list = partsMonthMap[mKey] || [];
+                const mTotal = monthTotalMap[mKey] || 0;
+                grandTotal += mTotal;
+
+                // 查找楊梅在該月的入庫與排名
+                let ymItem = list.find(item => item.supplier.includes('楊梅'));
+                let ymAmt = ymItem ? ymItem.amount : 0;
+                let rankIndex = ymItem ? list.indexOf(ymItem) + 1 : '-';
+
+                ymTotal += ymAmt;
+                if (m >= 5 && m <= 8) mainSeasonTotal += ymAmt;
+
+                if (ymAmt > maxMonthVal) {
+                    maxMonthVal = ymAmt;
+                    maxMonthName = `${mKey} ($${Math.round(ymAmt).toLocaleString()})`;
+                }
+
+                let ratio = mTotal > 0 ? ((ymAmt / mTotal) * 100).toFixed(1) : '0.0';
+
+                let note = '-';
+                if (m < 5 && ymAmt === 0) note = '未切換主供（以寶嘉為主）';
+                else if (m === 5) note = '正式切換為第一大供應商';
+                else if (parseFloat(ratio) > 95) note = '主力供貨（集中度極高）';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${mKey}</strong></td>
+                    <td style="font-weight:700; color:${ymAmt > 0 ? 'var(--btn-blue)' : '#94a3af'};">$${Math.round(ymAmt).toLocaleString()}</td>
+                    <td>$${Math.round(mTotal).toLocaleString()}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span>${ratio}%</span>
+                            <div class="progress-bar-wrap" style="height:6px; flex:1; max-width:80px;">
+                                <div class="progress-bar-fill" style="width:${ratio}%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill-status ${rankIndex === 1 ? 'badge-green' : 'badge-blue'}">${rankIndex === 1 ? '第 1 名' : (rankIndex === '-' ? '-' : `第 ${rankIndex} 名`)}</span></td>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">${note}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            const overallRatio = grandTotal > 0 ? ((ymTotal / grandTotal) * 100).toFixed(1) : '0.0';
+            const avgMainSeason = Math.round(mainSeasonTotal / 4);
+
+            // 匯總列
+            const totalTr = document.createElement('tr');
+            totalTr.className = 'total-row';
+            totalTr.innerHTML = `
+                <td>累計 (1~12月)</td>
+                <td style="color:var(--alert-red);">$${Math.round(ymTotal).toLocaleString()}</td>
+                <td>$${Math.round(grandTotal).toLocaleString()}</td>
+                <td><strong>${overallRatio}%</strong></td>
+                <td><span class="pill-status badge-warn">年度第 2 名</span></td>
+                <td>5~8月佔比超過 95%，成為核心供料源</td>
+            `;
+            tbody.appendChild(totalTr);
+
+            // 更新 KPI 卡
+            document.getElementById('ymTotalSum').innerText = `$${Math.round(ymTotal).toLocaleString()}`;
+            document.getElementById('ymAvgMainSeason').innerText = `$${avgMainSeason.toLocaleString()}`;
+            document.getElementById('ymMaxMonthRecord').innerText = maxMonthName;
+            document.getElementById('ymOverallRatio').innerText = `${overallRatio}%`;
+        }
+
+        function copyYangmeiReport() {
+            let text = "【楊梅專屬月度採購對帳與佔比報表】\n";
+            text += "月份\t楊梅入庫金額\t雙廠總額\t採購佔比\n";
+
+            for (let m = 1; m <= 12; m++) {
+                const mKey = `${m}月`;
+                const list = partsMonthMap[mKey] || [];
+                const mTotal = monthTotalMap[mKey] || 0;
+                const ymItem = list.find(item => item.supplier.includes('楊梅'));
+                const ymAmt = ymItem ? ymItem.amount : 0;
+                const ratio = mTotal > 0 ? ((ymAmt / mTotal) * 100).toFixed(1) : '0.0';
+
+                text += `${mKey}\t$${Math.round(ymAmt).toLocaleString()}\t$${Math.round(mTotal).toLocaleString()}\t${ratio}%\n`;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已將楊梅月度對帳報表複製至剪貼簿！');
+            });
         }
 
         function fetchCloudNotesJSONP() {
@@ -1612,7 +1833,7 @@
                 const rank = (index || 0) + 1;
                 const periodTotal = (activePartsMonth === 'YEAR_ALL') ? 
                     partsYearlyList.reduce((a, b) => a + b.amount, 0) : 
-                    (partsMonthMap[activePartsMonth] || []).reduce((a, b) => a + b.amount, 0);
+                    (monthTotalMap[activePartsMonth] || 0);
 
                 const percent = periodTotal > 0 ? ((item.amount / periodTotal) * 100).toFixed(1) : 0;
                 const copyText = `【零件採購】廠商: ${item.supplier} | 入庫金額: $${Math.round(item.amount).toLocaleString()} | 佔比: ${percent}%`;
