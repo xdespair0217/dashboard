@@ -602,32 +602,46 @@
             const statusElem = document.getElementById('statusTime');
             statusElem.innerText = '同步中...';
 
+            let loadedTasks = 0;
+            const totalTasks = 2;
+
+            function checkComplete() {
+                loadedTasks++;
+                if (loadedTasks >= totalTasks) {
+                    statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
+                }
+            }
+
+            // 1. 異步載入雲端備註（超時防呆，不阻塞畫面）
             fetchCloudNotesJSONP();
 
-            // 1. 載入未結工單
+            // 2. 載入未結工單 CSV
             Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
                 complete: function(results) {
                     parseData(results.data);
-                    statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
+                    checkComplete();
                 },
                 error: function(err) {
                     console.error("未結工單讀取錯誤:", err);
+                    checkComplete();
                 }
             });
 
-            // 2. 載入 M5B 專案資料
+            // 3. 載入 M5B 專案 CSV
             Papa.parse(`${PROJECT_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
                 complete: function(results) {
                     parseProjectData(results.data);
+                    checkComplete();
                 },
                 error: function(err) {
                     console.error("M5B 專案分頁讀取錯誤:", err);
+                    checkComplete();
                 }
             });
         }
@@ -635,7 +649,16 @@
         function fetchCloudNotesJSONP() {
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
+            
+            // 5 秒超時保護
+            const timeoutTimer = setTimeout(() => {
+                delete window[callbackName];
+                script.remove();
+                console.warn("GAS 備註連線逾時，先使用本地快取");
+            }, 5000);
+
             window[callbackName] = function(data) {
+                clearTimeout(timeoutTimer);
                 if (data) {
                     cloudNotes = data.notes || {};
                     closedOrderSet = new Set(data.closedOrders || []);
@@ -645,8 +668,12 @@
                 delete window[callbackName];
                 script.remove();
             };
+
             script.src = `${API_NOTE_URL}?callback=${callbackName}&_t=${Date.now()}`;
-            script.onerror = function() { script.remove(); };
+            script.onerror = function() { 
+                clearTimeout(timeoutTimer);
+                script.remove(); 
+            };
             document.body.appendChild(script);
         }
 
