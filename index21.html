@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cognitive Map Studio - 簡報與多維心智圖系統</title>
+  <title>Cognitive Map Studio - 脈衝簡報導覽版</title>
   <style>
     :root {
       --bg-main: #f8fafc;
@@ -82,8 +82,6 @@
     }
     .btn-action { background: var(--accent-purple-bg); border-color: #ddd6fe; color: var(--accent-purple); }
     .btn-action:hover { background: var(--accent-purple); color: #ffffff; }
-    .btn-present { background: #dcfce7; border-color: #86efac; color: #15803d; font-weight: 700; }
-    .btn-present:hover { background: #16a34a; color: #ffffff; }
     
     /* 螢光聚焦按鈕樣式 */
     .btn-glow { background: #fef3c7; border-color: #fde047; color: #b45309; font-weight: 700; }
@@ -170,47 +168,55 @@
     .svg-node { transition: all 0.3s ease; }
     .svg-node:hover { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12)); }
 
-    /* 大標題螢光動畫效果 */
-    @keyframes coreGlowPulse {
-      0% { filter: drop-shadow(0 0 5px #38bdf8) drop-shadow(0 0 10px #0284c7); }
-      50% { filter: drop-shadow(0 0 20px #38bdf8) drop-shadow(0 0 35px #0284c7); }
-      100% { filter: drop-shadow(0 0 5px #38bdf8) drop-shadow(0 0 10px #0284c7); }
+    /* 動態螢光脈衝動畫 */
+    @keyframes pulseGlowEffect {
+      0% { filter: drop-shadow(0 0 6px #38bdf8) drop-shadow(0 0 12px #0284c7); }
+      50% { filter: drop-shadow(0 0 22px #38bdf8) drop-shadow(0 0 40px #0284c7); }
+      100% { filter: drop-shadow(0 0 6px #38bdf8) drop-shadow(0 0 12px #0284c7); }
     }
     
-    .core-highlight {
-      animation: coreGlowPulse 2s infinite ease-in-out;
+    .pulse-highlight {
+      animation: pulseGlowEffect 1.8s infinite ease-in-out !important;
     }
 
     .text-core { font-size: 18px; font-weight: 800; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
     .text-branch { font-size: 14px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
     .text-leaf { font-size: 13px; font-weight: 600; fill: #1e293b; text-anchor: middle; dominant-baseline: central; }
 
-    /* 投影片簡報模式 overlay */
-    .presentation-controls {
+    /* 圖面上脈衝導覽面板 */
+    .glow-nav-bar {
       display: none;
       position: absolute;
-      top: 20px;
+      top: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(10px);
-      padding: 10px 24px;
-      border-radius: 30px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      padding: 8px 18px;
+      border-radius: 40px;
       color: white;
       z-index: 100;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      box-shadow: 0 12px 30px rgba(2, 132, 199, 0.25), 0 4px 12px rgba(0,0,0,0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
-    .presentation-controls button {
+    .glow-nav-bar button {
       background: #334155;
       color: white;
       border: none;
       padding: 6px 14px;
-      border-radius: 16px;
+      border-radius: 20px;
+      font-size: 12px;
     }
-    .presentation-controls button:hover { background: var(--accent-cyan); }
-    .slide-info { font-weight: 700; font-size: 14px; color: #38bdf8; min-width: 120px; text-align: center; }
+    .glow-nav-bar button:hover { background: var(--accent-cyan); }
+    .glow-info {
+      font-weight: 700;
+      font-size: 13px;
+      color: #38bdf8;
+      min-width: 160px;
+      text-align: center;
+    }
 
     .floating-hud {
       position: absolute;
@@ -246,8 +252,7 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn-present" onclick="startPresentation()">▶ 簡報模式</button>
-      <button class="btn-glow" id="btn-coreGlow" onclick="toggleCoreGlow()">✨ 標題聚焦</button>
+      <button class="btn-glow" id="btn-glow-mode" onclick="toggleGlowPresentation()">✨ 脈衝聚焦簡報</button>
       <button id="btn-focus" onclick="toggleFocusMode()">🖥️ 全螢幕</button>
       <button id="btn-reset-all" onclick="resetAllData()">🔄 重置全部資料</button>
       <button class="btn-action" onclick="exportSVG()">📥 匯出 SVG</button>
@@ -264,12 +269,12 @@
     </div>
 
     <div class="canvas-container">
-      <!-- 簡報控制浮動 Bar -->
-      <div class="presentation-controls" id="presentControls">
-        <button onclick="prevSlide()">◀ 上一張</button>
-        <span class="slide-info" id="slideInfo">Slide 1 / 9</span>
-        <button onclick="nextSlide()">下一張 ▶</button>
-        <button style="background:#ef4444;" onclick="exitPresentation()">✕ 結束簡報</button>
+      <!-- 脈衝簡報圖面懸浮導覽列 -->
+      <div class="glow-nav-bar" id="glowNavBar">
+        <button onclick="prevGlowStep()">‹ 上一個</button>
+        <span class="glow-info" id="glowInfoText">焦點: 大標題</span>
+        <button onclick="nextGlowStep()">下一個 ›</button>
+        <button style="background:#ef4444;" onclick="stopGlowPresentation()">✕ 關閉</button>
       </div>
 
       <svg id="mainSvg" viewBox="0 0 1800 1000">
@@ -305,13 +310,12 @@
     };
 
     let state = {
-      layout: 'fishbone', // 預設停在魚骨圖
+      layout: 'fishbone',
       data: JSON.parse(JSON.stringify(presetData)),
       isFocusMode: false,
-      isPresenting: false,
-      isCoreGlow: false,
-      currentSlide: 0,
-      slideTargets: []
+      isGlowMode: false,
+      glowStepIndex: 0,
+      glowTargets: []
     };
 
     function setLayout(layoutType) {
@@ -319,6 +323,7 @@
       document.querySelectorAll('.btn-group button').forEach(b => {
         if (b.id) b.classList.toggle('active', b.id === `btn-${layoutType}`);
       });
+      if (state.isGlowMode) stopGlowPresentation();
       resetView();
       renderDiagram();
     }
@@ -328,29 +333,12 @@
       g.style.transform = "translate(0px, 0px) scale(1)";
     }
 
-    /* 真正完整的重置資料功能 */
     function resetAllData() {
       if (confirm("確定要將所有編輯過的內容與視角重置回最初的預設版本嗎？")) {
+        if (state.isGlowMode) stopGlowPresentation();
         state.data = JSON.parse(JSON.stringify(presetData));
-        state.isCoreGlow = false;
-        document.getElementById('btn-coreGlow').classList.remove('active');
         resetView();
         renderAll();
-      }
-    }
-
-    /* 切換大標題螢光聚焦效果 */
-    function toggleCoreGlow() {
-      state.isCoreGlow = !state.isCoreGlow;
-      document.getElementById('btn-coreGlow').classList.toggle('active', state.isCoreGlow);
-      
-      const coreNode = document.getElementById('coreTitleNode');
-      if (coreNode) {
-        if (state.isCoreGlow) {
-          coreNode.classList.add('core-highlight');
-        } else {
-          coreNode.classList.remove('core-highlight');
-        }
       }
     }
 
@@ -370,69 +358,116 @@
       }
     }
 
-    /* ================= 簡報模式邏輯 ================= */
-    function startPresentation() {
-      state.isPresenting = true;
-      state.currentSlide = 0;
-      document.getElementById('presentControls').style.display = 'flex';
-      
-      buildSlideTargets();
-      gotoSlide(0);
-
-      window.addEventListener('keydown', handleSlideKey);
+    /* ================= 脈衝簡報導覽邏輯 ================= */
+    function toggleGlowPresentation() {
+      if (state.isGlowMode) {
+        stopGlowPresentation();
+      } else {
+        startGlowPresentation();
+      }
     }
 
-    function exitPresentation() {
-      state.isPresenting = false;
-      document.getElementById('presentControls').style.display = 'none';
+    function startGlowPresentation() {
+      state.isGlowMode = true;
+      document.getElementById('btn-glow-mode').classList.add('active');
+      document.getElementById('glowNavBar').style.display = 'flex';
+
+      buildGlowTargets();
+      state.glowStepIndex = 0;
+      applyGlowStep(0);
+
+      window.addEventListener('keydown', handleGlowKey);
+    }
+
+    function stopGlowPresentation() {
+      state.isGlowMode = false;
+      document.getElementById('btn-glow-mode').classList.remove('active');
+      document.getElementById('glowNavBar').style.display = 'none';
+
+      // 清除所有螢光標記
+      document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
       resetView();
-      window.removeEventListener('keydown', handleSlideKey);
+
+      window.removeEventListener('keydown', handleGlowKey);
     }
 
-    function buildSlideTargets() {
-      state.slideTargets = [
-        { name: "全景總覽", x: 900, y: 500, scale: 1 }
-      ];
+    function buildGlowTargets() {
+      state.glowTargets = [];
 
+      // 1. 核心大標題
+      const coreNode = document.getElementById('coreTitleNode');
+      if (coreNode) {
+        state.glowTargets.push({
+          id: 'coreTitleNode',
+          name: `核心：${state.data.core}`,
+          focusX: 900,
+          focusY: 500,
+          scale: 1.1
+        });
+      }
+
+      // 2. 構面分支
       state.data.categories.forEach((cat, idx) => {
-        const el = document.getElementById(`cat-group-${idx}`);
-        if (el) {
-          const bbox = el.getBBox();
+        const catNode = document.getElementById(`cat-group-${idx}`);
+        if (catNode) {
+          const bbox = catNode.getBBox();
           const cx = bbox.x + bbox.width / 2;
           const cy = bbox.y + bbox.height / 2;
-          state.slideTargets.push({
-            name: cat.name,
-            x: cx,
-            y: cy,
-            scale: 1.85
+
+          state.glowTargets.push({
+            id: `cat-group-${idx}`,
+            name: `構面 ${idx + 1}: ${cat.name}`,
+            focusX: cx,
+            focusY: cy,
+            scale: 1.45
           });
         }
       });
     }
 
-    function gotoSlide(idx) {
-      if (idx < 0 || idx >= state.slideTargets.length) return;
-      state.currentSlide = idx;
+    function applyGlowStep(idx) {
+      if (idx < 0 || idx >= state.glowTargets.length) return;
+      state.glowStepIndex = idx;
+
+      // 移除上一次的 pulse
+      document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
+
+      const target = state.glowTargets[idx];
+      const targetEl = document.getElementById(target.id);
       
-      const target = state.slideTargets[idx];
+      if (targetEl) {
+        targetEl.classList.add('pulse-highlight');
+      }
+
+      // 鏡頭平滑跟隨
       const g = document.getElementById('viewportGroup');
-
-      const dx = (900 - target.x) * target.scale;
-      const dy = (500 - target.y) * target.scale;
-
+      const dx = (900 - target.focusX) * target.scale;
+      const dy = (500 - target.focusY) * target.scale;
       g.style.transform = `translate(${dx}px, ${dy}px) scale(${target.scale})`;
 
-      document.getElementById('slideInfo').textContent = `${idx + 1} / ${state.slideTargets.length} : ${target.name}`;
+      // 更新 HUD 文字
+      document.getElementById('glowInfoText').textContent = `(${idx + 1}/${state.glowTargets.length}) ${target.name}`;
     }
 
-    function nextSlide() { if (state.currentSlide < state.slideTargets.length - 1) gotoSlide(state.currentSlide + 1); }
-    function prevSlide() { if (state.currentSlide > 0) gotoSlide(state.currentSlide - 1); }
+    function nextGlowStep() {
+      if (state.glowStepIndex < state.glowTargets.length - 1) {
+        applyGlowStep(state.glowStepIndex + 1);
+      } else {
+        applyGlowStep(0); // 循環回大標題
+      }
+    }
 
-    function handleSlideKey(e) {
-      if (!state.isPresenting) return;
-      if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
-      if (e.key === 'ArrowLeft') prevSlide();
-      if (e.key === 'Escape') exitPresentation();
+    function prevGlowStep() {
+      if (state.glowStepIndex > 0) {
+        applyGlowStep(state.glowStepIndex - 1);
+      }
+    }
+
+    function handleGlowKey(e) {
+      if (!state.isGlowMode) return;
+      if (e.key === 'ArrowRight' || e.key === 'Space') nextGlowStep();
+      if (e.key === 'ArrowLeft') prevGlowStep();
+      if (e.key === 'Escape') stopGlowPresentation();
     }
 
     /* ================= 編輯與繪製 ================= */
@@ -513,16 +548,20 @@
         case 'tree': renderTreeLayout(group); break;
         case 'matrix': renderMatrixLayout(group); break;
       }
+
+      if (state.isGlowMode) {
+        buildGlowTargets();
+        applyGlowStep(state.glowStepIndex);
+      }
     }
 
     /* 1. 魚骨圖 layout */
     function renderFishboneLayout(g) {
       const headX = 180, tailX = 1700, spineY = 500;
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
         <line x1="${tailX}" y1="${spineY}" x2="${headX + 115}" y2="${spineY}" stroke="url(#grad-spine)" stroke-width="8" marker-end="url(#arrow)" />
-        <g class="svg-node ${glowClass}" id="coreTitleNode">
+        <g class="svg-node" id="coreTitleNode">
           <polygon points="${headX-20},${spineY} ${headX+115},${spineY-75} ${headX+115},${spineY+75}" fill="#d97706" />
           <rect x="20" y="${spineY-40}" width="180" height="80" rx="12" fill="#d97706" />
           <text x="110" y="${spineY}" class="text-core">${state.data.core}</text>
@@ -569,10 +608,9 @@
     function renderMindMapLayout(g) {
       const centerX = 900, centerY = 500;
       const coreW = 220, coreH = 80;
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
-        <g class="svg-node ${glowClass}" id="coreTitleNode">
+        <g class="svg-node" id="coreTitleNode">
           <rect x="${centerX - coreW/2}" y="${centerY - coreH/2}" width="${coreW}" height="${coreH}" rx="40" fill="#d97706" stroke="#b45309" stroke-width="3" />
           <text x="${centerX}" y="${centerY}" class="text-core">${state.data.core}</text>
         </g>
@@ -632,10 +670,9 @@
     function renderSplitMindMapLayout(g) {
       const centerX = 900, centerY = 500;
       const coreW = 200, coreH = 70;
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
-        <g class="svg-node ${glowClass}" id="coreTitleNode">
+        <g class="svg-node" id="coreTitleNode">
           <rect x="${centerX - coreW/2}" y="${centerY - coreH/2}" width="${coreW}" height="${coreH}" rx="35" fill="#d97706" stroke="#b45309" stroke-width="3" />
           <text x="${centerX}" y="${centerY}" class="text-core">${state.data.core}</text>
         </g>
@@ -697,10 +734,9 @@
       const cats = state.data.categories;
       const startX = 900, startY = 90;
       const coreW = 240, coreH = 60;
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
-        <g class="svg-node ${glowClass}" id="coreTitleNode">
+        <g class="svg-node" id="coreTitleNode">
           <rect x="${startX - coreW/2}" y="${startY - coreH/2}" width="${coreW}" height="${coreH}" rx="12" fill="#d97706" />
           <text x="${startX}" y="${startY}" class="text-core">${state.data.core}</text>
         </g>
@@ -745,11 +781,10 @@
       const centerX = 900;
       const cats = state.data.categories;
       const stepY = 820 / Math.max(cats.length, 1);
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
         <line x1="${centerX}" y1="120" x2="${centerX}" y2="920" stroke="#0284c7" stroke-width="6" stroke-linecap="round" />
-        <g class="svg-node ${glowClass}" id="coreTitleNode">
+        <g class="svg-node" id="coreTitleNode">
           <rect x="${centerX - 120}" y="40" width="240" height="60" rx="30" fill="#d97706" />
           <text x="${centerX}" y="70" class="text-core">${state.data.core}</text>
         </g>
@@ -798,10 +833,9 @@
     /* 6. 樹狀階層圖 layout */
     function renderTreeLayout(g) {
       const startX = 900, startY = 80;
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
-        <g class="svg-node ${glowClass}" id="coreTitleNode">
+        <g class="svg-node" id="coreTitleNode">
           <rect x="${startX - 110}" y="${startY}" width="220" height="56" rx="12" fill="#d97706" />
           <text x="${startX}" y="${startY + 28}" class="text-core">${state.data.core}</text>
         </g>
@@ -845,10 +879,9 @@
       const cols = 4, cardW = 380, cardH = 290, gap = 24;
       const startX = (1800 - (cols * cardW + (cols - 1) * gap)) / 2;
       const startY = 130;
-      const glowClass = state.isCoreGlow ? 'core-highlight' : '';
 
       let html = `
-        <g class="${glowClass}" id="coreTitleNode">
+        <g id="coreTitleNode">
           <text x="900" y="65" class="text-core" style="fill:#d97706; font-size:24px;">[ 核心主題 ]  ${state.data.core}</text>
         </g>
       `;
