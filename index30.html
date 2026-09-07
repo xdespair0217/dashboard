@@ -964,7 +964,10 @@
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
         const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
         const AR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=809519769&single=true&output=csv';
+        
+        // 🚨 130 久未 (130_MONITOR)
         const M130_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1737645789&single=true&output=csv';
+        // 🚨 670 新車 (NEW_CAR_MONITOR)
         const M670_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=495030812&single=true&output=csv';
 
         const PROJECT_CONFIGS = {
@@ -1066,6 +1069,9 @@
             document.getElementById('cardsGrid').style.display = (track === 'YANGMEI') ? 'none' : 'grid';
             document.getElementById('projectSelectorContainer').style.display = (track === 'PROJECT') ? 'inline-flex' : 'none';
             document.getElementById('searchInput').value = '';
+
+            // 清空目前的卡片網格，避免殘留上一頁的卡片
+            document.getElementById('cardsGrid').innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">資料載入中...</div>';
 
             if (track === 'PROJECT') {
                 switchActiveProject(currentSelectedProjectKey);
@@ -1586,12 +1592,11 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 久未回廠模組核心邏輯 (修復接待選項) ====================
+        // ==================== ⏳ 130 久未回廠模組核心邏輯 ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 久未回廠資料中...</div>';
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">載入 130 久未回廠資料中...</div>';
 
-            // 🚨 加回時間戳防快取，確保立刻讀到新填的 K 欄專員
             Papa.parse(`${M130_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: true,
@@ -1604,7 +1609,7 @@
                     triggerOptimizedRender();
                 },
                 error: function(err) {
-                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">130 久未回廠資料讀取失敗。</div>';
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444; grid-column: 1 / -1;">130 久未回廠資料讀取失敗。</div>';
                 }
             });
         }
@@ -1616,15 +1621,26 @@
             const seenPlates = new Set();
 
             rows.forEach(r => {
-                const plate = String(r['牌照號碼'] || r['車牌'] || '').trim();
-                if (!plate || plate.includes('計') || plate.includes('SUM') || plate.includes('牌照') || plate === '車牌') return;
+                // 智能獲取車牌 (防 BOM 與空白)
+                let plate = '';
+                for (let key in r) {
+                    const cleanKey = String(key).trim();
+                    if (cleanKey.includes('牌照') || cleanKey.includes('車牌')) {
+                        const v = String(r[key] || '').trim();
+                        if (v && !v.includes('牌照') && !v.includes('車牌') && !v.includes('計') && !v.includes('SUM')) {
+                            plate = v;
+                            break;
+                        }
+                    }
+                }
+                if (!plate) return;
 
                 if (seenPlates.has(plate)) return;
                 seenPlates.add(plate);
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
                 
-                // 💡 超強彈性匹配：遍歷所有欄位，只要名稱包含「指定」、「專員」或「接待」，抓出姓名！
+                // 💡 智能抓取專員 (周永盛 / 陳嘉駒 / 趙少曄)
                 let foundSa = '';
                 for (let key in r) {
                     const cleanKey = String(key).trim();
@@ -1677,7 +1693,6 @@
                 else noNoteCount++;
             });
 
-            document.getElementById('m130TotalSumText').innerText = `納管基盤：${m130List.length} 台`;
             document.getElementById('m130KpiOver12').innerText = over12Count;
             document.getElementById('m130KpiM11').innerText = m11Count;
             document.getElementById('m130KpiM10').innerText = m10Count;
@@ -1826,7 +1841,7 @@
         // ==================== ✨ 670 新車交車首保模組核心邏輯 ====================
         function loadM670Data() {
             const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 670 新車首保資料中...</div>';
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">載入 670 新車首保資料中...</div>';
 
             Papa.parse(`${M670_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
@@ -1840,7 +1855,7 @@
                     triggerOptimizedRender();
                 },
                 error: function(err) {
-                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">670 新車首保資料讀取失敗。</div>';
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444; grid-column: 1 / -1;">670 新車首保資料讀取失敗。</div>';
                 }
             });
         }
@@ -1853,8 +1868,18 @@
             const now = new Date();
 
             rows.forEach(r => {
-                const plate = String(r['牌照號碼'] || r['牌照#'] || r['車牌'] || '').trim();
-                if (!plate || plate.includes('計') || plate.includes('SUM') || plate.includes('牌照') || plate === '車牌') return;
+                let plate = '';
+                for (let key in r) {
+                    const cleanKey = String(key).trim();
+                    if (cleanKey.includes('牌照') || cleanKey.includes('車牌')) {
+                        const v = String(r[key] || '').trim();
+                        if (v && !v.includes('牌照') && !v.includes('車牌') && !v.includes('計') && !v.includes('SUM')) {
+                            plate = v;
+                            break;
+                        }
+                    }
+                }
+                if (!plate) return;
 
                 if (seenPlates.has(plate)) return;
                 seenPlates.add(plate);
@@ -2530,7 +2555,7 @@
                     if (activeM130Sa !== 'ALL' && sa !== activeM130Sa) return false;
 
                     if (searchVal) {
-                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
+                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.finalSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
                         if (!fullText.includes(searchVal)) return false;
                     }
 
@@ -2856,6 +2881,7 @@
                     </div>
                 `;
             } else if (currentMainTrack === 'M130') {
+                // 🚨 這是 130 久未回廠的專屬卡片 (絕不會出現新車首保字樣)
                 const item = data;
                 const plate = item.plate;
                 const isOver12 = item.lostMonths >= 12;
@@ -2947,6 +2973,7 @@
                     </div>
                 `;
             } else if (currentMainTrack === 'M670') {
+                // 🚨 這是 670 新車交車首保的專屬卡片
                 const item = data;
                 const plate = item.plate;
                 const days = item.days;
