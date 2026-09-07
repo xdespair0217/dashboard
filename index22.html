@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客訴與賠償處理機制 SOP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col pb-20 md:pb-0">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md flex justify-between items-center sticky top-0 z-40">
+        <div>
+            <h1 class="text-lg md:text-2xl font-bold tracking-wider text-amber-400">客訴與賠償處理機制 SOP</h1>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">互動式流程解構與雲端管理工具</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <label class="flex items-center space-x-2 bg-slate-700 px-3 py-2 rounded-lg cursor-pointer text-xs md:text-sm font-medium hover:bg-slate-600 transition">
+                <input type="checkbox" id="editModeToggle" onclick="handleEditModeClick(event)" class="rounded bg-slate-900 border-slate-600 text-amber-500 focus:ring-0">
+                <span class="text-amber-300">編輯模式</span>
+            </label>
+            <button onclick="exportJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm px-3.5 py-2 rounded-lg font-medium transition shadow">匯出 JSON</button>
+            <label class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs md:text-sm px-3.5 py-2 rounded-lg font-medium transition shadow cursor-pointer">
+                匯入 JSON
+                <input type="file" id="importFile" class="hidden" accept=".json" onchange="importJSON(event)">
+            </label>
+        </div>
+    </header>
+
+    <!-- 手機版底部導航欄 (Tab Bar) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-50 flex justify-around py-3 px-2 text-sm shadow-xl">
+        <button onclick="switchTab('workflow')" id="tab-btn-workflow" class="flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400">流程圖</button>
+        <button onclick="switchTab('quick')" id="tab-btn-quick" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">表單專區</button>
+        <button onclick="switchTab('email')" id="tab-btn-email" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">快速通報</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-8">
+        
+        <!-- 區塊一：表單與系統工具專區 -->
+        <section id="section-quick" class="tab-section bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base md:text-lg font-semibold text-amber-400 border-l-4 border-amber-400 pl-3">表單與系統工具專區</h2>
+                <span class="text-xs md:text-sm text-slate-400">點擊按鈕可開啟外部連結，圖片可點擊燈箱放大檢視</span>
+            </div>
+            <div id="quick-buttons-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <!-- 動態生成 -->
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- 區塊二：核心流程節點 -->
+            <div id="section-workflow" class="tab-section lg:col-span-2 space-y-5">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base md:text-xl font-semibold text-slate-200 border-l-4 border-amber-400 pl-3">核心流程節點</h2>
+                    <span id="mode-hint" class="text-xs md:text-sm text-slate-400">提示：點擊卡片可檢視或編輯</span>
+                </div>
+
+                <div id="workflow-container" class="space-y-4">
+                    <!-- 動態生成 -->
+                </div>
+            </div>
+
+            <!-- 區塊三：編輯面板與 Email 派送區 -->
+            <div id="section-email" class="tab-section space-y-6">
+                
+                <!-- 編輯卡片細節面板 (預設隱藏) -->
+                <div id="edit-panel" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl hidden">
+                    <h2 class="text-base font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-3">資料編輯面板</h2>
+                    <div id="edit-form" class="space-y-4 text-sm">
+                        <p class="text-slate-400">請從上方或流程圖點擊欲編輯的項目。</p>
+                    </div>
+                </div>
+
+                <!-- Email 快速勾選與派送區 -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-base font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-3">內部 Email 通報勾選派送</h2>
+                    <div class="space-y-4 text-sm">
+                        <p class="text-xs md:text-sm text-slate-300">請輸入車號並勾選收件對象（總經理將自動列入副本）</p>
+                        
+                        <div>
+                            <label class="block text-xs md:text-sm text-slate-400 mb-1.5">受理車號 (例如：ABC-1234)</label>
+                            <input type="text" id="email-car-id" placeholder="請輸入車號" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-200 text-sm focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div class="space-y-2.5 pt-3 border-t border-slate-700">
+                            <p class="text-xs md:text-sm font-semibold text-amber-300">總經理（自動列入副本 CC）：</p>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" id="cc-manager" value="william@starunited.tw" checked disabled class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500">
+                                <span class="text-sm">徐文勇 (william@starunited.tw)</span>
+                            </label>
+                        </div>
+
+                        <div class="space-y-2.5 pt-3 border-t border-slate-700">
+                            <p class="text-xs md:text-sm font-semibold text-amber-300">收件人 (To)：</p>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="chris_wu@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">售後總監 - 吳柏毅</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="eric@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">銷售總監 - 廖宗俊</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="mike_chen@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">CRM 經理 - 陳永信</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="michael@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">營業所主管(內湖) - 楊智元</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="tiger_yeh@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">營業所主管(北投) - 葉桓佑</span>
+                            </label>
+                        </div>
+
+                        <button onclick="generateMailto()" class="w-full mt-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl text-sm transition shadow-lg">
+                            產生郵件清單並發送通報
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- 圖片預覽燈箱 Modal -->
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4" onclick="closeLightbox()">
+        <div class="relative max-w-5xl max-h-[90vh]">
+            <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-xl border border-slate-700 object-contain shadow-2xl">
+            <p class="text-center text-sm text-slate-300 mt-3">點擊任意處關閉預覽</p>
+        </div>
+    </div>
+
+    <!-- 密碼輸入燈箱 Modal -->
+    <div id="password-modal" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-amber-400 border-b border-slate-700 pb-3">安全驗證</h3>
+            <p class="text-sm text-slate-300">請輸入編輯模式密碼：</p>
+            <input type="password" id="password-input" placeholder="請輸入密碼" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 text-sm focus:border-amber-400 outline-none" onkeydown="if(event.key==='Enter') submitPassword()">
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closePasswordModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2.5 rounded-xl text-sm transition">取消</button>
+                <button onclick="submitPassword()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-sm transition shadow">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        let isEditMode = false;
+        let currentSelectedType = null;
+        let currentSelectedIndex = null;
+
+        let defaultQuickButtons = [
+            { id: 1, title: "顧客抱怨補償處置申請書", imageUrl: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
+            { id: 2, title: "星聯汽車內部簽呈", imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
+            { id: 3, title: "文管中心/文件編號申請", imageUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
+            { id: 4, title: "電子簽呈工作台", imageUrl: "https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
+            { id: 5, title: "客訴與賠償處理作業流程SOP", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80", fileUrl: "" }
+        ];
+
+        let defaultWorkflow = [
+            { id: 1, step: "Stage 01", title: "事件進線與基礎建檔", desc: "記錄人、事、時、地、物基礎資料，備妥工單、成本與試算金額。", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
+            { id: 2, step: "Stage 02", title: "案件屬性判定與分流", desc: "區分為『產品問題（總代理責任）』或『廠內人為疏失（廠內自理）』。", imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
+            { id: 3, step: "Stage 03-A", title: "【產品問題】總代理籌碼與事件單", desc: "與總代理溝通補償籌碼，填寫事件單，並執行內部 Email 通報。", imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
+            { id: 4, step: "Stage 03-B", title: "【廠內疏失】外部編號與內部簽呈", desc: "至文管中心產出編號，填入簽呈，轉入電子簽呈系統（總經理審核）。", imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=500&q=80", fileUrl: "" }
+        ];
+
+        // 絕對安全的本地端優先初始化（不會有 fetch 找不到外部 JSON 導致解析失敗的問題）
+        let quickButtonsData, workflowData;
+        try {
+            quickButtonsData = JSON.parse(localStorage.getItem('sop_quickButtons')) || defaultQuickButtons;
+            workflowData = JSON.parse(localStorage.getItem('sop_workflow')) || defaultWorkflow;
+        } catch(e) {
+            quickButtonsData = defaultQuickButtons;
+            workflowData = defaultWorkflow;
+            localStorage.clear();
+        }
+
+        function checkDailyAuth() {
+            const authDate = localStorage.getItem('sop_auth_date');
+            const today = new Date().toDateString();
+            return authDate === today;
+        }
+
+        function saveData() {
+            localStorage.setItem('sop_quickButtons', JSON.stringify(quickButtonsData));
+            localStorage.setItem('sop_workflow', JSON.stringify(workflowData));
+        }
+
+        function handleEditModeClick(event) {
+            event.preventDefault();
+
+            if (!isEditMode) {
+                if (checkDailyAuth()) {
+                    isEditMode = true;
+                    document.getElementById('editModeToggle').checked = true;
+                    document.getElementById('edit-panel').classList.remove('hidden');
+                } else {
+                    document.getElementById('password-input').value = '';
+                    document.getElementById('password-modal').classList.remove('hidden');
+                    document.getElementById('password-input').focus();
+                }
+            } else {
+                isEditMode = false;
+                document.getElementById('editModeToggle').checked = false;
+                document.getElementById('edit-panel').classList.add('hidden');
+                currentSelectedType = null;
+                currentSelectedIndex = null;
+            }
+            renderAll();
+        }
+
+        function submitPassword() {
+            const val = document.getElementById('password-input').value;
+            if (val === "9527") {
+                localStorage.setItem('sop_auth_date', new Date().toDateString());
+                isEditMode = true;
+                document.getElementById('editModeToggle').checked = true;
+                document.getElementById('edit-panel').classList.remove('hidden');
+                document.getElementById('password-modal').classList.add('hidden');
+            } else {
+                alert("密碼錯誤！");
+                document.getElementById('password-input').value = '';
+            }
+            renderAll();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+            document.getElementById('editModeToggle').checked = false;
+        }
+
+        function switchTab(tabName) {
+            const sQuick = document.getElementById('section-quick');
+            const sWorkflow = document.getElementById('section-workflow');
+            const sEmail = document.getElementById('section-email');
+
+            const btnW = document.getElementById('tab-btn-workflow');
+            const btnQ = document.getElementById('tab-btn-quick');
+            const btnE = document.getElementById('tab-btn-email');
+
+            [btnW, btnQ, btnE].forEach(b => {
+                b.className = "flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent";
+            });
+
+            if (window.innerWidth < 768) {
+                sQuick.style.display = 'none';
+                sWorkflow.style.display = 'none';
+                sEmail.style.display = 'none';
+
+                if (tabName === 'workflow') {
+                    sWorkflow.style.display = 'block';
+                    btnW.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                } else if (tabName === 'quick') {
+                    sQuick.style.display = 'block';
+                    btnQ.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                } else if (tabName === 'email') {
+                    sEmail.style.display = 'block';
+                    btnE.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                }
+            }
+        }
+
+        window.onresize = function() {
+            if (window.innerWidth >= 768) {
+                document.getElementById('section-quick').style.display = 'block';
+                document.getElementById('section-workflow').style.display = 'block';
+                document.getElementById('section-email').style.display = 'block';
+            } else {
+                switchTab('workflow');
+            }
+        };
+
+        function renderAll() {
+            renderQuickButtons();
+            renderWorkflow();
+        }
+
+        function renderQuickButtons() {
+            const container = document.getElementById('quick-buttons-container');
+            container.innerHTML = '';
+
+            quickButtonsData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = `bg-slate-900 border ${currentSelectedType === 'quick' && currentSelectedIndex === index && isEditMode ? 'border-amber-400 ring-2 ring-amber-400' : 'border-slate-700'} rounded-xl p-4 flex flex-col justify-between transition shadow-md`;
+                
+                if (isEditMode) {
+                    card.classList.add('cursor-pointer', 'hover:border-slate-500');
+                    card.onclick = () => selectQuickNode(index);
+                }
+
+                let linkAction = '';
+                if (item.fileUrl && item.fileUrl.trim() !== '') {
+                    linkAction = `<button onclick="event.stopPropagation(); window.open('${item.fileUrl}', '_blank')" class="mt-3 w-full bg-indigo-600/50 hover:bg-indigo-600 text-indigo-100 py-2 rounded-lg text-xs font-medium transition text-center border border-indigo-500/40 truncate">開啟連結</button>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="event.stopPropagation(); openLightbox('${item.imageUrl}')" title="點擊放大圖片">
+                            <img src="${item.imageUrl}" alt="預覽圖" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-sm leading-snug line-clamp-2">${item.title}</h3>
+                    </div>
+                    <div>
+                        ${linkAction}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderWorkflow() {
+            const container = document.getElementById('workflow-container');
+            container.innerHTML = '';
+
+            workflowData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = `bg-slate-800 border ${currentSelectedType === 'workflow' && currentSelectedIndex === index && isEditMode ? 'border-amber-400 ring-2 ring-amber-400' : 'border-slate-700'} rounded-2xl p-5 transition shadow-lg flex flex-col md:flex-row gap-5 items-center`;
+                
+                if (isEditMode) {
+                    card.classList.add('cursor-pointer', 'hover:border-slate-500');
+                    card.onclick = () => selectWorkflowNode(index);
+                }
+
+                let fileActionHTML = '';
+                if (item.fileUrl && item.fileUrl.trim() !== '') {
+                    fileActionHTML = `<button onclick="event.stopPropagation(); window.open('${item.fileUrl}', '_blank')" class="bg-indigo-600/50 hover:bg-indigo-600 text-indigo-200 px-3 py-1.5 rounded-lg text-xs font-medium transition border border-indigo-500/40">開啟檔案</button>`;
+                }
+
+                card.innerHTML = `
+                    <div class="w-full md:w-44 h-28 bg-slate-900 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer shadow" onclick="event.stopPropagation(); openLightbox('${item.imageUrl}')" title="點擊放大圖片">
+                        <img src="${item.imageUrl}" alt="節點圖片" class="w-full h-full object-cover">
+                        <span class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-amber-400 text-xs px-2 py-0.5 rounded font-bold">${item.step}</span>
+                    </div>
+                    <div class="flex-1 space-y-2 w-full">
+                        <h3 class="font-bold text-slate-100 text-base">${item.title}</h3>
+                        <p class="text-xs md:text-sm text-slate-300 leading-relaxed">${item.desc}</p>
+                        <div class="pt-1 flex items-center space-x-3">
+                            ${fileActionHTML}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectQuickNode(index) {
+            currentSelectedType = 'quick';
+            currentSelectedIndex = index;
+            renderAll();
+
+            const item = quickButtonsData[index];
+            const form = document.getElementById('edit-form');
+            form.innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-xs font-bold text-amber-400">正在編輯表單專區項目：</p>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">標題名稱</label>
+                        <input type="text" id="edit-q-title" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 text-sm focus:border-amber-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">更換圖片</label>
+                        <input type="file" id="edit-q-image" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-slate-700 file:text-amber-300 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">外部檔案／系統網址</label>
+                        <input type="text" id="edit-q-file" value="${item.fileUrl || ''}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 text-sm focus:border-amber-400 outline-none">
+                    </div>
+                    <button onclick="saveQuickNode(${index})" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-sm transition shadow mt-2">
+                        儲存變更
+                    </button>
+                </div>
+            `;
+        }
+
+        function selectWorkflowNode(index) {
+            currentSelectedType = 'workflow';
+            currentSelectedIndex = index;
+            renderAll();
+
+            const item = workflowData[index];
+            const form = document.getElementById('edit-form');
+            form.innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-xs font-bold text-amber-400">正在編輯流程節點：</p>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">節點標題</label>
+                        <input type="text" id="edit-w-title" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 text-sm focus:border-amber-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">節點說明</label>
+                        <textarea id="edit-w-desc" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 text-sm focus:border-amber-400 outline-none">${item.desc}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">更換圖片</label>
+                        <input type="file" id="edit-w-image" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-slate-700 file:text-amber-300 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">外部檔案／系統網址</label>
+                        <input type="text" id="edit-w-file" value="${item.fileUrl || ''}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 text-sm focus:border-amber-400 outline-none">
+                    </div>
+                    <button onclick="saveWorkflowNode(${index})" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-sm transition shadow mt-2">
+                        儲存變更
+                    </button>
+                </div>
+            `;
+        }
+
+        function saveQuickNode(index) {
+            quickButtonsData[index].title = document.getElementById('edit-q-title').value;
+            quickButtonsData[index].fileUrl = document.getElementById('edit-q-file').value;
+            const imgFile = document.getElementById('edit-q-image').files[0];
+            
+            if (imgFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    quickButtonsData[index].imageUrl = e.target.result;
+                    saveData();
+                    renderQuickButtons();
+                    alert('已儲存！');
+                };
+                reader.readAsDataURL(imgFile);
+            } else {
+                saveData();
+                renderQuickButtons();
+                alert('已儲存！');
+            }
+        }
+
+        function saveWorkflowNode(index) {
+            workflowData[index].title = document.getElementById('edit-w-title').value;
+            workflowData[index].desc = document.getElementById('edit-w-desc').value;
+            workflowData[index].fileUrl = document.getElementById('edit-w-file').value;
+            const imgFile = document.getElementById('edit-w-image').files[0];
+            
+            if (imgFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    workflowData[index].imageUrl = e.target.result;
+                    saveData();
+                    renderWorkflow();
+                    alert('已儲存！');
+                };
+                reader.readAsDataURL(imgFile);
+            } else {
+                saveData();
+                renderWorkflow();
+                alert('已儲存！');
+            }
+        }
+
+        function openLightbox(url) {
+            if (!url) return;
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+        }
+
+        function exportJSON() {
+            const exportObj = { quickButtons: quickButtonsData, workflow: workflowData };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "sop_config.json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        }
+
+        function importJSON(event) {
+            const reader = new FileReader();
+            if (event.target.files[0]) {
+                reader.readAsText(event.target.files[0], "UTF-8");
+                reader.onload = (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if (parsed.quickButtons && parsed.workflow) {
+                            quickButtonsData = parsed.quickButtons;
+                            workflowData = parsed.workflow;
+                            saveData();
+                            renderAll();
+                            alert('匯入成功！');
+                        }
+                    } catch (err) { alert('解析失敗'); }
+                };
+            }
+        }
+
+        function generateMailto() {
+            const carIdInput = document.getElementById('email-car-id').value.trim();
+            const carTag = carIdInput ? `[${carIdInput}]` : "[未填車號]";
+            
+            const toBoxes = document.querySelectorAll('.to-checkbox:checked');
+            if (toBoxes.length === 0) { alert('請至少勾選一位收件人！'); return; }
+            
+            const toEmails = Array.from(toBoxes).map(b => b.value).join(',');
+            const ccEmail = "william@starunited.tw";
+
+            const subject = encodeURIComponent(`內部通報：${carTag} 客訴案件備忘錄`);
+            const body = encodeURIComponent(
+                "各位長官好，\n\n" +
+                "本案經評估後續可能衍生相關狀況，我們已先行列入案件備忘錄中進行管控。\n\n" +
+                "詳細之人、事、時、地、物紀錄、工單資料、成本及相關試算，請直接參閱系統與對應附件。後續我們將持續推進與追蹤處理進度，特此先行呈報備查。\n\n" +
+                "謝謝。"
+            );
+
+            window.location.href = `mailto:${toEmails}?cc=${ccEmail}&subject=${subject}&body=${body}`;
+        }
+
+        renderAll();
+        if (window.innerWidth < 768) {
+            switchTab('workflow');
+        }
+    </script>
+</body>
+</html>
