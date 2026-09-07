@@ -82,7 +82,7 @@
         .auth-card p {
             margin: 0 0 20px 0;
             font-size: 0.8rem;
-            color: #94a3b8;
+            color: #94a3af;
         }
         .auth-input {
             width: 100%;
@@ -1742,8 +1742,7 @@
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
                 const assignedSa = (r['指定專員'] || '').trim();
-                const lastSa = (r['上次接待'] || r['服務專員'] || '').trim();
-                const finalSa = assignedSa ? assignedSa : (lastSa ? lastSa : '待指派');
+                const finalSa = assignedSa ? assignedSa : '待指派';
 
                 m130List.push({
                     plate: plate,
@@ -1756,7 +1755,6 @@
                     item: String(r['定保項目'] || '').trim(),
                     nextDate: String(r['預估下次日'] || '-').trim(),
                     lostMonths: lostMonths,
-                    lastSa: lastSa || '未指派',
                     assignedSa: assignedSa,
                     finalSa: finalSa,
                     address: String(r['轄區地址'] || r['地址'] || '-').trim()
@@ -1780,7 +1778,7 @@
                 else if (m === 11) m11Count++;
                 else if (m === 10) m10Count++;
 
-                if (item.finalSa === '待指派' || !item.assignedSa) unassignedCount++;
+                if (item.finalSa === '待指派') unassignedCount++;
                 if (hasNote) hasNoteCount++;
                 else noNoteCount++;
             });
@@ -2291,7 +2289,7 @@
                     if (activeM130Sa !== 'ALL' && sa !== activeM130Sa) return false;
 
                     if (searchVal) {
-                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.lastSa} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
+                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
                         if (!fullText.includes(searchVal)) return false;
                     }
 
@@ -2603,17 +2601,24 @@
 
                 const contactPerson = item.driver ? `${item.driver} (駕駛)` : item.owner;
                 const lineCopyText = [
-                    '🚗【原廠定期保養關懷提醒】',
-                    '━━━━━━━━━━━━',
-                    `親愛的車主/用車人 您好：`,
-                    `▪ 車牌號碼：${plate}`,
+                    '🚗【尚鵬汽車內湖保養廠 - 定期保養提醒】',
+                    '━━━━━━━━━━━━━━━━━━━',
+                    '親愛的車主/用車人 您好：',
+                    '稍早致電未能與您通上電話，特發此訊息向您關懷致意。',
+                    '',
+                    `▪ 愛車車牌：${plate}`,
                     `▪ 愛車車型：${item.model}`,
-                    `▪ 上次進廠日：${item.lastDate} (已滿 ${item.lostMonths} 個月)`,
+                    `▪ 上次進廠日：${item.lastDate} (距今已滿 ${item.lostMonths} 個月)`,
                     item.item ? `▪ 前次保養項目：${item.item}` : '',
-                    `▪ 預估定保週期：已達原廠 1年/1萬公里 定期保養基準`,
-                    '━━━━━━━━━━━━',
-                    `內湖服務廠提醒您定期進廠健診與更換機油，維持車輛最佳效能與原廠保固權益。`,
-                    `若需為您安排預約或查詢優惠時段，歡迎直接回覆此訊息！`
+                    '▪ 週期提醒：已達原廠 1年 / 1萬公里 定保基準。',
+                    '',
+                    '為確保行車安全與車輛最佳性能，誠摯提醒您安排回廠定期保養與全車健診。',
+                    '',
+                    '⚠️ 因本發報系統為自動發送，請勿直接回覆簡訊。',
+                    '預約保養請直接致電廠端專線，將由專人為您安排：',
+                    '🏢 尚鵬內湖保養廠',
+                    '📞 預約專線：(02) 2796-8166',
+                    `💬 指定專員：${item.assignedSa || '服務專員'}`
                 ].filter(Boolean).join('\n');
 
                 return `
@@ -2632,7 +2637,7 @@
                                 </div>
                             </div>
                             <div class="top-btn-group">
-                                <button class="btn-copy-main" onclick="copyText(\`${lineCopyText.replace(/`/g, "\\`")}\`)">📋 LINE</button>
+                                <button class="btn-copy-main" onclick="copyText(\`${lineCopyText.replace(/`/g, "\\`")}\`)">📋 LINE/簡訊</button>
                             </div>
                         </div>
 
@@ -2651,8 +2656,9 @@
                                 <span class="info-label">通話：</span>
                                 ${item.phone ? `<a href="tel:${item.phone}" class="tel-btn">📞 ${item.phone}</a>` : '<span style="color:#94a3af;">無電話</span>'}
                             </div>
-                            <div><span class="info-label">上次接待：</span>${item.lastSa}</div>
-                            <div><span class="info-label">指派專員：</span><strong style="color:var(--btn-blue);">${item.finalSa}</strong></div>
+                            <div style="grid-column: span 2;">
+                                <span class="info-label">指定專員：</span><strong style="color:var(--btn-blue); font-size:0.95rem;">${item.finalSa}</strong>
+                            </div>
                             <div><span class="info-label">前次里程：</span><strong>${item.lastKm ? item.lastKm + ' km' : '-'}</strong></div>
                             <div><span class="info-label">預估下次：</span>${item.nextDate}</div>
                             
@@ -2681,7 +2687,7 @@
 
         function copyText(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('已複製對帳資訊（LINE 排版）：\n\n' + text);
+                alert('已複製關懷資訊（LINE / 簡訊排版）：\n\n' + text);
             });
         }
 
