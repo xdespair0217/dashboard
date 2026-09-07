@@ -162,6 +162,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 100%;
+      height: 100%;
     }
 
     svg { width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -412,7 +414,8 @@
 
     function startGlowPresentation() {
       state.isGlowMode = true;
-      document.getElementById('btn-glow-mode').classList.add('active');
+      const glowBtn = document.getElementById('btn-glow-mode');
+      if (glowBtn) glowBtn.classList.add('active');
       document.getElementById('glowNavBar').style.display = 'flex';
 
       buildGlowTargets();
@@ -424,7 +427,8 @@
 
     function stopGlowPresentation() {
       state.isGlowMode = false;
-      document.getElementById('btn-glow-mode').classList.remove('active');
+      const glowBtn = document.getElementById('btn-glow-mode');
+      if (glowBtn) glowBtn.classList.remove('active');
       document.getElementById('glowNavBar').style.display = 'none';
 
       document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
@@ -531,6 +535,7 @@
 
     function renderEditor() {
       const container = document.getElementById('editorTree');
+      if (!container) return;
       let html = `
         <div class="node-editor core-editor">
           <label style="font-size:11px; color:var(--accent-gold); font-weight:700;">核心主題</label>
@@ -569,11 +574,13 @@
 
       container.innerHTML = html;
       const totalSubs = state.data.categories.reduce((acc, c) => acc + c.subs.length, 0);
-      document.getElementById('nodeCountInfo').textContent = `構面: ${state.data.categories.length} | 細項: ${totalSubs}`;
+      const hud = document.getElementById('nodeCountInfo');
+      if (hud) hud.textContent = `構面: ${state.data.categories.length} | 細項: ${totalSubs}`;
     }
 
     function renderDiagram() {
       const group = document.getElementById('viewportGroup');
+      if (!group) return;
       group.innerHTML = '';
 
       switch (state.layout) {
@@ -949,14 +956,484 @@
       g.innerHTML = html;
     }
 
-    /* 匯出為完整 HTML 獨立網頁檔案 */
+    /* 僅匯出極簡「純圖面 + 脈衝聚焦簡報」獨立網頁 */
     function exportHTML() {
-      const htmlDoc = `<!DOCTYPE html>\n<html lang="zh-TW">\n${document.documentElement.innerHTML}\n</html>`;
-      const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8;' });
+      const currentDataJSON = JSON.stringify(state.data);
+      const currentLayout = state.layout;
+
+      const pureExportDoc = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${state.data.core} - 脈衝聚焦簡報</title>
+  <style>
+    :root {
+      --bg-main: #f8fafc;
+      --accent-cyan: #0284c7;
+      --accent-gold: #d97706;
+      --text-main: #0f172a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    svg { width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+    
+    @keyframes pulseGlowEffect {
+      0% { filter: drop-shadow(0 0 6px #38bdf8) drop-shadow(0 0 12px #0284c7); }
+      50% { filter: drop-shadow(0 0 22px #38bdf8) drop-shadow(0 0 40px #0284c7); }
+      100% { filter: drop-shadow(0 0 6px #38bdf8) drop-shadow(0 0 12px #0284c7); }
+    }
+    .pulse-highlight {
+      animation: pulseGlowEffect 1.8s infinite ease-in-out !important;
+    }
+
+    .text-core { font-size: 18px; font-weight: 800; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+    .text-branch { font-size: 14px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+    .text-leaf { font-size: 13px; font-weight: 600; fill: #1e293b; text-anchor: middle; dominant-baseline: central; }
+
+    .glow-nav-bar {
+      display: flex;
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      padding: 8px 18px;
+      border-radius: 40px;
+      color: white;
+      z-index: 100;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 12px 30px rgba(2, 132, 199, 0.25), 0 4px 12px rgba(0,0,0,0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .glow-nav-bar button {
+      background: #334155;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .glow-nav-bar button:hover { background: var(--accent-cyan); }
+    .glow-info {
+      font-weight: 700;
+      font-size: 13px;
+      color: #38bdf8;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .glow-nav-bar {
+        top: auto;
+        bottom: 16px;
+        width: 90%;
+        justify-content: space-between;
+      }
+      .glow-info { min-width: auto; font-size: 12px; }
+    }
+  <\/style>
+</head>
+<body>
+  <div class="canvas-container">
+    <div class="glow-nav-bar">
+      <button onclick="prevGlowStep()">‹ 上一個</button>
+      <span class="glow-info" id="glowInfoText">載入中...</span>
+      <button onclick="nextGlowStep()">下一個 ›</button>
+      <button style="background:#0284c7;" onclick="resetView()">🔄 全貌</button>
+    </div>
+
+    <svg id="mainSvg" viewBox="0 0 1800 1000">
+      <defs>
+        <linearGradient id="grad-spine" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#0284c7" />
+          <stop offset="100%" stop-color="#0369a1" />
+        </linearGradient>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284c7" />
+        </marker>
+      </defs>
+      <g id="viewportGroup" style="transform-origin: center; transition: transform 0.6s ease;"></g>
+    </svg>
+  </div>
+
+  <script>
+    const data = ${currentDataJSON};
+    const layout = "${currentLayout}";
+    let glowStepIndex = 0;
+    let glowTargets = [];
+
+    function renderDiagram() {
+      const group = document.getElementById('viewportGroup');
+      group.innerHTML = '';
+      if (layout === 'fishbone') renderFishboneLayout(group);
+      else if (layout === 'mindmap') renderMindMapLayout(group);
+      else if (layout === 'split') renderSplitMindMapLayout(group);
+      else if (layout === 'hierarchical') renderHierarchicalLayout(group);
+      else if (layout === 'timeline') renderTimelineLayout(group);
+      else if (layout === 'tree') renderTreeLayout(group);
+      else if (layout === 'matrix') renderMatrixLayout(group);
+
+      buildGlowTargets();
+      applyGlowStep(0);
+    }
+
+    function renderFishboneLayout(g) {
+      const headX = 180, tailX = 1700, spineY = 500;
+      let html = \`<line x1="\${tailX}" y1="\${spineY}" x2="\${headX + 115}" y2="\${spineY}" stroke="url(#grad-spine)" stroke-width="8" marker-end="url(#arrow)" />
+        <g class="svg-node" id="coreTitleNode">
+          <polygon points="\${headX-20},\${spineY} \${headX+115},\${spineY-75} \${headX+115},\${spineY+75}" fill="#d97706" />
+          <rect x="20" y="\${spineY-40}" width="180" height="80" rx="12" fill="#d97706" />
+          <text x="110" y="\${spineY}" class="text-core">\${data.core}</text>
+        </g>\`;
+
+      data.categories.forEach((cat, idx) => {
+        const isTop = idx % 2 === 0;
+        const colIdx = Math.floor(idx / 2);
+        const colTotal = Math.ceil(data.categories.length / 2);
+        const startX = tailX - (tailX - headX - 320) * ((colIdx + 0.6) / colTotal);
+        const boneLen = 250;
+        const rad = ((isTop ? -55 : 55) * Math.PI) / 180;
+        const tipX = startX + boneLen * Math.cos(rad);
+        const tipY = spineY + boneLen * Math.sin(rad);
+
+        html += \`<g class="svg-node" id="cat-group-\${idx}">
+            <line x1="\${startX}" y1="\${spineY}" x2="\${tipX}" y2="\${tipY}" stroke="#0284c7" stroke-width="5" stroke-linecap="round" />
+            <rect x="\${tipX - 85}" y="\${isTop ? tipY - 44 : tipY}" width="170" height="44" rx="10" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
+            <text x="\${tipX}" y="\${isTop ? tipY - 22 : tipY + 22}" class="text-branch">\${cat.name}</text>\`;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const ratio = (subIdx + 1) / (cat.subs.length + 1);
+          const subRootX = startX + (tipX - startX) * ratio;
+          const subRootY = spineY + (tipY - spineY) * ratio;
+          const subEndX = subRootX - 140;
+
+          html += \`<line x1="\${subRootX}" y1="\${subRootY}" x2="\${subEndX}" y2="\${subRootY}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4" />
+            <rect x="\${subEndX - 140}" y="\${subRootY - 17}" width="140" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+            <text x="\${subEndX - 70}" y="\${subRootY}" class="text-leaf">\${sub}</text>\`;
+        });
+        html += \`</g>\`;
+      });
+      g.innerHTML = html;
+    }
+
+    function renderMindMapLayout(g) {
+      const centerX = 900, centerY = 500, coreW = 220, coreH = 80;
+      let html = \`<g class="svg-node" id="coreTitleNode">
+          <rect x="\${centerX - coreW/2}" y="\${centerY - coreH/2}" width="\${coreW}" height="\${coreH}" rx="40" fill="#d97706" stroke="#b45309" stroke-width="3" />
+          <text x="\${centerX}" y="\${centerY}" class="text-core">\${data.core}</text>
+        </g>\`;
+
+      const n = data.categories.length;
+      data.categories.forEach((cat, idx) => {
+        const angle = (idx * 2 * Math.PI) / n - Math.PI / 2;
+        const isRight = Math.cos(angle) >= 0;
+        const catCX = centerX + 360 * Math.cos(angle);
+        const catCY = centerY + 360 * Math.sin(angle);
+        const catW = 160, catH = 46;
+
+        const startX = centerX + (coreW/2) * Math.cos(angle);
+        const startY = centerY + (coreH/2) * Math.sin(angle);
+        const endX = catCX - (isRight ? catW/2 : -catW/2);
+
+        html += \`<path d="M \${startX} \${startY} C \${(startX+endX)/2} \${startY}, \${(startX+endX)/2} \${catCY}, \${endX} \${catCY}" fill="none" stroke="#0284c7" stroke-width="3.5" />\`;
+        html += \`<g class="svg-node" id="cat-group-\${idx}">
+            <rect x="\${catCX - catW/2}" y="\${catCY - catH/2}" width="\${catW}" height="\${catH}" rx="23" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
+            <text x="\${catCX}" y="\${catCY}" class="text-branch">\${cat.name}</text>\`;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const offsetY = (subIdx - (cat.subs.length - 1) / 2) * 46;
+          const subCX = catCX + (isRight ? 210 : -210);
+          const subCY = catCY + offsetY;
+          const subW = 135, subH = 34;
+
+          const subLineStartX = isRight ? (catCX + catW/2) : (catCX - catW/2);
+          const subLineEndX = isRight ? (subCX - subW/2) : (subCX + subW/2);
+
+          html += \`<path d="M \${subLineStartX} \${catCY} C \${(subLineStartX+subLineEndX)/2} \${catCY}, \${(subLineStartX+subLineEndX)/2} \${subCY}, \${subLineEndX} \${subCY}" fill="none" stroke="#cbd5e1" stroke-width="2" />\`;
+          html += \`<g class="svg-node">
+              <rect x="\${subCX - subW/2}" y="\${subCY - subH/2}" width="\${subW}" height="\${subH}" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+              <text x="\${subCX}" y="\${subCY}" class="text-leaf">\${sub}</text>
+            </g>\`;
+        });
+        html += \`</g>\`;
+      });
+      g.innerHTML = html;
+    }
+
+    function renderSplitMindMapLayout(g) {
+      const centerX = 900, centerY = 500, coreW = 200, coreH = 70;
+      let html = \`<g class="svg-node" id="coreTitleNode">
+          <rect x="\${centerX - coreW/2}" y="\${centerY - coreH/2}" width="\${coreW}" height="\${coreH}" rx="35" fill="#d97706" stroke="#b45309" stroke-width="3" />
+          <text x="\${centerX}" y="\${centerY}" class="text-core">\${data.core}</text>
+        </g>\`;
+
+      const leftCats = [], rightCats = [];
+      data.categories.forEach((c, idx) => (idx % 2 === 0 ? rightCats : leftCats).push({ cat: c, idx }));
+
+      const drawSide = (list, isRight) => {
+        const stepY = 820 / Math.max(list.length, 1);
+        const catW = 160, catH = 44, subW = 130, subH = 34;
+
+        list.forEach((item, i) => {
+          const catCX = isRight ? centerX + 320 : centerX - 320;
+          const catCY = 130 + stepY * (i + 0.5);
+          const startX = isRight ? (centerX + coreW/2) : (centerX - coreW/2);
+          const endX = isRight ? (catCX - catW/2) : (catCX + catW/2);
+
+          html += \`<path d="M \${startX} \${centerY} C \${(startX+endX)/2} \${centerY}, \${(startX+endX)/2} \${catCY}, \${endX} \${catCY}" fill="none" stroke="#0284c7" stroke-width="3" />\`;
+          html += \`<g class="svg-node" id="cat-group-\${item.idx}">
+              <rect x="\${catCX - catW/2}" y="\${catCY - catH/2}" width="\${catW}" height="\${catH}" rx="10" fill="#0284c7" />
+              <text x="\${catCX}" y="\${catCY}" class="text-branch">\${item.cat.name}</text>\`;
+
+          item.cat.subs.forEach((sub, subIdx) => {
+            const subOffset = (subIdx - (item.cat.subs.length - 1) / 2) * 44;
+            const subCX = isRight ? catCX + 210 : catCX - 210;
+            const subCY = catCY + subOffset;
+
+            const lineStartX = isRight ? (catCX + catW/2) : (catCX - catW/2);
+            const lineEndX = isRight ? (subCX - subW/2) : (subCX + subW/2);
+
+            html += \`<path d="M \${lineStartX} \${catCY} C \${(lineStartX+lineEndX)/2} \${catCY}, \${(lineStartX+lineEndX)/2} \${subCY}, \${lineEndX} \${subCY}" fill="none" stroke="#cbd5e1" stroke-width="2" />\`;
+            html += \`<g class="svg-node">
+                <rect x="\${subCX - subW/2}" y="\${subCY - subH/2}" width="\${subW}" height="\${subH}" rx="6" fill="#ffffff" stroke="#94a3b8" />
+                <text x="\${subCX}" y="\${subCY}" class="text-leaf">\${sub}</text>
+              </g>\`;
+          });
+          html += \`</g>\`;
+        });
+      };
+      drawSide(leftCats, false);
+      drawSide(rightCats, true);
+      g.innerHTML = html;
+    }
+
+    function renderHierarchicalLayout(g) {
+      const startX = 900, startY = 90, coreW = 240, coreH = 60;
+      let html = \`<g class="svg-node" id="coreTitleNode">
+          <rect x="\${startX - coreW/2}" y="\${startY - coreH/2}" width="\${coreW}" height="\${coreH}" rx="12" fill="#d97706" />
+          <text x="\${startX}" y="\${startY}" class="text-core">\${data.core}</text>
+        </g>\`;
+
+      const totalW = 1680;
+      const colW = totalW / Math.max(data.categories.length, 1);
+      const catH = 42, subW = 135, subH = 32;
+
+      data.categories.forEach((cat, idx) => {
+        const catCX = (1800 - totalW)/2 + colW * (idx + 0.5);
+        const catCY = 230;
+
+        html += \`<path d="M \${startX} \${startY + coreH/2} V 170 H \${catCX} V \${catCY - catH/2}" fill="none" stroke="#0284c7" stroke-width="2.5" />\`;
+        html += \`<g class="svg-node" id="cat-group-\${idx}">
+            <rect x="\${catCX - 75}" y="\${catCY - catH/2}" width="150" height="\${catH}" rx="8" fill="#0284c7" />
+            <text x="\${catCX}" y="\${catCY}" class="text-branch">\${cat.name}</text>\`;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const subCY = catCY + 80 + subIdx * 48;
+          html += \`<line x1="\${catCX}" y1="\${subIdx === 0 ? catCY + catH/2 : subCY - 48 + subH/2}" x2="\${catCX}" y2="\${subCY - subH/2}" stroke="#cbd5e1" stroke-width="2" />\`;
+          html += \`<g class="svg-node">
+              <rect x="\${catCX - subW/2}" y="\${subCY - subH/2}" width="\${subW}" height="\${subH}" rx="6" fill="#ffffff" stroke="#94a3b8" />
+              <text x="\${catCX}" y="\${subCY}" class="text-leaf">\${sub}</text>
+            </g>\`;
+        });
+        html += \`</g>\`;
+      });
+      g.innerHTML = html;
+    }
+
+    function renderTimelineLayout(g) {
+      const centerX = 900;
+      const stepY = 820 / Math.max(data.categories.length, 1);
+
+      let html = \`<line x1="\${centerX}" y1="120" x2="\${centerX}" y2="920" stroke="#0284c7" stroke-width="6" stroke-linecap="round" />
+        <g class="svg-node" id="coreTitleNode">
+          <rect x="\${centerX - 120}" y="40" width="240" height="60" rx="30" fill="#d97706" />
+          <text x="\${centerX}" y="70" class="text-core">\${data.core}</text>
+        </g>\`;
+
+      data.categories.forEach((cat, idx) => {
+        const isRight = idx % 2 === 0;
+        const cy = 160 + idx * stepY;
+        const catW = 160, catH = 42;
+        const catCX = isRight ? centerX + 200 : centerX - 200;
+        const lineEndX = isRight ? catCX - catW/2 : catCX + catW/2;
+
+        html += \`<line x1="\${centerX}" y1="\${cy}" x2="\${lineEndX}" y2="\${cy}" stroke="#0284c7" stroke-width="3" />\`;
+        html += \`<circle cx="\${centerX}" cy="\${cy}" r="7" fill="#d97706" />\`;
+        html += \`<g class="svg-node" id="cat-group-\${idx}">
+            <rect x="\${catCX - catW/2}" y="\${cy - catH/2}" width="\${catW}" height="\${catH}" rx="8" fill="#0284c7" />
+            <text x="\${catCX}" y="\${cy}" class="text-branch">\${cat.name}</text>\`;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const subCX = isRight ? catCX + 210 : catCX - 210;
+          const subCY = cy + (subIdx - (cat.subs.length - 1) / 2) * 40;
+          const subW = 130, subH = 32;
+
+          const startX = isRight ? catCX + catW/2 : catCX - catW/2;
+          const endX = isRight ? subCX - subW/2 : subCX + subW/2;
+
+          html += \`<path d="M \${startX} \${cy} C \${(startX+endX)/2} \${cy}, \${(startX+endX)/2} \${subCY}, \${endX} \${subCY}" fill="none" stroke="#cbd5e1" stroke-width="2" />\`;
+          html += \`<g class="svg-node">
+              <rect x="\${subCX - subW/2}" y="\${subCY - subH/2}" width="\${subW}" height="\${subH}" rx="6" fill="#ffffff" stroke="#94a3b8" />
+              <text x="\${subCX}" y="\${subCY}" class="text-leaf">\${sub}</text>
+            </g>\`;
+        });
+        html += \`</g>\`;
+      });
+      g.innerHTML = html;
+    }
+
+    function renderTreeLayout(g) {
+      const startX = 900, startY = 80;
+      let html = \`<g class="svg-node" id="coreTitleNode">
+          <rect x="\${startX - 110}" y="\${startY}" width="220" height="56" rx="12" fill="#d97706" />
+          <text x="\${startX}" y="\${startY + 28}" class="text-core">\${data.core}</text>
+        </g>\`;
+
+      const totalWidth = 1660;
+      const stepX = totalWidth / Math.max(data.categories.length, 1);
+
+      data.categories.forEach((cat, idx) => {
+        const catCX = (1800 - totalWidth) / 2 + stepX * (idx + 0.5);
+        const catCY = 280;
+
+        html += \`<path d="M \${startX} \${startY + 56} V 180 H \${catCX} V \${catCY}" fill="none" stroke="#0284c7" stroke-width="3" />\`;
+        html += \`<g class="svg-node" id="cat-group-\${idx}">
+            <rect x="\${catCX - 80}" y="\${catCY}" width="160" height="44" rx="8" fill="#0284c7" />
+            <text x="\${catCX}" y="\${catCY + 22}" class="text-branch">\${cat.name}</text>\`;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const subY = catCY + 80 + subIdx * 48;
+          html += \`<path d="M \${catCX} \${catCY + 44} V \${subY + 17} H \${catCX - 70}" fill="none" stroke="#cbd5e1" stroke-width="2" />\`;
+          html += \`<g class="svg-node">
+              <rect x="\${catCX - 70}" y="\${subY}" width="140" height="34" rx="6" fill="#ffffff" stroke="#94a3b8" />
+              <text x="\${catCX}" y="\${subY + 17}" class="text-leaf">\${sub}</text>
+            </g>\`;
+        });
+        html += \`</g>\`;
+      });
+      g.innerHTML = html;
+    }
+
+    function renderMatrixLayout(g) {
+      const cols = 4, cardW = 380, cardH = 290, gap = 24;
+      const startX = (1800 - (cols * cardW + (cols - 1) * gap)) / 2;
+      const startY = 130;
+
+      let html = \`<g id="coreTitleNode">
+          <text x="900" y="65" class="text-core" style="fill:#d97706; font-size:24px;">[ 核心主題 ]  \${data.core}</text>
+        </g>\`;
+
+      data.categories.forEach((cat, idx) => {
+        const c = idx % cols, r = Math.floor(idx / cols);
+        const x = startX + c * (cardW + gap);
+        const y = startY + r * (cardH + gap);
+
+        html += \`<g class="svg-node" id="cat-group-\${idx}">
+            <rect x="\${x}" y="\${y}" width="\${cardW}" height="\${cardH}" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+            <rect x="\${x}" y="\${y}" width="\${cardW}" height="46" rx="12" fill="#0284c7" />
+            <text x="\${x + cardW / 2}" y="\${y + 23}" class="text-branch">\${cat.name}</text>\`;
+
+        cat.subs.forEach((sub, subIdx) => {
+          const itemY = y + 62 + subIdx * 50;
+          html += \`<rect x="\${x + 16}" y="\${itemY}" width="\${cardW - 32}" height="38" rx="8" fill="#f8fafc" stroke="#e2e8f0" />
+            <text x="\${x + 32}" y="\${itemY + 19}" style="fill:#0284c7; font-size:14px; dominant-baseline:central;">▸</text>
+            <text x="\${x + 50}" y="\${itemY + 19}" class="text-leaf" style="text-anchor:start;">\${sub}</text>\`;
+        });
+        html += \`</g>\`;
+      });
+      g.innerHTML = html;
+    }
+
+    function buildGlowTargets() {
+      glowTargets = [];
+      const coreNode = document.getElementById('coreTitleNode');
+      if (coreNode) {
+        glowTargets.push({ id: 'coreTitleNode', name: \`核心：\${data.core}\`, focusX: 900, focusY: 500, scale: 1.1 });
+      }
+
+      data.categories.forEach((cat, idx) => {
+        const catNode = document.getElementById(\`cat-group-\${idx}\`);
+        if (catNode) {
+          const bbox = catNode.getBBox();
+          glowTargets.push({
+            id: \`cat-group-\${idx}\`,
+            name: \`構面 \${idx + 1}: \${cat.name}\`,
+            focusX: bbox.x + bbox.width / 2,
+            focusY: bbox.y + bbox.height / 2,
+            scale: 1.45
+          });
+        }
+      });
+    }
+
+    function applyGlowStep(idx) {
+      if (idx < 0 || idx >= glowTargets.length) return;
+      glowStepIndex = idx;
+      document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
+
+      const target = glowTargets[idx];
+      const targetEl = document.getElementById(target.id);
+      if (targetEl) targetEl.classList.add('pulse-highlight');
+
+      const g = document.getElementById('viewportGroup');
+      const dx = (900 - target.focusX) * target.scale;
+      const dy = (500 - target.focusY) * target.scale;
+      g.style.transform = \`translate(\${dx}px, \${dy}px) scale(\${target.scale})\`;
+
+      document.getElementById('glowInfoText').textContent = \`(\${idx + 1}/\${glowTargets.length}) \${target.name}\`;
+    }
+
+    function nextGlowStep() {
+      applyGlowStep(glowStepIndex < glowTargets.length - 1 ? glowStepIndex + 1 : 0);
+    }
+
+    function prevGlowStep() {
+      if (glowStepIndex > 0) applyGlowStep(glowStepIndex - 1);
+    }
+
+    function resetView() {
+      document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
+      const g = document.getElementById('viewportGroup');
+      g.style.transform = "translate(0px, 0px) scale(1)";
+      document.getElementById('glowInfoText').textContent = "全貌檢視";
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') nextGlowStep();
+      if (e.key === 'ArrowLeft') prevGlowStep();
+      if (e.key === 'Escape') resetView();
+    });
+
+    renderDiagram();
+  <\/script>
+</body>
+</html>`;
+
+      const blob = new Blob([pureExportDoc], { type: 'text/html;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${state.data.core}_導覽網頁.html`;
+      a.download = `${state.data.core}_聚焦簡報.html`;
       a.click();
       URL.revokeObjectURL(url);
     }
