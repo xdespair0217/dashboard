@@ -11,110 +11,117 @@
         body { font-family: 'Noto Sans TC', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col pb-16 md:pb-0">
 
     <!-- Header -->
-    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md flex justify-between items-center">
+    <header class="bg-slate-800 border-b border-slate-700 py-3 px-4 shadow-md flex justify-between items-center sticky top-0 z-40">
         <div>
-            <h1 class="text-xl font-bold tracking-wider text-amber-400">客訴與賠償處理機制 SOP</h1>
-            <p class="text-xs text-slate-400 mt-1">互動式流程解構與動態資料維護工具</p>
+            <h1 class="text-sm md:text-xl font-bold tracking-wider text-amber-400">客訴與賠償處理機制 SOP</h1>
+            <p class="text-[10px] md:text-xs text-slate-400">互動式流程與雲端管理工具</p>
         </div>
-        <div class="flex items-center space-x-3">
-            <label class="flex items-center space-x-2 bg-slate-700 px-3 py-2 rounded-lg cursor-pointer text-xs font-medium hover:bg-slate-600 transition">
+        <div class="flex items-center space-x-2">
+            <label class="flex items-center space-x-1 bg-slate-700 px-2 py-1.5 rounded-lg cursor-pointer text-[11px] font-medium hover:bg-slate-600 transition">
                 <input type="checkbox" id="editModeToggle" onclick="handleEditModeClick(event)" class="rounded bg-slate-900 border-slate-600 text-amber-500 focus:ring-0">
-                <span class="text-amber-300">開啟編輯模式</span>
+                <span class="text-amber-300">編輯 (9527)</span>
             </label>
-            <button onclick="exportJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-medium transition shadow">匯出 JSON</button>
-            <label class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium transition shadow cursor-pointer">
+            <button onclick="exportJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] px-2.5 py-1.5 rounded-lg font-medium transition shadow hidden md:inline-block">匯出 JSON</button>
+            <label class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] px-2.5 py-1.5 rounded-lg font-medium transition shadow cursor-pointer hidden md:inline-block">
                 匯入 JSON
                 <input type="file" id="importFile" class="hidden" accept=".json" onchange="importJSON(event)">
             </label>
         </div>
     </header>
 
+    <!-- 手機版底部導航欄 (Tab Bar) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-50 flex justify-around py-2 px-1 text-xs">
+        <button onclick="switchTab('workflow')" id="tab-btn-workflow" class="flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400">流程圖</button>
+        <button onclick="switchTab('quick')" id="tab-btn-quick" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">表單專區</button>
+        <button onclick="switchTab('email')" id="tab-btn-email" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">快速通報</button>
+    </nav>
+
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
         
-        <!-- 上方：5大指定表單與系統快捷按鈕區 -->
-        <section class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-lg">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-md font-semibold text-amber-400 border-l-4 border-amber-400 pl-3">表單與系統工具專區</h2>
-                <span class="text-xs text-slate-400">點擊按鈕可開啟外部連結，圖片可點擊燈箱檢視。</span>
+        <!-- 區塊一：表單與系統工具專區 -->
+        <section id="section-quick" class="tab-section bg-slate-800/80 border border-slate-700 rounded-xl p-4 md:p-5 shadow-lg">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm md:text-md font-semibold text-amber-400 border-l-4 border-amber-400 pl-3">表單與系統工具專區</h2>
+                <span class="text-[11px] text-slate-400 hidden md:inline">點擊卡片開啟外部連結，圖片可點燈箱檢視</span>
             </div>
-            <div id="quick-buttons-container" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <!-- 動態生成 5 個指定快捷按鈕 -->
+            <div id="quick-buttons-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <!-- 動態生成 -->
             </div>
         </section>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- 左側：流程圖卡片區 (佔 2 欄) -->
-            <div class="lg:col-span-2 space-y-6">
+            <!-- 區塊二：核心流程節點 -->
+            <div id="section-workflow" class="tab-section lg:col-span-2 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-semibold text-slate-200 border-l-4 border-amber-400 pl-3">核心流程節點</h2>
-                    <span id="mode-hint" class="text-xs text-slate-400">提示：點擊卡片可編輯內容。</span>
+                    <h2 class="text-sm md:text-lg font-semibold text-slate-200 border-l-4 border-amber-400 pl-3">核心流程節點</h2>
+                    <span id="mode-hint" class="text-[11px] text-slate-400">提示：點擊卡片可檢視或編輯</span>
                 </div>
 
-                <div id="workflow-container" class="space-y-4">
-                    <!-- 流程節點將由 JavaScript 動態生成 -->
+                <div id="workflow-container" class="space-y-3">
+                    <!-- 動態生成 -->
                 </div>
             </div>
 
-            <!-- 右側：編輯面板與 Email 派送區 (佔 1 欄) -->
-            <div class="space-y-6">
+            <!-- 區塊三：編輯面板與 Email 派送區 -->
+            <div id="section-email" class="tab-section space-y-6">
                 
                 <!-- 編輯卡片細節面板 (預設隱藏) -->
-                <div id="edit-panel" class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg hidden">
-                    <h2 class="text-md font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-2">資料編輯面板</h2>
-                    <div id="edit-form" class="space-y-4 text-sm">
-                        <p class="text-xs text-slate-400">請從上方或左側點擊欲編輯的項目。</p>
+                <div id="edit-panel" class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5 shadow-lg hidden">
+                    <h2 class="text-sm md:text-md font-semibold text-amber-400 mb-3 border-b border-slate-700 pb-2">資料編輯面板</h2>
+                    <div id="edit-form" class="space-y-3 text-xs">
+                        <p class="text-slate-400">請從上方或流程圖點擊欲編輯的項目。</p>
                     </div>
                 </div>
 
                 <!-- Email 快速勾選與派送區 -->
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg">
-                    <h2 class="text-md font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-2">內部 Email 通報勾選派送</h2>
-                    <div class="space-y-3 text-sm">
-                        <p class="text-xs text-slate-400">請輸入車號並勾選收件對象（總經理將自動列入副本）</p>
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5 shadow-lg">
+                    <h2 class="text-sm md:text-md font-semibold text-amber-400 mb-3 border-b border-slate-700 pb-2">內部 Email 通報勾選派送</h2>
+                    <div class="space-y-3 text-xs">
+                        <p class="text-slate-400">請輸入車號並勾選收件對象（總經理自動列入副本）</p>
                         
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">受理車號 (例如：ABC-1234)</label>
+                            <label class="block text-[11px] text-slate-400 mb-1">受理車號 (例如：ABC-1234)</label>
                             <input type="text" id="email-car-id" placeholder="請輸入車號" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:border-amber-400 outline-none">
                         </div>
 
                         <div class="space-y-2 pt-2 border-t border-slate-700">
-                            <p class="text-xs font-medium text-amber-300">總經理（自動列入副本 CC）：</p>
+                            <p class="font-medium text-amber-300">總經理（自動列入副本 CC）：</p>
                             <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
-                                <input type="checkbox" id="cc-manager" value="william@starunited.tw" checked disabled class="rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0">
-                                <span>總經理 - 徐文勇 (william@starunited.tw)</span>
+                                <input type="checkbox" id="cc-manager" value="william@starunited.tw" checked disabled class="rounded bg-slate-900 border-slate-700 text-amber-500">
+                                <span>徐文勇 (william@starunited.tw)</span>
                             </label>
                         </div>
 
                         <div class="space-y-2 pt-2 border-t border-slate-700">
-                            <p class="text-xs font-medium text-amber-300">收件人 (To)：</p>
+                            <p class="font-medium text-amber-300">收件人 (To)：</p>
                             <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
-                                <input type="checkbox" value="chris_wu@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0" checked>
+                                <input type="checkbox" value="chris_wu@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500" checked>
                                 <span>售後總監 - 吳柏毅</span>
                             </label>
                             <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
-                                <input type="checkbox" value="eric@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0" checked>
+                                <input type="checkbox" value="eric@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500" checked>
                                 <span>銷售總監 - 廖宗俊</span>
                             </label>
                             <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
-                                <input type="checkbox" value="mike_chen@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0" checked>
+                                <input type="checkbox" value="mike_chen@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500" checked>
                                 <span>CRM 經理 - 陳永信</span>
                             </label>
                             <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
-                                <input type="checkbox" value="michael@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0">
-                                <span>營業所主管 (內湖) - 楊智元</span>
+                                <input type="checkbox" value="michael@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span>營業所主管(內湖) - 楊智元</span>
                             </label>
                             <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
-                                <input type="checkbox" value="tiger_yeh@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0">
-                                <span>營業所主管 (北投) - 葉桓佑</span>
+                                <input type="checkbox" value="tiger_yeh@starunited.tw" class="to-checkbox rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span>營業所主管(北投) - 葉桓佑</span>
                             </label>
                         </div>
 
-                        <button onclick="generateMailto()" class="w-full mt-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg text-xs transition shadow">
+                        <button onclick="generateMailto()" class="w-full mt-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition shadow">
                             產生郵件清單並發送通報
                         </button>
                     </div>
@@ -138,7 +145,7 @@
         let currentSelectedType = null;
         let currentSelectedIndex = null;
 
-        let quickButtonsData = [
+        let defaultQuickButtons = [
             { id: 1, title: "顧客抱怨補償處置申請書", imageUrl: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=300&q=80", fileUrl: "" },
             { id: 2, title: "星聯汽車內部簽呈", imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=300&q=80", fileUrl: "" },
             { id: 3, title: "文管中心/文件編號申請", imageUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=300&q=80", fileUrl: "" },
@@ -146,19 +153,69 @@
             { id: 5, title: "客訴與賠償處理作業流程SOP", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=300&q=80", fileUrl: "" }
         ];
 
-        let workflowData = [
+        let defaultWorkflow = [
             { id: 1, step: "Stage 01", title: "事件進線與基礎建檔", desc: "記錄人、事、時、地、物基礎資料，備妥工單、成本與試算金額。", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
             { id: 2, step: "Stage 02", title: "案件屬性判定與分流", desc: "區分為『產品問題（總代理責任）』或『廠內人為疏失（廠內自理）』。", imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
             { id: 3, step: "Stage 03-A", title: "【產品問題】總代理籌碼與事件單", desc: "與總代理溝通補償籌碼，填寫事件單，並執行內部 Email 通報。", imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=400&q=80", fileUrl: "" },
             { id: 4, step: "Stage 03-B", title: "【廠內疏失】外部編號與內部簽呈", desc: "至文管中心產出編號，填入簽呈，轉入電子簽呈系統（總經理審核）。", imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=400&q=80", fileUrl: "" }
         ];
 
-        // 點擊編輯模式 Checkbox 時觸發密碼驗證
-        function handleEditModeClick(event) {
-            event.preventDefault(); // 先阻止勾選預設行為
+        let quickButtonsData = JSON.parse(localStorage.getItem('sop_quickButtons')) || defaultQuickButtons;
+        let workflowData = JSON.parse(localStorage.getItem('sop_workflow')) || defaultWorkflow;
 
+        function saveData() {
+            localStorage.setItem('sop_quickButtons', JSON.stringify(quickButtonsData));
+            localStorage.setItem('sop_workflow', JSON.stringify(workflowData));
+        }
+
+        // 手機版底部 Tab 切換邏輯
+        function switchTab(tabName) {
+            const sQuick = document.getElementById('section-quick');
+            const sWorkflow = document.getElementById('section-workflow');
+            const sEmail = document.getElementById('section-email');
+
+            const btnW = document.getElementById('tab-btn-workflow');
+            const btnQ = document.getElementById('tab-btn-quick');
+            const btnE = document.getElementById('tab-btn-email');
+
+            // 預設重置按鈕樣式
+            [btnW, btnQ, btnE].forEach(b => {
+                b.className = "flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent";
+            });
+
+            // 電腦版永遠全部顯示，手機版依 Tab 顯示
+            if (window.innerWidth < 768) {
+                sQuick.style.display = 'none';
+                sWorkflow.style.display = 'none';
+                sEmail.style.display = 'none';
+
+                if (tabName === 'workflow') {
+                    sWorkflow.style.display = 'block';
+                    btnW.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                } else if (tabName === 'quick') {
+                    sQuick.style.display = 'block';
+                    btnQ.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                } else if (tabName === 'email') {
+                    sEmail.style.display = 'block';
+                    btnE.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                }
+            }
+        }
+
+        // 螢幕大小改變時自動適應
+        window.onresize = function() {
+            if (window.innerWidth >= 768) {
+                document.getElementById('section-quick').style.display = 'block';
+                document.getElementById('section-workflow').style.display = 'block';
+                document.getElementById('section-email').style.display = 'block';
+            } else {
+                switchTab('workflow');
+            }
+        };
+
+        function handleEditModeClick(event) {
+            event.preventDefault();
             if (!isEditMode) {
-                // 若目前為關閉狀態，要求輸入密碼
                 const password = prompt("請輸入編輯模式密碼：");
                 if (password === "9527") {
                     isEditMode = true;
@@ -170,7 +227,6 @@
                     document.getElementById('editModeToggle').checked = false;
                 }
             } else {
-                // 若目前為開啟狀態，直接關閉
                 isEditMode = false;
                 document.getElementById('editModeToggle').checked = false;
                 document.getElementById('edit-panel').classList.add('hidden');
@@ -191,7 +247,7 @@
 
             quickButtonsData.forEach((item, index) => {
                 const card = document.createElement('div');
-                card.className = `bg-slate-900 border ${currentSelectedType === 'quick' && currentSelectedIndex === index && isEditMode ? 'border-amber-400 ring-1 ring-amber-400' : 'border-slate-700'} rounded-lg p-3 flex flex-col justify-between transition shadow`;
+                card.className = `bg-slate-900 border ${currentSelectedType === 'quick' && currentSelectedIndex === index && isEditMode ? 'border-amber-400 ring-1 ring-amber-400' : 'border-slate-700'} rounded-lg p-2.5 flex flex-col justify-between transition shadow`;
                 
                 if (isEditMode) {
                     card.classList.add('cursor-pointer', 'hover:border-slate-500');
@@ -200,15 +256,15 @@
 
                 let linkAction = '';
                 if (item.fileUrl && item.fileUrl.trim() !== '') {
-                    linkAction = `<button onclick="event.stopPropagation(); window.open('${item.fileUrl}', '_blank')" class="mt-2 w-full bg-indigo-600/40 hover:bg-indigo-600 text-indigo-200 hover:text-white py-1 rounded text-[11px] transition text-center border border-indigo-500/30 truncate">開啟連結</button>`;
+                    linkAction = `<button onclick="event.stopPropagation(); window.open('${item.fileUrl}', '_blank')" class="mt-2 w-full bg-indigo-600/40 hover:bg-indigo-600 text-indigo-200 hover:text-white py-1 rounded text-[10px] transition text-center border border-indigo-500/30 truncate">開啟連結</button>`;
                 }
 
                 card.innerHTML = `
                     <div>
-                        <div class="h-20 bg-slate-950 rounded overflow-hidden mb-2 relative border border-slate-800 cursor-pointer" onclick="event.stopPropagation(); openLightbox('${item.imageUrl}')" title="點擊放大圖片">
+                        <div class="h-16 bg-slate-950 rounded overflow-hidden mb-2 relative border border-slate-800 cursor-pointer" onclick="event.stopPropagation(); openLightbox('${item.imageUrl}')" title="點擊放大圖片">
                             <img src="${item.imageUrl}" alt="預覽圖" class="w-full h-full object-cover">
                         </div>
-                        <h3 class="font-bold text-slate-100 text-xs leading-snug line-clamp-2">${item.title}</h3>
+                        <h3 class="font-bold text-slate-100 text-[11px] leading-snug line-clamp-2">${item.title}</h3>
                     </div>
                     <div>
                         ${linkAction}
@@ -224,7 +280,7 @@
 
             workflowData.forEach((item, index) => {
                 const card = document.createElement('div');
-                card.className = `bg-slate-800 border ${currentSelectedType === 'workflow' && currentSelectedIndex === index && isEditMode ? 'border-amber-400 ring-1 ring-amber-400' : 'border-slate-700'} rounded-xl p-4 transition shadow-md flex flex-col md:flex-row gap-4 items-center`;
+                card.className = `bg-slate-800 border ${currentSelectedType === 'workflow' && currentSelectedIndex === index && isEditMode ? 'border-amber-400 ring-1 ring-amber-400' : 'border-slate-700'} rounded-xl p-3 transition shadow-md flex gap-3 items-center`;
                 
                 if (isEditMode) {
                     card.classList.add('cursor-pointer', 'hover:border-slate-500');
@@ -233,18 +289,18 @@
 
                 let fileActionHTML = '';
                 if (item.fileUrl && item.fileUrl.trim() !== '') {
-                    fileActionHTML = `<button onclick="event.stopPropagation(); window.open('${item.fileUrl}', '_blank')" class="bg-indigo-600/40 hover:bg-indigo-600 text-indigo-300 hover:text-white px-2.5 py-1 rounded text-xs transition border border-indigo-500/30">開啟外部檔案</button>`;
+                    fileActionHTML = `<button onclick="event.stopPropagation(); window.open('${item.fileUrl}', '_blank')" class="bg-indigo-600/40 hover:bg-indigo-600 text-indigo-300 hover:text-white px-2 py-0.5 rounded text-[10px] transition border border-indigo-500/30">開啟檔案</button>`;
                 }
 
                 card.innerHTML = `
-                    <div class="w-full md:w-32 h-24 bg-slate-900 rounded-lg overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer" onclick="event.stopPropagation(); openLightbox('${item.imageUrl}')" title="點擊放大圖片">
+                    <div class="w-20 h-16 bg-slate-900 rounded-lg overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer" onclick="event.stopPropagation(); openLightbox('${item.imageUrl}')" title="點擊放大圖片">
                         <img src="${item.imageUrl}" alt="節點圖片" class="w-full h-full object-cover">
-                        <span class="absolute bottom-1 left-1 bg-slate-950/80 text-amber-400 text-[10px] px-1.5 py-0.5 rounded">${item.step}</span>
+                        <span class="absolute bottom-0.5 left-0.5 bg-slate-950/80 text-amber-400 text-[9px] px-1 rounded">${item.step}</span>
                     </div>
-                    <div class="flex-1 space-y-1">
-                        <h3 class="font-bold text-slate-100 text-sm">${item.title}</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed">${item.desc}</p>
-                        <div class="pt-1 flex items-center space-x-3 text-xs">
+                    <div class="flex-1 space-y-1 min-w-0">
+                        <h3 class="font-bold text-slate-100 text-xs truncate">${item.title}</h3>
+                        <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">${item.desc}</p>
+                        <div class="pt-0.5 flex items-center space-x-2">
                             ${fileActionHTML}
                         </div>
                     </div>
@@ -261,22 +317,22 @@
             const item = quickButtonsData[index];
             const form = document.getElementById('edit-form');
             form.innerHTML = `
-                <div class="space-y-3">
-                    <p class="text-xs text-amber-400 font-semibold">正在編輯表單專區：</p>
+                <div class="space-y-2">
+                    <p class="text-[11px] text-amber-400 font-semibold">正在編輯表單專區：</p>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">按鈕標題名稱</label>
-                        <input type="text" id="edit-q-title" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:border-amber-400 outline-none">
+                        <label class="block text-[10px] text-slate-400 mb-0.5">標題名稱</label>
+                        <input type="text" id="edit-q-title" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-200 text-xs focus:border-amber-400 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">更換預覽圖片</label>
-                        <input type="file" id="edit-q-image" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-amber-400 cursor-pointer">
+                        <label class="block text-[10px] text-slate-400 mb-0.5">更換圖片</label>
+                        <input type="file" id="edit-q-image" accept="image/*" class="w-full text-[10px] text-slate-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-slate-700 file:text-amber-400 cursor-pointer">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">外部檔案／系統網址 (PDF/Word/網址)</label>
-                        <input type="text" id="edit-q-file" value="${item.fileUrl || ''}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:border-amber-400 outline-none">
+                        <label class="block text-[10px] text-slate-400 mb-0.5">外部檔案／系統網址</label>
+                        <input type="text" id="edit-q-file" value="${item.fileUrl || ''}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-200 text-xs focus:border-amber-400 outline-none">
                     </div>
-                    <button onclick="saveQuickNode(${index})" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg text-xs transition shadow mt-2">
-                        儲存項目變更
+                    <button onclick="saveQuickNode(${index})" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-1.5 rounded text-xs transition shadow mt-1">
+                        儲存變更
                     </button>
                 </div>
             `;
@@ -290,26 +346,26 @@
             const item = workflowData[index];
             const form = document.getElementById('edit-form');
             form.innerHTML = `
-                <div class="space-y-3">
-                    <p class="text-xs text-amber-400 font-semibold">正在編輯流程節點：</p>
+                <div class="space-y-2">
+                    <p class="text-[11px] text-amber-400 font-semibold">正在編輯流程節點：</p>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">節點標題</label>
-                        <input type="text" id="edit-w-title" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:border-amber-400 outline-none">
+                        <label class="block text-[10px] text-slate-400 mb-0.5">節點標題</label>
+                        <input type="text" id="edit-w-title" value="${item.title}" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-200 text-xs focus:border-amber-400 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">節點說明</label>
-                        <textarea id="edit-w-desc" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:border-amber-400 outline-none">${item.desc}</textarea>
+                        <label class="block text-[10px] text-slate-400 mb-0.5">節點說明</label>
+                        <textarea id="edit-w-desc" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-200 text-xs focus:border-amber-400 outline-none">${item.desc}</textarea>
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">更換節點圖片</label>
-                        <input type="file" id="edit-w-image" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-amber-400 cursor-pointer">
+                        <label class="block text-[10px] text-slate-400 mb-0.5">更換圖片</label>
+                        <input type="file" id="edit-w-image" accept="image/*" class="w-full text-[10px] text-slate-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-slate-700 file:text-amber-400 cursor-pointer">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">外部檔案／系統網址</label>
-                        <input type="text" id="edit-w-file" value="${item.fileUrl || ''}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:border-amber-400 outline-none">
+                        <label class="block text-[10px] text-slate-400 mb-0.5">外部檔案／系統網址</label>
+                        <input type="text" id="edit-w-file" value="${item.fileUrl || ''}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-slate-200 text-xs focus:border-amber-400 outline-none">
                     </div>
-                    <button onclick="saveWorkflowNode(${index})" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg text-xs transition shadow mt-2">
-                        儲存節點變更
+                    <button onclick="saveWorkflowNode(${index})" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-1.5 rounded text-xs transition shadow mt-1">
+                        儲存變更
                     </button>
                 </div>
             `;
@@ -323,13 +379,15 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     quickButtonsData[index].imageUrl = e.target.result;
+                    saveData();
                     renderAll();
-                    alert('表單專區項目更新成功！');
+                    alert('已儲存！');
                 };
                 reader.readAsDataURL(imgFile);
             } else {
+                saveData();
                 renderAll();
-                alert('表單專區項目更新成功！');
+                alert('已儲存！');
             }
         }
 
@@ -342,13 +400,15 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     workflowData[index].imageUrl = e.target.result;
+                    saveData();
                     renderAll();
-                    alert('流程節點更新成功！');
+                    alert('已儲存！');
                 };
                 reader.readAsDataURL(imgFile);
             } else {
+                saveData();
                 renderAll();
-                alert('流程節點更新成功！');
+                alert('已儲存！');
             }
         }
 
@@ -383,14 +443,11 @@
                         if (parsed.quickButtons && parsed.workflow) {
                             quickButtonsData = parsed.quickButtons;
                             workflowData = parsed.workflow;
+                            saveData();
                             renderAll();
-                            alert('JSON 匯入成功！');
-                        } else {
-                            alert('格式不符');
+                            alert('匯入成功！');
                         }
-                    } catch (err) {
-                        alert('解析失敗');
-                    }
+                    } catch (err) { alert('解析失敗'); }
                 };
             }
         }
@@ -400,10 +457,7 @@
             const carTag = carIdInput ? `[${carIdInput}]` : "[未填車號]";
             
             const toBoxes = document.querySelectorAll('.to-checkbox:checked');
-            if (toBoxes.length === 0) { 
-                alert('請至少勾選一位收件人！'); 
-                return; 
-            }
+            if (toBoxes.length === 0) { alert('請至少勾選一位收件人！'); return; }
             
             const toEmails = Array.from(toBoxes).map(b => b.value).join(',');
             const ccEmail = "william@starunited.tw";
@@ -419,7 +473,11 @@
             window.location.href = `mailto:${toEmails}?cc=${ccEmail}&subject=${subject}&body=${body}`;
         }
 
+        // 初始化
         renderAll();
+        if (window.innerWidth < 768) {
+            switchTab('workflow');
+        }
     </script>
 </body>
 </html>
