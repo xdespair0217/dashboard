@@ -866,8 +866,9 @@
                     <div class="kpi-title">
                         <span>⏳ 130 定保喚醒戰情報告 (滿年/逾期流失防禦)</span>
                     </div>
-                    <div style="font-size:0.8rem; font-weight:700; color:var(--btn-blue);" id="m130TotalSumText">
-                        納管基盤：0 台
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-copy-main" onclick="exportM130ContactedCSV()">📥 匯出已電聯 Excel</button>
+                        <button class="btn-copy-main" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155;" onclick="printM130Report()">🖨️ 友善列印報表</button>
                     </div>
                 </div>
 
@@ -1673,7 +1674,6 @@
                 else noNoteCount++;
             });
 
-            document.getElementById('m130TotalSumText').innerText = `納管基盤：${m130List.length} 台`;
             document.getElementById('m130KpiOver12').innerText = over12Count;
             document.getElementById('m130KpiM11').innerText = m11Count;
             document.getElementById('m130KpiM10').innerText = m10Count;
@@ -1726,6 +1726,98 @@
             btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             triggerOptimizedRender();
+        }
+
+        // ==================== 130 報表匯出與友善列印 ====================
+        function getM130ContactedList() {
+            return m130List.filter(item => Boolean(cloudNotes[item.plate]));
+        }
+
+        function exportM130ContactedCSV() {
+            const list = getM130ContactedList();
+            if (list.length === 0) {
+                alert('目前尚無已填寫電聯備註的車輛資料！');
+                return;
+            }
+
+            let csvContent = "\uFEFF車牌號碼,車型,車主/窗口,聯絡電話,指定專員,上次進廠日,前次里程,失聯月數,電聯追蹤備註\n";
+            list.forEach(item => {
+                const note = (cloudNotes[item.plate] || '').replace(/"/g, '""');
+                const contactPerson = item.driver ? `${item.driver}(駕駛)` : item.owner;
+                csvContent += `"${item.plate}","${item.model}","${contactPerson}","${item.phone}","${item.finalSa}","${item.lastDate}","${item.lastKm}","${item.lostMonths}個月","${note}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `尚鵬內湖_130已電聯成果報表_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function printM130Report() {
+            const list = getM130ContactedList();
+            if (list.length === 0) {
+                alert('目前尚無已填寫電聯備註的車輛資料！');
+                return;
+            }
+
+            const printWin = window.open('', '', 'width=980,height=650');
+            let rowsHtml = list.map((item, idx) => `
+                <tr>
+                    <td style="text-align:center;">${idx + 1}</td>
+                    <td><strong>${item.plate}</strong></td>
+                    <td>${item.model}</td>
+                    <td>${item.driver ? `${item.driver}(駕駛)` : item.owner}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td style="font-weight:700;">${item.finalSa}</td>
+                    <td>${item.lastDate} (${item.lostMonths}月)</td>
+                    <td style="color:#b91c1c; font-weight:600;">${cloudNotes[item.plate] || '-'}</td>
+                </tr>
+            `).join('');
+
+            printWin.document.write(`
+                <html>
+                <head>
+                    <title>尚鵬內湖保養廠 - 130定保關懷追蹤成果報表</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 25px; color: #111827; }
+                        h2 { margin: 0 0 6px 0; text-align: center; font-size: 1.3rem; }
+                        .sub { text-align: center; font-size: 0.85rem; color: #4b5563; margin-bottom: 18px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+                        th, td { border: 1px solid #cbd5e1; padding: 8px 6px; text-align: left; }
+                        th { background-color: #f1f5f9; font-weight: 700; }
+                        tr:nth-child(even) { background-color: #f8fafc; }
+                    </style>
+                </head>
+                <body>
+                    <h2>🚗 尚鵬汽車 內湖保養廠 - 130 定保喚醒電聯成果清單</h2>
+                    <div class="sub">報表產出：${new Date().toLocaleString()} ｜ 已電聯回報：${list.length} 台</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:30px; text-align:center;">#</th>
+                                <th>車牌</th>
+                                <th>車型</th>
+                                <th>車主/窗口</th>
+                                <th>電話</th>
+                                <th>指定專員</th>
+                                <th>上次進廠</th>
+                                <th>電聯追蹤成果 / 車主回覆</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(() => { printWin.print(); }, 400);
         }
 
         // ==================== 雲端備註 & 工單結案 ====================
