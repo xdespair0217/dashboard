@@ -173,8 +173,16 @@
             { id: 4, step: "Stage 03-B", title: "【廠內疏失】外部編號與內部簽呈", desc: "至文管中心產出編號，填入簽呈，轉入電子簽呈系統（總經理審核）。", imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=500&q=80", fileUrl: "" }
         ];
 
-        let quickButtonsData = JSON.parse(localStorage.getItem('sop_quickButtons')) || defaultQuickButtons;
-        let workflowData = JSON.parse(localStorage.getItem('sop_workflow')) || defaultWorkflow;
+        // 絕對安全的本地端優先初始化（不會有 fetch 找不到外部 JSON 導致解析失敗的問題）
+        let quickButtonsData, workflowData;
+        try {
+            quickButtonsData = JSON.parse(localStorage.getItem('sop_quickButtons')) || defaultQuickButtons;
+            workflowData = JSON.parse(localStorage.getItem('sop_workflow')) || defaultWorkflow;
+        } catch(e) {
+            quickButtonsData = defaultQuickButtons;
+            workflowData = defaultWorkflow;
+            localStorage.clear();
+        }
 
         function checkDailyAuth() {
             const authDate = localStorage.getItem('sop_auth_date');
@@ -406,7 +414,6 @@
             `;
         }
 
-        // 最佳化速度：儲存後採用局部即時更新，不卡頓
         function saveQuickNode(index) {
             quickButtonsData[index].title = document.getElementById('edit-q-title').value;
             quickButtonsData[index].fileUrl = document.getElementById('edit-q-file').value;
