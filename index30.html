@@ -844,7 +844,7 @@
             </div>
         </div>
 
-        <!-- 6. ⏳ 130 久未 (久未回廠) 操作區 -->
+        <!-- 6. ⏳ 130 久未 (久未回廠) 操作區 ➜ 備註寫入 CALL_LOG -->
         <div id="m130ControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
@@ -896,7 +896,7 @@
             </div>
         </div>
 
-        <!-- 7. ✨ 670 新車 (新車首保與滿月關懷) 操作區 -->
+        <!-- 7. ✨ 670 新車 (新車首保與滿月關懷) 操作區 ➜ 備註寫入 670_NOTE -->
         <div id="m670ControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
@@ -965,9 +965,9 @@
         const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
         const AR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=809519769&single=true&output=csv';
         
-        // 🚨 130 久未 (130_MONITOR)
+        // 130 久未 (130_MONITOR)
         const M130_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1737645789&single=true&output=csv';
-        // 🚨 670 新車 (NEW_CAR_MONITOR)
+        // 670 新車 (NEW_CAR_MONITOR)
         const M670_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=495030812&single=true&output=csv';
 
         const PROJECT_CONFIGS = {
@@ -982,9 +982,13 @@
         let currentMainTrack = 'ORDERS';
         let currentSelectedProjectKey = 'M5B';
 
+        // 獨立備註資料庫
         let orders = [];
-        let cloudNotes = {};
+        let cloudNotes = {};       // 未結工單 (備註記錄)
         let closedOrderSet = new Set();
+        let cloudNotes130 = {};    // 130 久未 (CALL_LOG)
+        let cloudNotes670 = {};    // 670 新車 (670_NOTE)
+
         let activeCategory = 'ALL';
         let activeSa = 'ALL';
         let debounceTimers = {};
@@ -1070,7 +1074,6 @@
             document.getElementById('projectSelectorContainer').style.display = (track === 'PROJECT') ? 'inline-flex' : 'none';
             document.getElementById('searchInput').value = '';
 
-            // 清空目前的卡片網格，避免殘留上一頁的卡片
             document.getElementById('cardsGrid').innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">資料載入中...</div>';
 
             if (track === 'PROJECT') {
@@ -1592,7 +1595,7 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 久未回廠模組核心邏輯 ====================
+        // ==================== ⏳ 130 久未回廠模組核心邏輯 (讀寫 CALL_LOG) ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">載入 130 久未回廠資料中...</div>';
@@ -1621,7 +1624,6 @@
             const seenPlates = new Set();
 
             rows.forEach(r => {
-                // 智能獲取車牌 (防 BOM 與空白)
                 let plate = '';
                 for (let key in r) {
                     const cleanKey = String(key).trim();
@@ -1640,7 +1642,7 @@
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
                 
-                // 💡 智能抓取專員 (周永盛 / 陳嘉駒 / 趙少曄)
+                // 專員讀取 (支援模糊匹配指定專員/接待)
                 let foundSa = '';
                 for (let key in r) {
                     const cleanKey = String(key).trim();
@@ -1682,7 +1684,7 @@
 
             m130List.forEach(item => {
                 const m = item.lostMonths;
-                const hasNote = Boolean(cloudNotes[item.plate]);
+                const hasNote = Boolean(cloudNotes130[item.plate]); // 130 獨立讀取 CALL_LOG
 
                 if (m >= 12) over12Count++;
                 else if (m === 11) m11Count++;
@@ -1748,7 +1750,7 @@
         }
 
         function getM130ContactedList() {
-            return m130List.filter(item => Boolean(cloudNotes[item.plate]));
+            return m130List.filter(item => Boolean(cloudNotes130[item.plate]));
         }
 
         function exportM130ContactedCSV() {
@@ -1760,7 +1762,7 @@
 
             let csvContent = "\uFEFF車牌號碼,車型,車主/窗口,聯絡電話,服務專員,上次進廠日,前次里程,失聯月數,電聯追蹤備註\n";
             list.forEach(item => {
-                const note = (cloudNotes[item.plate] || '').replace(/"/g, '""');
+                const note = (cloudNotes130[item.plate] || '').replace(/"/g, '""');
                 const contactPerson = item.driver ? `${item.driver}(駕駛)` : item.owner;
                 csvContent += `"${item.plate}","${item.model}","${contactPerson}","${item.phone}","${item.finalSa}","${item.lastDate}","${item.lastKm}","${item.lostMonths}個月","${note}"\n`;
             });
@@ -1792,7 +1794,7 @@
                     <td>${item.phone || '-'}</td>
                     <td style="font-weight:700;">${item.finalSa}</td>
                     <td>${item.lastDate} (${item.lostMonths}月)</td>
-                    <td style="color:#b91c1c; font-weight:600;">${cloudNotes[item.plate] || '-'}</td>
+                    <td style="color:#b91c1c; font-weight:600;">${cloudNotes130[item.plate] || '-'}</td>
                 </tr>
             `).join('');
 
@@ -1838,7 +1840,7 @@
             setTimeout(() => { printWin.print(); }, 400);
         }
 
-        // ==================== ✨ 670 新車交車首保模組核心邏輯 ====================
+        // ==================== ✨ 670 新車交車首保模組核心邏輯 (讀寫 670_NOTE) ====================
         function loadM670Data() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light); grid-column: 1 / -1;">載入 670 新車首保資料中...</div>';
@@ -1939,7 +1941,7 @@
 
             m670List.forEach(item => {
                 const d = item.days;
-                const hasNote = Boolean(cloudNotes[item.plate]);
+                const hasNote = Boolean(cloudNotes670[item.plate]); // 670 獨立讀取 670_NOTE
 
                 if (d >= 30 && d <= 60) m1Count++;
                 else if (d > 60 && d <= 90) m2Count++;
@@ -2009,7 +2011,7 @@
         }
 
         function getM670ContactedList() {
-            return m670List.filter(item => Boolean(cloudNotes[item.plate]));
+            return m670List.filter(item => Boolean(cloudNotes670[item.plate]));
         }
 
         function exportM670ContactedCSV() {
@@ -2021,7 +2023,7 @@
 
             let csvContent = "\uFEFF車牌號碼,品牌,車型,車主,聯絡電話,交車日期,交車天數,交車業務,指定專員,銷售類別,電聯成果備註\n";
             list.forEach(item => {
-                const note = (cloudNotes[item.plate] || '').replace(/"/g, '""');
+                const note = (cloudNotes670[item.plate] || '').replace(/"/g, '""');
                 csvContent += `"${item.plate}","${item.brand}","${item.model}","${item.owner}","${item.phone}","${item.deliveryDate}","${item.days}天","${item.salesPerson}","${item.finalSa}","${item.salesCategory}","${note}"\n`;
             });
 
@@ -2053,7 +2055,7 @@
                     <td>${item.deliveryDate} (${item.days}天)</td>
                     <td>${item.salesPerson}</td>
                     <td style="font-weight:700;">${item.finalSa}</td>
-                    <td style="color:#b91c1c; font-weight:600;">${cloudNotes[item.plate] || '-'}</td>
+                    <td style="color:#b91c1c; font-weight:600;">${cloudNotes670[item.plate] || '-'}</td>
                 </tr>
             `).join('');
 
@@ -2100,7 +2102,7 @@
             setTimeout(() => { printWin.print(); }, 400);
         }
 
-        // ==================== 雲端備註 & 工單結案 ====================
+        // ==================== 雲端備註 & 工單結案 (三軌完全分離) ====================
         function fetchCloudNotesJSONP() {
             const script = document.createElement('script');
             const callbackName = 'onNotesLoaded_' + Date.now();
@@ -2115,6 +2117,8 @@
                 if (data) {
                     cloudNotes = data.notes || {};
                     closedOrderSet = new Set(data.closedOrders || []);
+                    cloudNotes130 = data.notes130 || {}; // 來自 CALL_LOG
+                    cloudNotes670 = data.notes670 || {}; // 來自 670_NOTE
                 }
                 renderCounts();
                 if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
@@ -2136,6 +2140,50 @@
                 script.remove(); 
             };
             document.body.appendChild(script);
+        }
+
+        // 1. 未結工單備註 (寫入 備註記錄)
+        function handleNoteInput(orderNo, value, hintId) {
+            cloudNotes[orderNo] = value.trim();
+            updateNoteRemote(orderNo, value.trim(), '', hintId);
+        }
+
+        // 2. 130 久未回廠備註 (寫入 CALL_LOG)
+        function handleNoteInput130(plate, value, hintId) {
+            cloudNotes130[plate] = value.trim();
+            updateNoteRemote(plate, value.trim(), '130', hintId);
+        }
+
+        // 3. 670 新車首保備註 (寫入 670_NOTE)
+        function handleNoteInput670(plate, value, hintId) {
+            cloudNotes670[plate] = value.trim();
+            updateNoteRemote(plate, value.trim(), '670', hintId);
+        }
+
+        function updateNoteRemote(id, noteVal, sourceTag, hintId) {
+            const hint = document.getElementById(hintId);
+            if (hint) {
+                hint.style.display = 'inline';
+                hint.style.color = '#d97706';
+                hint.innerText = '上傳中...';
+            }
+
+            clearTimeout(debounceTimers[id]);
+            debounceTimers[id] = setTimeout(() => {
+                const bodyStr = `orderNo=${encodeURIComponent(id)}&note=${encodeURIComponent(noteVal)}&source=${encodeURIComponent(sourceTag)}&action=UPDATE_NOTE`;
+                fetch(API_NOTE_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: bodyStr
+                }).then(() => {
+                    if (hint) {
+                        hint.innerText = '✓ 雲端已存';
+                        hint.style.color = '#059669';
+                        setTimeout(() => { hint.style.display = 'none'; }, 2000);
+                    }
+                });
+            }, 600);
         }
 
         function closeWorkOrder(orderNo) {
@@ -2164,33 +2212,6 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `orderNo=${encodeURIComponent(orderNo)}&action=REOPEN_ORDER`
             });
-        }
-
-        function handleNoteInput(orderNo, value, hintId) {
-            cloudNotes[orderNo] = value.trim();
-
-            const hint = document.getElementById(hintId);
-            if (hint) {
-                hint.style.display = 'inline';
-                hint.style.color = '#d97706';
-                hint.innerText = '上傳中...';
-            }
-
-            clearTimeout(debounceTimers[orderNo]);
-            debounceTimers[orderNo] = setTimeout(() => {
-                fetch(API_NOTE_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `orderNo=${encodeURIComponent(orderNo)}&note=${encodeURIComponent(value.trim())}&action=UPDATE_NOTE`
-                }).then(() => {
-                    if (hint) {
-                        hint.innerText = '✓ 雲端已存';
-                        hint.style.color = '#059669';
-                        setTimeout(() => { hint.style.display = 'none'; }, 2000);
-                    }
-                });
-            }, 600);
         }
 
         function parseData(rows) {
@@ -2543,7 +2564,7 @@
                 currentRenderList = m130List.filter(item => {
                     const m = item.lostMonths;
                     const sa = item.finalSa;
-                    const myNote = cloudNotes[item.plate] || '';
+                    const myNote = cloudNotes130[item.plate] || ''; // 130 專用備註
 
                     if (activeM130Category === 'OVER_12' && m < 12) return false;
                     if (activeM130Category === 'M_11' && m !== 11) return false;
@@ -2565,7 +2586,7 @@
                 currentRenderList = m670List.filter(item => {
                     const d = item.days;
                     const sa = item.finalSa;
-                    const myNote = cloudNotes[item.plate] || '';
+                    const myNote = cloudNotes670[item.plate] || ''; // 670 專用備註
                     const isDemo = item.salesCategory.includes('試乘') || item.salesCategory.includes('公關');
 
                     if (activeM670Category === 'D_30_60' && (d < 30 || d > 60)) return false;
@@ -2881,12 +2902,12 @@
                     </div>
                 `;
             } else if (currentMainTrack === 'M130') {
-                // 🚨 這是 130 久未回廠的專屬卡片 (絕不會出現新車首保字樣)
+                // 130 久未回廠專用卡片 ➜ 綁定 cloudNotes130
                 const item = data;
                 const plate = item.plate;
                 const isOver12 = item.lostMonths >= 12;
                 const is11 = item.lostMonths === 11;
-                const myNote = cloudNotes[plate] || '';
+                const myNote = cloudNotes130[plate] || '';
                 const hintId = `hint_m130_${plate}`;
 
                 const contactPerson = item.driver ? `${item.driver} (駕駛)` : item.owner;
@@ -2964,22 +2985,22 @@
 
                             <div class="custom-note-block">
                                 <div class="note-header">
-                                    <span class="note-title">☁️ 電聯備註 (以車牌永久記憶)：</span>
+                                    <span class="note-title">☁️ 130 電聯備註 (寫入 CALL_LOG)：</span>
                                     <span class="cloud-hint" id="${hintId}"></span>
                                 </div>
-                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 已約9/20、外廠保養、換車)..." oninput="handleNoteInput('${plate}', this.value, '${hintId}')">
+                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 已約9/20、外廠保養、換車)..." oninput="handleNoteInput130('${plate}', this.value, '${hintId}')">
                             </div>
                         </div>
                     </div>
                 `;
             } else if (currentMainTrack === 'M670') {
-                // 🚨 這是 670 新車交車首保的專屬卡片
+                // 670 新車專用卡片 ➜ 綁定 cloudNotes670
                 const item = data;
                 const plate = item.plate;
                 const days = item.days;
                 const isOver60 = days > 60;
                 const isMonth1 = days >= 30 && days <= 60;
-                const myNote = cloudNotes[plate] || '';
+                const myNote = cloudNotes670[plate] || '';
                 const hintId = `hint_m670_${plate}`;
                 const isDemo = item.salesCategory.includes('試乘') || item.salesCategory.includes('公關');
 
@@ -3047,10 +3068,10 @@
 
                             <div class="custom-note-block">
                                 <div class="note-header">
-                                    <span class="note-title">☁️ 新車電聯備註 (以車牌永久記憶)：</span>
+                                    <span class="note-title">☁️ 670 電聯備註 (寫入 670_NOTE)：</span>
                                     <span class="cloud-hint" id="${hintId}"></span>
                                 </div>
-                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 里程500km、約下週六、已在別廠保養)..." oninput="handleNoteInput('${plate}', this.value, '${hintId}')">
+                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 里程500km、約下週六、已在別廠保養)..." oninput="handleNoteInput670('${plate}', this.value, '${hintId}')">
                             </div>
                         </div>
                     </div>
