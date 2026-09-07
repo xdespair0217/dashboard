@@ -49,75 +49,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* 密碼鎖定畫面 */
-        #authOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #0f172a;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .auth-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            padding: 28px 24px;
-            border-radius: 14px;
-            width: 100%;
-            max-width: 360px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            text-align: center;
-            color: #ffffff;
-        }
-        .auth-card h2 {
-            margin: 0 0 8px 0;
-            font-size: 1.25rem;
-            font-weight: 800;
-        }
-        .auth-card p {
-            margin: 0 0 20px 0;
-            font-size: 0.8rem;
-            color: #94a3af;
-        }
-        .auth-input {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 8px;
-            border: 1px solid #475569;
-            background: #0f172a;
-            color: #ffffff;
-            font-size: 1.2rem;
-            text-align: center;
-            letter-spacing: 4px;
-            outline: none;
-            margin-bottom: 14px;
-        }
-        .auth-input:focus { border-color: var(--btn-blue); }
-        .auth-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--btn-blue);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .auth-btn:active { transform: scale(0.98); }
-        .auth-error {
-            color: #f87171;
-            font-size: 0.8rem;
-            margin-top: 10px;
-            display: none;
-        }
-
         .navbar {
             background-color: var(--navbar-bg);
             color: #ffffff;
@@ -648,17 +579,6 @@
 </head>
 <body>
 
-    <!-- 密碼驗證遮罩 (9527) -->
-    <div id="authOverlay">
-        <div class="auth-card">
-            <h2>🔒 系統安全驗證</h2>
-            <p>請輸入廠端授權代碼以存取監控數據</p>
-            <input type="password" id="authPasswordInput" class="auth-input" placeholder="••••" maxlength="8" pattern="[0-9]*" inputmode="numeric" onkeydown="if(event.key==='Enter') checkAuthPassword()">
-            <button class="auth-btn" onclick="checkAuthPassword()">解鎖系統</button>
-            <div class="auth-error" id="authErrorMsg">⚠️ 授權密碼錯誤，請重新輸入</div>
-        </div>
-    </div>
-
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>🚗</span> 廠端即時監控系統</div>
@@ -1000,36 +920,6 @@
     </div>
 
     <script>
-        // ==================== 🔒 密碼驗證邏輯 (9527) ====================
-        const SYSTEM_AUTH_KEY = '9527';
-
-        function verifySystemAuth() {
-            const isAuthed = sessionStorage.getItem('SHANGPENG_AUTH_OK');
-            if (isAuthed === 'true') {
-                const overlay = document.getElementById('authOverlay');
-                if (overlay) overlay.style.display = 'none';
-                startApp();
-            } else {
-                const pwdInput = document.getElementById('authPasswordInput');
-                if (pwdInput) pwdInput.focus();
-            }
-        }
-
-        function checkAuthPassword() {
-            const val = document.getElementById('authPasswordInput').value.trim();
-            const errMsg = document.getElementById('authErrorMsg');
-
-            if (val === SYSTEM_AUTH_KEY) {
-                sessionStorage.setItem('SHANGPENG_AUTH_OK', 'true');
-                document.getElementById('authOverlay').style.display = 'none';
-                startApp();
-            } else {
-                errMsg.style.display = 'block';
-                document.getElementById('authPasswordInput').value = '';
-                document.getElementById('authPasswordInput').focus();
-            }
-        }
-
         // ==================== 系統資料源配置 ====================
         // 1. 未結工單 CSV (gid=0)
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
@@ -2691,7 +2581,7 @@
             });
         }
 
-        window.addEventListener('DOMContentLoaded', verifySystemAuth);
+        window.addEventListener('DOMContentLoaded', startApp);
     </script>
 </body>
 </html>
