@@ -167,21 +167,29 @@
         ];
 
         let defaultWorkflow = [
-            { id: 1, step: "Stage 01", title: "事件進線與基礎建檔", desc: "記錄人、事、時、地、物基礎資料，備妥工單、成本與試算金額。", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
+            { id: 1, step: "Stage 01", title: "事件進線與基礎建檔", desc: "記錄人、事、時、地、物基礎資料，備妥工單, 成本與試算金額。", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
             { id: 2, step: "Stage 02", title: "案件屬性判定與分流", desc: "區分為『產品問題（總代理責任）』或『廠內人為疏失（廠內自理）』。", imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
             { id: 3, step: "Stage 03-A", title: "【產品問題】總代理籌碼與事件單", desc: "與總代理溝通補償籌碼，填寫事件單，並執行內部 Email 通報。", imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80", fileUrl: "" },
             { id: 4, step: "Stage 03-B", title: "【廠內疏失】外部編號與內部簽呈", desc: "至文管中心產出編號，填入簽呈，轉入電子簽呈系統（總經理審核）。", imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=500&q=80", fileUrl: "" }
         ];
 
-        // 絕對安全的本地端優先初始化（不會有 fetch 找不到外部 JSON 導致解析失敗的問題）
+        // 絕對安全的本地端優先初始化（已拔除所有會導致解析失敗的警告提示）
         let quickButtonsData, workflowData;
         try {
-            quickButtonsData = JSON.parse(localStorage.getItem('sop_quickButtons')) || defaultQuickButtons;
-            workflowData = JSON.parse(localStorage.getItem('sop_workflow')) || defaultWorkflow;
+            const savedQuick = localStorage.getItem('sop_quickButtons');
+            const savedWorkflow = localStorage.getItem('sop_workflow');
+            
+            quickButtonsData = savedQuick ? JSON.parse(savedQuick) : defaultQuickButtons;
+            workflowData = savedWorkflow ? JSON.parse(savedWorkflow) : defaultWorkflow;
+            
+            if (!Array.isArray(quickButtonsData) || !Array.isArray(workflowData)) {
+                throw new Error("Invalid format");
+            }
         } catch(e) {
             quickButtonsData = defaultQuickButtons;
             workflowData = defaultWorkflow;
-            localStorage.clear();
+            localStorage.removeItem('sop_quickButtons');
+            localStorage.removeItem('sop_workflow');
         }
 
         function checkDailyAuth() {
