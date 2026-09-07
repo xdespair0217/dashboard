@@ -174,7 +174,7 @@
             border-radius: 10px;
             gap: 4px;
             flex: 1;
-            max-width: 780px;
+            max-width: 860px;
         }
         .mode-btn {
             flex: 1;
@@ -624,7 +624,7 @@
                 flex-direction: column;
                 gap: 2px;
                 padding: 5px 2px;
-                font-size: 0.7rem;
+                font-size: 0.68rem;
                 border-radius: 6px;
                 color: #64748b;
             }
@@ -635,7 +635,7 @@
                 font-weight: 800;
             }
             .mode-btn span {
-                font-size: 0.7rem;
+                font-size: 0.68rem;
             }
 
             .project-select-capsule {
@@ -687,6 +687,9 @@
                 </button>
                 <button class="mode-btn" id="mainTab_AR" onclick="switchMainTrack('AR')">
                     <span>💳 未收款</span>
+                </button>
+                <button class="mode-btn" id="mainTab_M130" onclick="switchMainTrack('M130')">
+                    <span>⏳ 130定保</span>
                 </button>
             </div>
 
@@ -936,8 +939,59 @@
             </div>
         </div>
 
+        <!-- 6. ⏳ 130 定保喚醒 (久未回廠) 操作區 -->
+        <div id="m130ControlBlock" style="display: none;">
+            <div class="project-kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">
+                        <span>⏳ 130 定保喚醒戰情報告 (滿年/逾期流失防禦)</span>
+                    </div>
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--btn-blue);" id="m130TotalSumText">
+                        納管基盤：0 台
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--alert-red);" id="m130KpiOver12">0</div>
+                        <div class="kpi-lbl">🚨 滿年逾期 (&ge;12月)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:#b45309;" id="m130KpiM11">0</div>
+                        <div class="kpi-lbl">⚠️ 即將滿年 (11月)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-blue);" id="m130KpiM10">0</div>
+                        <div class="kpi-lbl">⏳ 暖身名冊 (10月)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-green);" id="m130KpiNotAssigned">0</div>
+                        <div class="kpi-lbl">❓ 待指定專員</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-wrapper">
+                <div class="filter-scroll-container" id="m130CategoryFilterRow">
+                    <span class="filter-label-chip">進度：</span>
+                    <button class="tab-btn active" onclick="setM130CategoryFilter('ALL', this)">全部名單 <span class="tab-count" id="m130-c-all">0</span></button>
+                    <button class="tab-btn" style="color:#b91c1c; background:#fee2e2;" onclick="setM130CategoryFilter('OVER_12', this)">🚨 滿年逾期(&ge;12月) <span class="tab-count" id="m130-c-12">0</span></button>
+                    <button class="tab-btn" onclick="setM130CategoryFilter('M_11', this)">⚠️ 即將滿年(11月) <span class="tab-count" id="m130-c-11">0</span></button>
+                    <button class="tab-btn" onclick="setM130CategoryFilter('M_10', this)">⏳ 暖身(10月) <span class="tab-count" id="m130-c-10">0</span></button>
+                    <button class="tab-btn" onclick="setM130CategoryFilter('HAS_NOTE', this)">☁️ 已電聯(有備註) <span class="tab-count" id="m130-c-has-note">0</span></button>
+                    <button class="tab-btn" onclick="setM130CategoryFilter('NO_NOTE', this)">🚨 未電聯(待追蹤) <span class="tab-count" id="m130-c-no-note">0</span></button>
+                    <button class="tab-btn" onclick="setM130CategoryFilter('UNASSIGNED', this)">❓ 待指定專員 <span class="tab-count" id="m130-c-unassigned">0</span></button>
+                </div>
+
+                <div class="filter-scroll-container" id="m130SaFilterRow">
+                    <span class="filter-label-chip">關懷專員：</span>
+                    <button class="tab-btn active" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count" id="m130-sa-all">0</span></button>
+                </div>
+            </div>
+        </div>
+
         <div class="toolbar" id="toolbarContainer">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱、發票號碼..." oninput="debounceRender()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱、發票號碼、車主..." oninput="debounceRender()">
         </div>
 
         <div class="cards-grid" id="cardsGrid">
@@ -985,8 +1039,10 @@
         const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
         // 4. 未收款 CSV (gid=809519769)
         const AR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=809519769&single=true&output=csv';
+        // 5. 130 定保喚醒 CSV (gid=1737645789)
+        const M130_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1737645789&single=true&output=csv';
 
-        // 5. 召回專案配置表
+        // 6. 召回專案配置表
         const PROJECT_CONFIGS = {
             'M5B': {
                 name: 'M5B 專案',
@@ -1032,7 +1088,7 @@
             }
         };
 
-        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI' | 'AR'
+        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI' | 'AR' | 'M130'
         let currentSelectedProjectKey = 'M5B';
 
         // 未結工單資料
@@ -1059,6 +1115,12 @@
         let arList = [];
         let activeArCategory = 'ALL';
         let activeArSa = 'ALL';
+
+        // 130 定保喚醒資料
+        let isM130Loaded = false;
+        let m130List = [];
+        let activeM130Category = 'ALL';
+        let activeM130Sa = 'ALL';
 
         // 分批渲染
         let currentRenderList = [];
@@ -1103,12 +1165,14 @@
             document.getElementById('mainTab_PARTS').classList.toggle('active', track === 'PARTS');
             document.getElementById('mainTab_YANGMEI').classList.toggle('active', track === 'YANGMEI');
             document.getElementById('mainTab_AR').classList.toggle('active', track === 'AR');
+            document.getElementById('mainTab_M130').classList.toggle('active', track === 'M130');
 
             document.getElementById('ordersControlBlock').style.display = (track === 'ORDERS') ? 'block' : 'none';
             document.getElementById('projectControlBlock').style.display = (track === 'PROJECT') ? 'block' : 'none';
             document.getElementById('partsControlBlock').style.display = (track === 'PARTS') ? 'block' : 'none';
             document.getElementById('yangmeiControlBlock').style.display = (track === 'YANGMEI') ? 'block' : 'none';
             document.getElementById('arControlBlock').style.display = (track === 'AR') ? 'block' : 'none';
+            document.getElementById('m130ControlBlock').style.display = (track === 'M130') ? 'block' : 'none';
             
             document.getElementById('toolbarContainer').style.display = (track === 'YANGMEI') ? 'none' : 'block';
             document.getElementById('cardsGrid').style.display = (track === 'YANGMEI') ? 'none' : 'grid';
@@ -1136,6 +1200,14 @@
                 } else {
                     renderArKPI();
                     renderArSaButtons();
+                    triggerOptimizedRender();
+                }
+            } else if (track === 'M130') {
+                if (!isM130Loaded) {
+                    loadM130Data();
+                } else {
+                    renderM130KPI();
+                    renderM130SaButtons();
                     triggerOptimizedRender();
                 }
             } else {
@@ -1190,6 +1262,8 @@
                 });
             } else if (currentMainTrack === 'AR') {
                 loadArData();
+            } else if (currentMainTrack === 'M130') {
+                loadM130Data();
             }
         }
 
@@ -1636,6 +1710,136 @@
             triggerOptimizedRender();
         }
 
+        // ==================== ⏳ 130 定保喚醒模組核心邏輯 ====================
+        function loadM130Data() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 定保喚醒資料中...</div>';
+
+            Papa.parse(`${M130_CSV_URL}&_t=${Date.now()}`, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    isM130Loaded = true;
+                    parseM130Data(results.data);
+                    renderM130KPI();
+                    renderM130SaButtons();
+                    triggerOptimizedRender();
+                },
+                error: function(err) {
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">130 定保喚醒資料讀取失敗。</div>';
+                }
+            });
+        }
+
+        function parseM130Data(rows) {
+            m130List = [];
+            if (!rows || rows.length === 0) return;
+
+            rows.forEach(r => {
+                const plate = String(r['牌照號碼'] || r['車牌'] || '').trim();
+                if (!plate || plate.includes('計') || plate.includes('SUM')) return;
+
+                const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
+                const assignedSa = (r['指定專員'] || '').trim();
+                const lastSa = (r['上次接待'] || r['服務專員'] || '').trim();
+                const finalSa = assignedSa ? assignedSa : (lastSa ? lastSa : '待指派');
+
+                m130List.push({
+                    plate: plate,
+                    model: String(r['車型'] || '-').trim(),
+                    owner: String(r['車主'] || '-').trim(),
+                    driver: String(r['駕駛人'] || '').trim(),
+                    phone: String(r['優先電話'] || r['行動電話'] || r['電話'] || '').trim(),
+                    lastDate: String(r['上次進廠日'] || r['日期'] || '-').trim(),
+                    lastKm: String(r['上次里程'] || r['里程'] || '-').trim(),
+                    item: String(r['定保項目'] || '').trim(),
+                    nextDate: String(r['預估下次日'] || '-').trim(),
+                    lostMonths: lostMonths,
+                    lastSa: lastSa || '未指派',
+                    assignedSa: assignedSa,
+                    finalSa: finalSa,
+                    address: String(r['轄區地址'] || r['地址'] || '-').trim()
+                });
+            });
+        }
+
+        function renderM130KPI() {
+            let over12Count = 0;
+            let m11Count = 0;
+            let m10Count = 0;
+            let unassignedCount = 0;
+            let hasNoteCount = 0;
+            let noNoteCount = 0;
+
+            m130List.forEach(item => {
+                const m = item.lostMonths;
+                const hasNote = Boolean(cloudNotes[item.plate]);
+
+                if (m >= 12) over12Count++;
+                else if (m === 11) m11Count++;
+                else if (m === 10) m10Count++;
+
+                if (item.finalSa === '待指派' || !item.assignedSa) unassignedCount++;
+                if (hasNote) hasNoteCount++;
+                else noNoteCount++;
+            });
+
+            document.getElementById('m130TotalSumText').innerText = `納管基盤：${m130List.length} 台`;
+            document.getElementById('m130KpiOver12').innerText = over12Count;
+            document.getElementById('m130KpiM11').innerText = m11Count;
+            document.getElementById('m130KpiM10').innerText = m10Count;
+            document.getElementById('m130KpiNotAssigned').innerText = unassignedCount;
+
+            document.getElementById('m130-c-all').innerText = m130List.length;
+            document.getElementById('m130-c-12').innerText = over12Count;
+            document.getElementById('m130-c-11').innerText = m11Count;
+            document.getElementById('m130-c-10').innerText = m10Count;
+            document.getElementById('m130-c-has-note').innerText = hasNoteCount;
+            document.getElementById('m130-c-no-note').innerText = noNoteCount;
+            document.getElementById('m130-c-unassigned').innerText = unassignedCount;
+        }
+
+        function renderM130SaButtons() {
+            const row = document.getElementById('m130SaFilterRow');
+            row.innerHTML = `
+                <span class="filter-label-chip">關懷專員：</span>
+                <button class="tab-btn ${activeM130Sa === 'ALL' ? 'active' : ''}" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count">${m130List.length}</span></button>
+            `;
+
+            const saCounts = {};
+            m130List.forEach(item => {
+                const sa = item.finalSa;
+                saCounts[sa] = (saCounts[sa] || 0) + 1;
+            });
+
+            Object.keys(saCounts).sort((a, b) => {
+                if (a === '待指派') return 1;
+                if (b === '待指派') return -1;
+                return saCounts[b] - saCounts[a];
+            }).forEach(sa => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${activeM130Sa === sa ? 'active' : ''}`;
+                btn.innerHTML = `${sa === '待指派' ? '❓ 待指派' : sa} <span class="tab-count">${saCounts[sa]}</span>`;
+                btn.onclick = () => setM130SaFilter(sa, btn);
+                row.appendChild(btn);
+            });
+        }
+
+        function setM130CategoryFilter(type, btn) {
+            activeM130Category = type;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
+        function setM130SaFilter(sa, btn) {
+            activeM130Sa = sa;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
         // ==================== 雲端備註 & 工單結案 ====================
         function fetchCloudNotesJSONP() {
             const script = document.createElement('script');
@@ -1654,6 +1858,10 @@
                 }
                 renderCounts();
                 if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
+                if (currentMainTrack === 'M130') {
+                    renderM130KPI();
+                    triggerOptimizedRender();
+                }
                 delete window[callbackName];
                 script.remove();
             };
@@ -2067,6 +2275,28 @@
 
                     return true;
                 });
+            } else if (currentMainTrack === 'M130') {
+                currentRenderList = m130List.filter(item => {
+                    const m = item.lostMonths;
+                    const sa = item.finalSa;
+                    const myNote = cloudNotes[item.plate] || '';
+
+                    if (activeM130Category === 'OVER_12' && m < 12) return false;
+                    if (activeM130Category === 'M_11' && m !== 11) return false;
+                    if (activeM130Category === 'M_10' && m !== 10) return false;
+                    if (activeM130Category === 'HAS_NOTE' && !myNote) return false;
+                    if (activeM130Category === 'NO_NOTE' && myNote) return false;
+                    if (activeM130Category === 'UNASSIGNED' && (sa !== '待指派' && item.assignedSa)) return false;
+
+                    if (activeM130Sa !== 'ALL' && sa !== activeM130Sa) return false;
+
+                    if (searchVal) {
+                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.lastSa} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
+                        if (!fullText.includes(searchVal)) return false;
+                    }
+
+                    return true;
+                });
             }
         }
 
@@ -2360,6 +2590,89 @@
                             <div style="grid-column: span 2; background:#f8fafc; padding:6px 8px; border-radius:6px; font-size:0.78rem; color:#475569; border:1px solid #e2e8f0;">
                                 <span class="info-label">📝 對帳備註：</span>${note}
                             </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else if (currentMainTrack === 'M130') {
+                const item = data;
+                const plate = item.plate;
+                const isOver12 = item.lostMonths >= 12;
+                const is11 = item.lostMonths === 11;
+                const myNote = cloudNotes[plate] || '';
+                const hintId = `hint_m130_${plate}`;
+
+                const contactPerson = item.driver ? `${item.driver} (駕駛)` : item.owner;
+                const lineCopyText = [
+                    '🚗【原廠定期保養關懷提醒】',
+                    '━━━━━━━━━━━━',
+                    `親愛的車主/用車人 您好：`,
+                    `▪ 車牌號碼：${plate}`,
+                    `▪ 愛車車型：${item.model}`,
+                    `▪ 上次進廠日：${item.lastDate} (已滿 ${item.lostMonths} 個月)`,
+                    item.item ? `▪ 前次保養項目：${item.item}` : '',
+                    `▪ 預估定保週期：已達原廠 1年/1萬公里 定期保養基準`,
+                    '━━━━━━━━━━━━',
+                    `內湖服務廠提醒您定期進廠健診與更換機油，維持車輛最佳效能與原廠保固權益。`,
+                    `若需為您安排預約或查詢優惠時段，歡迎直接回覆此訊息！`
+                ].filter(Boolean).join('\n');
+
+                return `
+                    <div class="order-card" style="${isOver12 ? 'border-left: 4px solid #dc2626;' : ''}">
+                        <div class="card-top">
+                            <div>
+                                <div class="car-heading">
+                                    <span>${item.model}</span>
+                                    <span class="category-pill" style="${isOver12 ? 'background:#fee2e2; color:#991b1b;' : is11 ? 'background:#fef3c7; color:#92400e;' : 'background:#e0f2fe; color:#0369a1;'}">
+                                        ${isOver12 ? '🚨 滿年逾期' : is11 ? '⚠️ 即將滿年' : '⏳ 滿10個月'}
+                                    </span>
+                                    ${item.assignedSa ? `<span class="category-pill" style="background:#f0fdf4; color:#166534;">指派: ${item.assignedSa}</span>` : ''}
+                                </div>
+                                <div class="card-meta">
+                                    車牌：<strong>${plate}</strong> ｜ 對象：${contactPerson}
+                                </div>
+                            </div>
+                            <div class="top-btn-group">
+                                <button class="btn-copy-main" onclick="copyText(\`${lineCopyText.replace(/`/g, "\\`")}\`)">📋 LINE</button>
+                            </div>
+                        </div>
+
+                        <div class="cycle-strip ${isOver12 ? 'danger' : ''}">
+                            <div class="strip-days">上次進廠：<strong>${item.lastDate}</strong> (距今 ${item.lostMonths} 個月)</div>
+                            <div>
+                                <span class="pill-status ${isOver12 ? 'badge-danger' : is11 ? 'badge-warn' : 'badge-blue'}">
+                                    ${isOver12 ? '🚨 已逾期未回' : is11 ? '⚠️ 次月預約盤' : '正常週期'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <div><span class="info-label">聯絡窗口：</span><strong>${contactPerson}</strong></div>
+                            <div>
+                                <span class="info-label">通話：</span>
+                                ${item.phone ? `<a href="tel:${item.phone}" class="tel-btn">📞 ${item.phone}</a>` : '<span style="color:#94a3af;">無電話</span>'}
+                            </div>
+                            <div><span class="info-label">上次接待：</span>${item.lastSa}</div>
+                            <div><span class="info-label">指派專員：</span><strong style="color:var(--btn-blue);">${item.finalSa}</strong></div>
+                            <div><span class="info-label">前次里程：</span><strong>${item.lastKm ? item.lastKm + ' km' : '-'}</strong></div>
+                            <div><span class="info-label">預估下次：</span>${item.nextDate}</div>
+                            
+                            ${item.item ? `
+                            <div style="grid-column: span 2; font-size:0.8rem; color:#475569;">
+                                <span class="info-label">前次項目：</span>${item.item}
+                            </div>` : ''}
+
+                            ${item.address && item.address !== '-' ? `
+                            <div style="grid-column: span 2; font-size:0.75rem; color:#64748b;">
+                                <span class="info-label">車主地址：</span>${item.address}
+                            </div>` : ''}
+
+                            <div class="custom-note-block">
+                                <div class="note-header">
+                                    <span class="note-title">☁️ 電聯備註 (以車牌永久記憶)：</span>
+                                    <span class="cloud-hint" id="${hintId}"></span>
+                                </div>
+                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 已約9/20、外廠保養、換車)..." oninput="handleNoteInput('${plate}', this.value, '${hintId}')">
+                            </div>
                         </div>
                     </div>
                 `;
