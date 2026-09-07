@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>廠端即時監控系統</title>
+    <!-- 加快 CDN 解析 -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://docs.google.com">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
@@ -514,11 +517,8 @@
             border-top: 2px solid #cbd5e1;
         }
 
-        /* 📱 手機端底部導航優化 */
         @media (max-width: 768px) {
-            body {
-                padding-bottom: 74px;
-            }
+            body { padding-bottom: 74px; }
             .cards-grid { grid-template-columns: 1fr; gap: 12px; }
             .navbar { padding: 10px 14px; }
             .main-container { padding: 0 8px; }
@@ -526,15 +526,8 @@
             .card-content { padding: 10px 12px; }
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 
-            .mode-switcher-container {
-                margin: 6px auto 0 auto;
-                padding: 0 8px;
-            }
-            .dual-track-nav {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-            }
+            .mode-switcher-container { margin: 6px auto 0 auto; padding: 0 8px; }
+            .dual-track-nav { display: flex; flex-direction: column; gap: 6px; }
             .primary-modes {
                 position: fixed;
                 bottom: 0;
@@ -565,15 +558,8 @@
                 box-shadow: none;
                 font-weight: 800;
             }
-            .mode-btn span {
-                font-size: 0.65rem;
-            }
-
-            .project-select-capsule {
-                width: 100%;
-                justify-content: space-between;
-                margin-top: 4px;
-            }
+            .mode-btn span { font-size: 0.65rem; }
+            .project-select-capsule { width: 100%; justify-content: space-between; margin-top: 4px; }
         }
     </style>
 </head>
@@ -582,14 +568,13 @@
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>🚗</span> 廠端即時監控系統</div>
-            <div class="navbar-sub" id="statusTime">連線就緒</div>
+            <div class="navbar-sub" id="statusTime">連線中...</div>
         </div>
         <div>
             <button class="btn-sync" onclick="refreshCurrentView()">🔄 重新整理</button>
         </div>
     </div>
 
-    <!-- 導航列：電腦在頂端，手機主要功能固定在底部 -->
     <div class="mode-switcher-container">
         <div class="dual-track-nav">
             <div class="primary-modes">
@@ -977,70 +962,26 @@
     </div>
 
     <script>
-        // ==================== 系統資料源配置 ====================
-        // 1. 未結工單 CSV (gid=0)
+        // ==================== 系統資料源配置 (純 Google 試算表串接) ====================
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=0&single=true&output=csv';
-        // 2. GAS 備註 API
         const API_NOTE_URL = 'https://script.google.com/macros/s/AKfycbySsvGSYoOJ-2O5raJlecQYFyMxsNq8Y6txwzcFrTV0ZUXmkiZS5BI8TWH9VRGSq1Tq/exec';
-        // 3. 零件入庫 CSV (gid=543542937)
         const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
-        // 4. 未收款 CSV (gid=809519769)
         const AR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=809519769&single=true&output=csv';
-        // 5. 130 久未回廠 CSV (gid=1737645789)
         const M130_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1737645789&single=true&output=csv';
-        // 6. 670 新車交車首保 CSV (gid=495030812)
         const M670_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=495030812&single=true&output=csv';
 
-        // 7. 召回專案配置表
         const PROJECT_CONFIGS = {
-            'M5B': {
-                name: 'M5B 專案',
-                title: '🎯 M5B 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
-                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv',
-                data: [],
-                isLoaded: false
-            },
-            'M5F': {
-                name: 'M5F 專案',
-                title: '🎯 M5F 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
-                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1259894212&single=true&output=csv',
-                data: [],
-                isLoaded: false
-            },
-            'F626': {
-                name: 'F626 專案',
-                title: '🎯 F626 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
-                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1858686330&single=true&output=csv',
-                data: [],
-                isLoaded: false
-            },
-            'G3L': {
-                name: 'G3L 專案',
-                title: '🎯 G3L 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
-                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=967738403&single=true&output=csv',
-                data: [],
-                isLoaded: false
-            },
-            'M5K': {
-                name: 'M5K 專案',
-                title: '🎯 M5K 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
-                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1482657870&single=true&output=csv',
-                data: [],
-                isLoaded: false
-            },
-            'M4E': {
-                name: 'M4E 專案',
-                title: '🎯 M4E 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)',
-                csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=935724217&single=true&output=csv',
-                data: [],
-                isLoaded: false
-            }
+            'M5B': { name: 'M5B 專案', title: '🎯 M5B 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)', csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=243058371&single=true&output=csv', data: [], isLoaded: false },
+            'M5F': { name: 'M5F 專案', title: '🎯 M5F 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)', csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1259894212&single=true&output=csv', data: [], isLoaded: false },
+            'F626': { name: 'F626 專案', title: '🎯 F626 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)', csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1858686330&single=true&output=csv', data: [], isLoaded: false },
+            'G3L': { name: 'G3L 專案', title: '🎯 G3L 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)', csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=967738403&single=true&output=csv', data: [], isLoaded: false },
+            'M5K': { name: 'M5K 專案', title: '🎯 M5K 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)', csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1482657870&single=true&output=csv', data: [], isLoaded: false },
+            'M4E': { name: 'M4E 專案', title: '🎯 M4E 內湖責任盤進度 (昆陽/南港/內湖銷售基盤)', csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=935724217&single=true&output=csv', data: [], isLoaded: false }
         };
 
-        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI' | 'AR' | 'M130' | 'M670'
+        let currentMainTrack = 'ORDERS';
         let currentSelectedProjectKey = 'M5B';
 
-        // 未結工單資料
         let orders = [];
         let cloudNotes = {};
         let closedOrderSet = new Set();
@@ -1048,46 +989,42 @@
         let activeSa = 'ALL';
         let debounceTimers = {};
 
-        // 專案過濾
         let activeProjCategory = 'RESP_ALL';
         let activeProjStaff = 'ALL';
 
-        // 零件入庫資料
         let isPartsLoaded = false;
         let partsMonthMap = {};
         let partsYearlyList = [];
         let monthTotalMap = {};
         let activePartsMonth = 'YEAR_ALL';
 
-        // 未收款 (AR) 資料
         let isArLoaded = false;
         let arList = [];
         let activeArCategory = 'ALL';
         let activeArSa = 'ALL';
 
-        // 130 久未回廠資料
         let isM130Loaded = false;
         let m130List = [];
         let activeM130Category = 'ALL';
         let activeM130Sa = 'ALL';
 
-        // 670 新車首保資料
         let isM670Loaded = false;
         let m670List = [];
         let activeM670Category = 'ALL';
         let activeM670Sa = 'ALL';
 
-        // 分批渲染
         let currentRenderList = [];
         let visibleCount = 30;
         const CHUNK_SIZE = 30;
 
+        // 🚀 極速啟動：在第一時間【同時發出】工單 CSV 與 Google 備註請求，絕不互相卡位！
         function startApp() {
             initProjectDropdownOptions();
-            loadOrdersData(() => {
-                setTimeout(fetchCloudNotesJSONP, 400);
-            });
             setupInfiniteScroll();
+
+            // 雙線同時連線 Google，時間直接砍半
+            loadOrdersData();
+            fetchCloudNotesJSONP();
         }
 
         function initProjectDropdownOptions() {
@@ -1218,7 +1155,8 @@
             statusElem.innerText = '同步中...';
 
             if (currentMainTrack === 'ORDERS') {
-                loadOrdersData(() => { fetchCloudNotesJSONP(); });
+                loadOrdersData();
+                fetchCloudNotesJSONP();
             } else if (currentMainTrack === 'PROJECT') {
                 loadSpecificProjectData(currentSelectedProjectKey);
             } else if (currentMainTrack === 'PARTS' || currentMainTrack === 'YANGMEI') {
@@ -1234,9 +1172,9 @@
             }
         }
 
-        function loadOrdersData(callback) {
+        function loadOrdersData() {
             const statusElem = document.getElementById('statusTime');
-            Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
+            Papa.parse(SHEET_CSV_URL, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -1244,7 +1182,6 @@
                 complete: function(results) {
                     parseData(results.data);
                     statusElem.innerText = `最後更新：${new Date().toLocaleTimeString()}`;
-                    if (callback) callback();
                 },
                 error: function(err) {
                     console.error("工單讀取錯誤:", err);
@@ -1259,7 +1196,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = `<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 ${conf.name} 資料中...</div>`;
 
-            Papa.parse(`${conf.csvUrl}&_t=${Date.now()}`, {
+            Papa.parse(conf.csvUrl, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -1281,7 +1218,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入零件入庫資料中...</div>';
 
-            Papa.parse(`${PARTS_CSV_URL}&_t=${Date.now()}`, {
+            Papa.parse(PARTS_CSV_URL, {
                 download: true,
                 header: false,
                 skipEmptyLines: false,
@@ -1333,17 +1270,9 @@
                 }
 
                 if (mCol !== -1) {
-                    monthColPairs.push({
-                        month: targetMonth,
-                        supCol: mCol - 1,
-                        amtCol: mCol
-                    });
+                    monthColPairs.push({ month: targetMonth, supCol: mCol - 1, amtCol: mCol });
                 } else {
-                    monthColPairs.push({
-                        month: targetMonth,
-                        supCol: (m - 1) * 2,
-                        amtCol: (m - 1) * 2 + 1
-                    });
+                    monthColPairs.push({ month: targetMonth, supCol: (m - 1) * 2, amtCol: (m - 1) * 2 + 1 });
                 }
             }
 
@@ -1521,7 +1450,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入未收款資料中...</div>';
 
-            Papa.parse(`${AR_CSV_URL}&_t=${Date.now()}`, {
+            Papa.parse(AR_CSV_URL, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -1594,27 +1523,13 @@
 
                 totalAmt += amt;
 
-                if (type.includes('保險')) {
-                    insurAmt += amt;
-                    insurCount++;
-                } else if (type.includes('保固') || type.includes('索賠')) {
-                    warrantyAmt += amt;
-                    warrantyCount++;
-                } else if (type.includes('自付')) {
-                    selfAmt += amt;
-                    selfCount++;
-                } else if (type.includes('內部轉帳')) {
-                    internalAmt += amt;
-                    internalCount++;
-                }
+                if (type.includes('保險')) { insurAmt += amt; insurCount++; }
+                else if (type.includes('保固') || type.includes('索賠')) { warrantyAmt += amt; warrantyCount++; }
+                else if (type.includes('自付')) { selfAmt += amt; selfCount++; }
+                else if (type.includes('內部轉帳')) { internalAmt += amt; internalCount++; }
 
-                if (age >= 60) {
-                    over60Amt += amt;
-                    over60Count++;
-                } else if (age >= 30) {
-                    over30Amt += amt;
-                    over30Count++;
-                }
+                if (age >= 60) { over60Amt += amt; over60Count++; }
+                else if (age >= 30) { over30Amt += amt; over30Count++; }
             });
 
             document.getElementById('arTotalSumText').innerText = `未收總額：$${Math.round(totalAmt).toLocaleString()}`;
@@ -1677,12 +1592,12 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 久未回廠模組核心邏輯 (修復接待選項) ====================
+        // ==================== ⏳ 130 久未回廠模組核心邏輯 (接待按鈕永久相容) ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 久未回廠資料中...</div>';
 
-            Papa.parse(`${M130_CSV_URL}&_t=${Date.now()}`, {
+            Papa.parse(M130_CSV_URL, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
@@ -1714,7 +1629,7 @@
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
                 
-                // 💡 智能雙軌相容：優先抓指定專員，若未指定則抓原本的接待/服務專員，確保按鈕永不消失！
+                // 優先抓「指定專員」；若未填，自動自動回退至原始「服務專員/上次接待」，絕不消失
                 const assignedSa = (r['指定專員'] || '').trim();
                 const lastSa = (r['上次接待'] || r['服務專員'] || r['接待'] || '').trim();
                 const finalSa = assignedSa ? assignedSa : (lastSa ? lastSa : '待指派');
@@ -1910,7 +1825,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 670 新車首保資料中...</div>';
 
-            Papa.parse(`${M670_CSV_URL}&_t=${Date.now()}`, {
+            Papa.parse(M670_CSV_URL, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
@@ -2155,7 +2070,7 @@
             const timer = setTimeout(() => {
                 delete window[callbackName];
                 script.remove();
-            }, 3000);
+            }, 3500);
 
             window[callbackName] = function(data) {
                 clearTimeout(timer);
@@ -2167,19 +2082,17 @@
                 if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
                 if (currentMainTrack === 'M130') {
                     renderM130KPI();
-                    renderM130SaButtons();
                     triggerOptimizedRender();
                 }
                 if (currentMainTrack === 'M670') {
                     renderM670KPI();
-                    renderM670SaButtons();
                     triggerOptimizedRender();
                 }
                 delete window[callbackName];
                 script.remove();
             };
 
-            script.src = `${API_NOTE_URL}?callback=${callbackName}&_t=${Date.now()}`;
+            script.src = `${API_NOTE_URL}?callback=${callbackName}`;
             script.onerror = function() { 
                 clearTimeout(timer);
                 script.remove(); 
