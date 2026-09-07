@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>廠端即時監控系統</title>
-    <!-- 加快 CDN 解析 -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://docs.google.com">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
@@ -568,7 +565,7 @@
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>🚗</span> 廠端即時監控系統</div>
-            <div class="navbar-sub" id="statusTime">連線中...</div>
+            <div class="navbar-sub" id="statusTime">連線就緒</div>
         </div>
         <div>
             <button class="btn-sync" onclick="refreshCurrentView()">🔄 重新整理</button>
@@ -1017,12 +1014,9 @@
         let visibleCount = 30;
         const CHUNK_SIZE = 30;
 
-        // 🚀 極速啟動：在第一時間【同時發出】工單 CSV 與 Google 備註請求，絕不互相卡位！
         function startApp() {
             initProjectDropdownOptions();
             setupInfiniteScroll();
-
-            // 雙線同時連線 Google，時間直接砍半
             loadOrdersData();
             fetchCloudNotesJSONP();
         }
@@ -1174,7 +1168,7 @@
 
         function loadOrdersData() {
             const statusElem = document.getElementById('statusTime');
-            Papa.parse(SHEET_CSV_URL, {
+            Papa.parse(`${SHEET_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -1196,7 +1190,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = `<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 ${conf.name} 資料中...</div>`;
 
-            Papa.parse(conf.csvUrl, {
+            Papa.parse(`${conf.csvUrl}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -1218,7 +1212,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入零件入庫資料中...</div>';
 
-            Papa.parse(PARTS_CSV_URL, {
+            Papa.parse(`${PARTS_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: false,
@@ -1450,7 +1444,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入未收款資料中...</div>';
 
-            Papa.parse(AR_CSV_URL, {
+            Papa.parse(`${AR_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: false,
                 skipEmptyLines: true,
@@ -1592,12 +1586,13 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 久未回廠模組核心邏輯 (接待按鈕永久相容) ====================
+        // ==================== ⏳ 130 久未回廠模組核心邏輯 (修復接待選項) ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 久未回廠資料中...</div>';
 
-            Papa.parse(M130_CSV_URL, {
+            // 🚨 加回時間戳防快取，確保立刻讀到新填的 K 欄專員
+            Papa.parse(`${M130_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
@@ -1629,10 +1624,19 @@
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
                 
-                // 優先抓「指定專員」；若未填，自動自動回退至原始「服務專員/上次接待」，絕不消失
-                const assignedSa = (r['指定專員'] || '').trim();
-                const lastSa = (r['上次接待'] || r['服務專員'] || r['接待'] || '').trim();
-                const finalSa = assignedSa ? assignedSa : (lastSa ? lastSa : '待指派');
+                // 💡 超強彈性匹配：遍歷所有欄位，只要名稱包含「指定」、「專員」或「接待」，抓出姓名！
+                let foundSa = '';
+                for (let key in r) {
+                    const cleanKey = String(key).trim();
+                    if (cleanKey.includes('指定') || cleanKey.includes('專員') || cleanKey.includes('接待')) {
+                        const val = String(r[key] || '').trim();
+                        if (val && val !== '-' && val !== '待指派') {
+                            foundSa = val;
+                            break;
+                        }
+                    }
+                }
+                const finalSa = foundSa ? foundSa : '待指派';
 
                 m130List.push({
                     plate: plate,
@@ -1645,8 +1649,7 @@
                     item: String(r['定保項目'] || '').trim(),
                     nextDate: String(r['預估下次日'] || '-').trim(),
                     lostMonths: lostMonths,
-                    lastSa: lastSa || '未指派',
-                    assignedSa: assignedSa,
+                    assignedSa: foundSa,
                     finalSa: finalSa,
                     address: String(r['轄區地址'] || r['地址'] || '-').trim()
                 });
@@ -1825,7 +1828,7 @@
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 670 新車首保資料中...</div>';
 
-            Papa.parse(M670_CSV_URL, {
+            Papa.parse(`${M670_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
@@ -1867,8 +1870,18 @@
                     }
                 }
 
-                const assignedSa = (r['指定專員'] || '').trim();
-                const finalSa = assignedSa ? assignedSa : '待指派';
+                let foundSa = '';
+                for (let key in r) {
+                    const cleanKey = String(key).trim();
+                    if (cleanKey.includes('指定') || cleanKey.includes('專員') || cleanKey.includes('接待')) {
+                        const val = String(r[key] || '').trim();
+                        if (val && val !== '-' && val !== '待指派') {
+                            foundSa = val;
+                            break;
+                        }
+                    }
+                }
+                const finalSa = foundSa ? foundSa : '待指派';
                 const salesCategory = String(r['銷售類別'] || '一般銷售').trim();
 
                 m670List.push({
@@ -1881,7 +1894,7 @@
                     days: daysSinceDelivery,
                     salesPerson: String(r['銷售人員'] || '展示中心').trim(),
                     salesCategory: salesCategory,
-                    assignedSa: assignedSa,
+                    assignedSa: foundSa,
                     finalSa: finalSa
                 });
             });
@@ -2092,7 +2105,7 @@
                 script.remove();
             };
 
-            script.src = `${API_NOTE_URL}?callback=${callbackName}`;
+            script.src = `${API_NOTE_URL}?callback=${callbackName}&_t=${Date.now()}`;
             script.onerror = function() { 
                 clearTimeout(timer);
                 script.remove(); 
@@ -2517,7 +2530,7 @@
                     if (activeM130Sa !== 'ALL' && sa !== activeM130Sa) return false;
 
                     if (searchVal) {
-                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.lastSa} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
+                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
                         if (!fullText.includes(searchVal)) return false;
                     }
 
@@ -2907,8 +2920,9 @@
                                 <span class="info-label">通話：</span>
                                 ${item.phone ? `<a href="tel:${item.phone}" class="tel-btn">📞 ${item.phone}</a>` : '<span style="color:#94a3af;">無電話</span>'}
                             </div>
-                            <div><span class="info-label">上次接待：</span>${item.lastSa}</div>
-                            <div><span class="info-label">服務專員：</span><strong style="color:var(--btn-blue); font-size:0.95rem;">${item.finalSa}</strong></div>
+                            <div style="grid-column: span 2;">
+                                <span class="info-label">服務專員：</span><strong style="color:var(--btn-blue); font-size:0.95rem;">${item.finalSa}</strong>
+                            </div>
                             <div><span class="info-label">前次里程：</span><strong>${item.lastKm ? item.lastKm + ' km' : '-'}</strong></div>
                             <div><span class="info-label">預估下次：</span>${item.nextDate}</div>
                             
