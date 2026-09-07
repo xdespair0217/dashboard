@@ -1601,7 +1601,7 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 定保喚醒模組核心邏輯 ====================
+        // ==================== ⏳ 130 定保喚醒模組核心邏輯 (含自動查重去重與防呆) ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 定保喚醒資料中...</div>';
@@ -1627,9 +1627,19 @@
             m130List = [];
             if (!rows || rows.length === 0) return;
 
+            const seenPlates = new Set(); // 👈 唯一的車牌查重名冊
+
             rows.forEach(r => {
                 const plate = String(r['牌照號碼'] || r['車牌'] || '').trim();
-                if (!plate || plate.includes('計') || plate.includes('SUM')) return;
+                
+                // 🚨 關鍵防呆邏輯：空白、合計列、或不小心重複貼到的中文標題（牌照號碼/車牌），一律自動忽略！
+                if (!plate || plate.includes('計') || plate.includes('SUM') || plate.includes('牌照') || plate === '車牌') return;
+
+                // 🚨 關鍵防重邏輯：如果這張車牌剛才已經讀過了，直接跳過不重複收錄！
+                if (seenPlates.has(plate)) {
+                    return;
+                }
+                seenPlates.add(plate);
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
                 const assignedSa = (r['指定專員'] || '').trim();
@@ -1674,6 +1684,7 @@
                 else noNoteCount++;
             });
 
+            document.getElementById('m130TotalSumText').innerText = `納管基盤：${m130List.length} 台`;
             document.getElementById('m130KpiOver12').innerText = over12Count;
             document.getElementById('m130KpiM11').innerText = m11Count;
             document.getElementById('m130KpiM10').innerText = m10Count;
