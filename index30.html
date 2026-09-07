@@ -105,13 +105,13 @@
             border-radius: 10px;
             gap: 4px;
             flex: 1;
-            max-width: 860px;
+            max-width: 980px;
         }
         .mode-btn {
             flex: 1;
-            padding: 9px 8px;
+            padding: 9px 6px;
             text-align: center;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: #475569;
             background: transparent;
@@ -545,7 +545,7 @@
                 border-top: 1px solid #e2e8f0;
                 box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
                 border-radius: 0;
-                padding: 6px 4px;
+                padding: 6px 3px;
                 padding-bottom: calc(6px + env(safe-area-inset-bottom));
                 z-index: 99;
                 display: flex;
@@ -554,8 +554,8 @@
             .mode-btn {
                 flex-direction: column;
                 gap: 2px;
-                padding: 5px 2px;
-                font-size: 0.68rem;
+                padding: 5px 1px;
+                font-size: 0.65rem;
                 border-radius: 6px;
                 color: #64748b;
             }
@@ -566,7 +566,7 @@
                 font-weight: 800;
             }
             .mode-btn span {
-                font-size: 0.68rem;
+                font-size: 0.65rem;
             }
 
             .project-select-capsule {
@@ -609,7 +609,10 @@
                     <span>💳 未收款</span>
                 </button>
                 <button class="mode-btn" id="mainTab_M130" onclick="switchMainTrack('M130')">
-                    <span>⏳ 130定保</span>
+                    <span>⏳ 130 久未</span>
+                </button>
+                <button class="mode-btn" id="mainTab_M670" onclick="switchMainTrack('M670')">
+                    <span>✨ 670 新車</span>
                 </button>
             </div>
 
@@ -859,12 +862,12 @@
             </div>
         </div>
 
-        <!-- 6. ⏳ 130 定保喚醒 (久未回廠) 操作區 -->
+        <!-- 6. ⏳ 130 久未 (久未回廠) 操作區 -->
         <div id="m130ControlBlock" style="display: none;">
             <div class="project-kpi-card">
                 <div class="kpi-header">
                     <div class="kpi-title">
-                        <span>⏳ 130 定保喚醒戰情報告 (滿年/逾期流失防禦)</span>
+                        <span>⏳ 130 久未回廠戰情報告 (滿年/逾期流失防禦)</span>
                     </div>
                     <div style="display:flex; gap:8px;">
                         <button class="btn-copy-main" onclick="exportM130ContactedCSV()">📥 匯出已電聯 Excel</button>
@@ -911,8 +914,61 @@
             </div>
         </div>
 
+        <!-- 7. ✨ 670 新車 (新車首保與滿月關懷) 操作區 -->
+        <div id="m670ControlBlock" style="display: none;">
+            <div class="project-kpi-card">
+                <div class="kpi-header">
+                    <div class="kpi-title">
+                        <span>✨ 670 新車交車首保關懷戰情報告 (滿月/千公里防禦)</span>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-copy-main" onclick="exportM670ContactedCSV()">📥 匯出已電聯 Excel</button>
+                        <button class="btn-copy-main" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155;" onclick="printM670Report()">🖨️ 友善列印報表</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-blue);" id="m670KpiTotal">0</div>
+                        <div class="kpi-lbl">納管新車總台數</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--alert-red);" id="m670KpiMonth1">0</div>
+                        <div class="kpi-lbl">🚨 滿月急迫 (30~60天)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:#b45309;" id="m670KpiMonth2">0</div>
+                        <div class="kpi-lbl">⚠️ 首保關懷 (61~90天)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-num" style="color:var(--btn-green);" id="m670KpiUnassigned">0</div>
+                        <div class="kpi-lbl">❓ 待指定專員</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-wrapper">
+                <div class="filter-scroll-container" id="m670CategoryFilterRow">
+                    <span class="filter-label-chip">時效：</span>
+                    <button class="tab-btn active" onclick="setM670CategoryFilter('ALL', this)">全部新車 <span class="tab-count" id="m670-c-all">0</span></button>
+                    <button class="tab-btn" style="color:#b91c1c; background:#fee2e2;" onclick="setM670CategoryFilter('D_30_60', this)">🚨 滿月(30~60天) <span class="tab-count" id="m670-c-30-60">0</span></button>
+                    <button class="tab-btn" onclick="setM670CategoryFilter('D_61_90', this)">⚠️ 61~90天 <span class="tab-count" id="m670-c-61-90">0</span></button>
+                    <button class="tab-btn" onclick="setM670CategoryFilter('D_OVER_90', this)">⏳ &gt;90天 <span class="tab-count" id="m670-c-over-90">0</span></button>
+                    <button class="tab-btn" onclick="setM670CategoryFilter('HAS_NOTE', this)">☁️ 已電聯(有備註) <span class="tab-count" id="m670-c-has-note">0</span></button>
+                    <button class="tab-btn" onclick="setM670CategoryFilter('NO_NOTE', this)">🚨 待電聯(未備註) <span class="tab-count" id="m670-c-no-note">0</span></button>
+                    <button class="tab-btn" onclick="setM670CategoryFilter('GENERAL', this)">🚗 客戶車 <span class="tab-count" id="m670-c-gen">0</span></button>
+                    <button class="tab-btn" onclick="setM670CategoryFilter('DEMO', this)">🏢 試乘/公司車 <span class="tab-count" id="m670-c-demo">0</span></button>
+                </div>
+
+                <div class="filter-scroll-container" id="m670SaFilterRow">
+                    <span class="filter-label-chip">關懷專員：</span>
+                    <button class="tab-btn active" onclick="setM670SaFilter('ALL', this)">全部專員 <span class="tab-count" id="m670-sa-all">0</span></button>
+                </div>
+            </div>
+        </div>
+
         <div class="toolbar" id="toolbarContainer">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、廠商名稱、發票號碼、車主..." oninput="debounceRender()">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 快速搜尋車牌、工單、車型、專員、技師、業務、客戶名稱、發票號碼..." oninput="debounceRender()">
         </div>
 
         <div class="cards-grid" id="cardsGrid">
@@ -930,10 +986,12 @@
         const PARTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=543542937&single=true&output=csv';
         // 4. 未收款 CSV (gid=809519769)
         const AR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=809519769&single=true&output=csv';
-        // 5. 130 定保喚醒 CSV (gid=1737645789)
+        // 5. 130 久未回廠 CSV (gid=1737645789)
         const M130_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=1737645789&single=true&output=csv';
+        // 6. 670 新車交車首保 CSV (gid=495030812)
+        const M670_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8ofD0cThLWjshBgucfqJDMvQBXhsZghtrZ_QN8boKDY2N869p_prrVq08SR6HUx5iHzVT5QHNg10u/pub?gid=495030812&single=true&output=csv';
 
-        // 6. 召回專案配置表
+        // 7. 召回專案配置表
         const PROJECT_CONFIGS = {
             'M5B': {
                 name: 'M5B 專案',
@@ -979,7 +1037,7 @@
             }
         };
 
-        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI' | 'AR' | 'M130'
+        let currentMainTrack = 'ORDERS'; // 'ORDERS' | 'PROJECT' | 'PARTS' | 'YANGMEI' | 'AR' | 'M130' | 'M670'
         let currentSelectedProjectKey = 'M5B';
 
         // 未結工單資料
@@ -1007,11 +1065,17 @@
         let activeArCategory = 'ALL';
         let activeArSa = 'ALL';
 
-        // 130 定保喚醒資料
+        // 130 久未回廠資料
         let isM130Loaded = false;
         let m130List = [];
         let activeM130Category = 'ALL';
         let activeM130Sa = 'ALL';
+
+        // 670 新車首保資料
+        let isM670Loaded = false;
+        let m670List = [];
+        let activeM670Category = 'ALL';
+        let activeM670Sa = 'ALL';
 
         // 分批渲染
         let currentRenderList = [];
@@ -1057,6 +1121,7 @@
             document.getElementById('mainTab_YANGMEI').classList.toggle('active', track === 'YANGMEI');
             document.getElementById('mainTab_AR').classList.toggle('active', track === 'AR');
             document.getElementById('mainTab_M130').classList.toggle('active', track === 'M130');
+            document.getElementById('mainTab_M670').classList.toggle('active', track === 'M670');
 
             document.getElementById('ordersControlBlock').style.display = (track === 'ORDERS') ? 'block' : 'none';
             document.getElementById('projectControlBlock').style.display = (track === 'PROJECT') ? 'block' : 'none';
@@ -1064,6 +1129,7 @@
             document.getElementById('yangmeiControlBlock').style.display = (track === 'YANGMEI') ? 'block' : 'none';
             document.getElementById('arControlBlock').style.display = (track === 'AR') ? 'block' : 'none';
             document.getElementById('m130ControlBlock').style.display = (track === 'M130') ? 'block' : 'none';
+            document.getElementById('m670ControlBlock').style.display = (track === 'M670') ? 'block' : 'none';
             
             document.getElementById('toolbarContainer').style.display = (track === 'YANGMEI') ? 'none' : 'block';
             document.getElementById('cardsGrid').style.display = (track === 'YANGMEI') ? 'none' : 'grid';
@@ -1099,6 +1165,14 @@
                 } else {
                     renderM130KPI();
                     renderM130SaButtons();
+                    triggerOptimizedRender();
+                }
+            } else if (track === 'M670') {
+                if (!isM670Loaded) {
+                    loadM670Data();
+                } else {
+                    renderM670KPI();
+                    renderM670SaButtons();
                     triggerOptimizedRender();
                 }
             } else {
@@ -1155,6 +1229,8 @@
                 loadArData();
             } else if (currentMainTrack === 'M130') {
                 loadM130Data();
+            } else if (currentMainTrack === 'M670') {
+                loadM670Data();
             }
         }
 
@@ -1601,10 +1677,10 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 定保喚醒模組核心邏輯 (含自動查重去重與防呆) ====================
+        // ==================== ⏳ 130 久未回廠模組核心邏輯 ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 定保喚醒資料中...</div>';
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 久未回廠資料中...</div>';
 
             Papa.parse(`${M130_CSV_URL}&_t=${Date.now()}`, {
                 download: true,
@@ -1618,7 +1694,7 @@
                     triggerOptimizedRender();
                 },
                 error: function(err) {
-                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">130 定保喚醒資料讀取失敗。</div>';
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">130 久未回廠資料讀取失敗。</div>';
                 }
             });
         }
@@ -1627,18 +1703,13 @@
             m130List = [];
             if (!rows || rows.length === 0) return;
 
-            const seenPlates = new Set(); // 👈 唯一的車牌查重名冊
+            const seenPlates = new Set();
 
             rows.forEach(r => {
                 const plate = String(r['牌照號碼'] || r['車牌'] || '').trim();
-                
-                // 🚨 關鍵防呆邏輯：空白、合計列、或不小心重複貼到的中文標題（牌照號碼/車牌），一律自動忽略！
                 if (!plate || plate.includes('計') || plate.includes('SUM') || plate.includes('牌照') || plate === '車牌') return;
 
-                // 🚨 關鍵防重邏輯：如果這張車牌剛才已經讀過了，直接跳過不重複收錄！
-                if (seenPlates.has(plate)) {
-                    return;
-                }
+                if (seenPlates.has(plate)) return;
                 seenPlates.add(plate);
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
@@ -1739,7 +1810,6 @@
             triggerOptimizedRender();
         }
 
-        // ==================== 130 報表匯出與友善列印 ====================
         function getM130ContactedList() {
             return m130List.filter(item => Boolean(cloudNotes[item.plate]));
         }
@@ -1792,7 +1862,7 @@
             printWin.document.write(`
                 <html>
                 <head>
-                    <title>尚鵬內湖保養廠 - 130定保關懷追蹤成果報表</title>
+                    <title>尚鵬內湖保養廠 - 130久未關懷追蹤成果報表</title>
                     <style>
                         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 25px; color: #111827; }
                         h2 { margin: 0 0 6px 0; text-align: center; font-size: 1.3rem; }
@@ -1804,7 +1874,7 @@
                     </style>
                 </head>
                 <body>
-                    <h2>🚗 尚鵬汽車 內湖保養廠 - 130 定保喚醒電聯成果清單</h2>
+                    <h2>🚗 尚鵬汽車 內湖保養廠 - 130 久未回廠電聯成果清單</h2>
                     <div class="sub">報表產出：${new Date().toLocaleString()} ｜ 已電聯回報：${list.length} 台</div>
                     <table>
                         <thead>
@@ -1817,6 +1887,249 @@
                                 <th>指定專員</th>
                                 <th>上次進廠</th>
                                 <th>電聯追蹤成果 / 車主回覆</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(() => { printWin.print(); }, 400);
+        }
+
+        // ==================== ✨ 670 新車交車首保模組核心邏輯 ====================
+        function loadM670Data() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 670 新車首保資料中...</div>';
+
+            Papa.parse(`${M670_CSV_URL}&_t=${Date.now()}`, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    isM670Loaded = true;
+                    parseM670Data(results.data);
+                    renderM670KPI();
+                    renderM670SaButtons();
+                    triggerOptimizedRender();
+                },
+                error: function(err) {
+                    grid.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">670 新車首保資料讀取失敗。</div>';
+                }
+            });
+        }
+
+        function parseM670Data(rows) {
+            m670List = [];
+            if (!rows || rows.length === 0) return;
+
+            const seenPlates = new Set();
+            const now = new Date();
+
+            rows.forEach(r => {
+                const plate = String(r['牌照號碼'] || r['牌照#'] || r['車牌'] || '').trim();
+                if (!plate || plate.includes('計') || plate.includes('SUM') || plate.includes('牌照') || plate === '車牌') return;
+
+                if (seenPlates.has(plate)) return;
+                seenPlates.add(plate);
+
+                const deliveryDateStr = String(r['交車日期'] || '').trim();
+                let daysSinceDelivery = 0;
+                if (deliveryDateStr && deliveryDateStr !== '-') {
+                    const dParts = deliveryDateStr.split('-');
+                    if (dParts.length === 3) {
+                        const dObj = new Date(parseInt(dParts[0], 10), parseInt(dParts[1], 10) - 1, parseInt(dParts[2], 10));
+                        const diffTime = now.getTime() - dObj.getTime();
+                        daysSinceDelivery = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+                    }
+                }
+
+                const assignedSa = (r['指定專員'] || '').trim();
+                const finalSa = assignedSa ? assignedSa : '待指派';
+                const salesCategory = String(r['銷售類別'] || '一般銷售').trim();
+
+                m670List.push({
+                    plate: plate,
+                    brand: String(r['品牌'] || '').trim(),
+                    model: String(r['車型'] || '-').trim(),
+                    owner: String(r['車主'] || r['客戶'] || '-').trim(),
+                    phone: String(r['行動電話'] || r['電話'] || '').trim(),
+                    deliveryDate: deliveryDateStr || '-',
+                    days: daysSinceDelivery,
+                    salesPerson: String(r['銷售人員'] || '展示中心').trim(),
+                    salesCategory: salesCategory,
+                    assignedSa: assignedSa,
+                    finalSa: finalSa
+                });
+            });
+
+            // 依交車天數由小到大排序 (最新交車排前面)
+            m670List.sort((a, b) => a.days - b.days);
+        }
+
+        function renderM670KPI() {
+            let m1Count = 0;
+            let m2Count = 0;
+            let over90Count = 0;
+            let unassignedCount = 0;
+            let hasNoteCount = 0;
+            let noNoteCount = 0;
+            let genCount = 0;
+            let demoCount = 0;
+
+            m670List.forEach(item => {
+                const d = item.days;
+                const hasNote = Boolean(cloudNotes[item.plate]);
+
+                if (d >= 30 && d <= 60) m1Count++;
+                else if (d > 60 && d <= 90) m2Count++;
+                else if (d > 90) over90Count++;
+
+                if (item.finalSa === '待指派') unassignedCount++;
+                if (hasNote) hasNoteCount++;
+                else noNoteCount++;
+
+                if (item.salesCategory.includes('試乘') || item.salesCategory.includes('公關')) demoCount++;
+                else genCount++;
+            });
+
+            document.getElementById('m670KpiTotal').innerText = m670List.length;
+            document.getElementById('m670KpiMonth1').innerText = m1Count;
+            document.getElementById('m670KpiMonth2').innerText = m2Count;
+            document.getElementById('m670KpiUnassigned').innerText = unassignedCount;
+
+            document.getElementById('m670-c-all').innerText = m670List.length;
+            document.getElementById('m670-c-30-60').innerText = m1Count;
+            document.getElementById('m670-c-61-90').innerText = m2Count;
+            document.getElementById('m670-c-over-90').innerText = over90Count;
+            document.getElementById('m670-c-has-note').innerText = hasNoteCount;
+            document.getElementById('m670-c-no-note').innerText = noNoteCount;
+            document.getElementById('m670-c-gen').innerText = genCount;
+            document.getElementById('m670-c-demo').innerText = demoCount;
+        }
+
+        function renderM670SaButtons() {
+            const row = document.getElementById('m670SaFilterRow');
+            row.innerHTML = `
+                <span class="filter-label-chip">關懷專員：</span>
+                <button class="tab-btn ${activeM670Sa === 'ALL' ? 'active' : ''}" onclick="setM670SaFilter('ALL', this)">全部專員 <span class="tab-count">${m670List.length}</span></button>
+            `;
+
+            const saCounts = {};
+            m670List.forEach(item => {
+                const sa = item.finalSa;
+                saCounts[sa] = (saCounts[sa] || 0) + 1;
+            });
+
+            Object.keys(saCounts).sort((a, b) => {
+                if (a === '待指派') return 1;
+                if (b === '待指派') return -1;
+                return saCounts[b] - saCounts[a];
+            }).forEach(sa => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${activeM670Sa === sa ? 'active' : ''}`;
+                btn.innerHTML = `${sa === '待指派' ? '❓ 待指派' : sa} <span class="tab-count">${saCounts[sa]}</span>`;
+                btn.onclick = () => setM670SaFilter(sa, btn);
+                row.appendChild(btn);
+            });
+        }
+
+        function setM670CategoryFilter(type, btn) {
+            activeM670Category = type;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
+        function setM670SaFilter(sa, btn) {
+            activeM670Sa = sa;
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
+        function getM670ContactedList() {
+            return m670List.filter(item => Boolean(cloudNotes[item.plate]));
+        }
+
+        function exportM670ContactedCSV() {
+            const list = getM670ContactedList();
+            if (list.length === 0) {
+                alert('目前尚無已填寫電聯備註的新車資料！');
+                return;
+            }
+
+            let csvContent = "\uFEFF車牌號碼,品牌,車型,車主,聯絡電話,交車日期,交車天數,交車業務,指定專員,銷售類別,電聯成果備註\n";
+            list.forEach(item => {
+                const note = (cloudNotes[item.plate] || '').replace(/"/g, '""');
+                csvContent += `"${item.plate}","${item.brand}","${item.model}","${item.owner}","${item.phone}","${item.deliveryDate}","${item.days}天","${item.salesPerson}","${item.finalSa}","${item.salesCategory}","${note}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `尚鵬內湖_670新車首保電聯報表_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function printM670Report() {
+            const list = getM670ContactedList();
+            if (list.length === 0) {
+                alert('目前尚無已填寫電聯備註的新車資料！');
+                return;
+            }
+
+            const printWin = window.open('', '', 'width=980,height=650');
+            let rowsHtml = list.map((item, idx) => `
+                <tr>
+                    <td style="text-align:center;">${idx + 1}</td>
+                    <td><strong>${item.plate}</strong></td>
+                    <td>${item.model}</td>
+                    <td>${item.owner}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td>${item.deliveryDate} (${item.days}天)</td>
+                    <td>${item.salesPerson}</td>
+                    <td style="font-weight:700;">${item.finalSa}</td>
+                    <td style="color:#b91c1c; font-weight:600;">${cloudNotes[item.plate] || '-'}</td>
+                </tr>
+            `).join('');
+
+            printWin.document.write(`
+                <html>
+                <head>
+                    <title>尚鵬內湖保養廠 - 670新車交車首保電聯成果報表</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 25px; color: #111827; }
+                        h2 { margin: 0 0 6px 0; text-align: center; font-size: 1.3rem; }
+                        .sub { text-align: center; font-size: 0.85rem; color: #4b5563; margin-bottom: 18px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+                        th, td { border: 1px solid #cbd5e1; padding: 8px 6px; text-align: left; }
+                        th { background-color: #f1f5f9; font-weight: 700; }
+                        tr:nth-child(even) { background-color: #f8fafc; }
+                    </style>
+                </head>
+                <body>
+                    <h2>✨ 尚鵬汽車 內湖保養廠 - 670 新車交車首保電聯成果清單</h2>
+                    <div class="sub">報表產出：${new Date().toLocaleString()} ｜ 已電聯回報：${list.length} 台</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:30px; text-align:center;">#</th>
+                                <th>車牌</th>
+                                <th>車型</th>
+                                <th>車主</th>
+                                <th>電話</th>
+                                <th>交車日(天數)</th>
+                                <th>交車業務</th>
+                                <th>指定專員</th>
+                                <th>首保追蹤成果 / 車主回覆</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1851,6 +2164,10 @@
                 if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
                 if (currentMainTrack === 'M130') {
                     renderM130KPI();
+                    triggerOptimizedRender();
+                }
+                if (currentMainTrack === 'M670') {
+                    renderM670KPI();
                     triggerOptimizedRender();
                 }
                 delete window[callbackName];
@@ -2288,6 +2605,30 @@
 
                     return true;
                 });
+            } else if (currentMainTrack === 'M670') {
+                currentRenderList = m670List.filter(item => {
+                    const d = item.days;
+                    const sa = item.finalSa;
+                    const myNote = cloudNotes[item.plate] || '';
+                    const isDemo = item.salesCategory.includes('試乘') || item.salesCategory.includes('公關');
+
+                    if (activeM670Category === 'D_30_60' && (d < 30 || d > 60)) return false;
+                    if (activeM670Category === 'D_61_90' && (d <= 60 || d > 90)) return false;
+                    if (activeM670Category === 'D_OVER_90' && d <= 90) return false;
+                    if (activeM670Category === 'HAS_NOTE' && !myNote) return false;
+                    if (activeM670Category === 'NO_NOTE' && myNote) return false;
+                    if (activeM670Category === 'GENERAL' && isDemo) return false;
+                    if (activeM670Category === 'DEMO' && !isDemo) return false;
+
+                    if (activeM670Sa !== 'ALL' && sa !== activeM670Sa) return false;
+
+                    if (searchVal) {
+                        const fullText = `${item.plate} ${item.brand} ${item.model} ${item.owner} ${item.phone} ${item.salesPerson} ${item.finalSa} ${item.salesCategory} ${myNote}`.toLowerCase();
+                        if (!fullText.includes(searchVal)) return false;
+                    }
+
+                    return true;
+                });
             }
         }
 
@@ -2521,7 +2862,6 @@
                 const isOver60 = age >= 60;
                 const isOver30 = age >= 30;
 
-                // 專門貼 LINE 的分段排版
                 const lineCopyText = [
                     '📋【未收款對帳追蹤】',
                     '━━━━━━━━━━━━',
@@ -2671,6 +3011,88 @@
                                     <span class="cloud-hint" id="${hintId}"></span>
                                 </div>
                                 <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 已約9/20、外廠保養、換車)..." oninput="handleNoteInput('${plate}', this.value, '${hintId}')">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentMainTrack === 'M670') {
+                const item = data;
+                const plate = item.plate;
+                const days = item.days;
+                const isOver60 = days > 60;
+                const isMonth1 = days >= 30 && days <= 60;
+                const myNote = cloudNotes[plate] || '';
+                const hintId = `hint_m670_${plate}`;
+                const isDemo = item.salesCategory.includes('試乘') || item.salesCategory.includes('公關');
+
+                const lineCopyText = [
+                    '✨【尚鵬汽車內湖旗艦廠 - 新車交車關懷提醒】',
+                    '━━━━━━━━━━━━━━━━━━━',
+                    '親愛的車主 您好：',
+                    `稍早致電未能與您通上電話，特發此訊息向您關懷問候。`,
+                    '',
+                    `▪ 愛車車牌：${plate}`,
+                    `▪ 車型規格：${item.brand} ${item.model}`,
+                    `▪ 交車日期：${item.deliveryDate} (交車已滿 ${days} 天)`,
+                    `▪ 交車業代：${item.salesPerson}`,
+                    '',
+                    '新車交車滿月期間，各項功能（車機、駕駛輔助系統）使用上是否順手？',
+                    '依原廠規範，新車滿月或行駛達 1,000 公里，誠摯邀請您回廠實施免費全車健診與磨合檢查，維護原廠保固權益。',
+                    '',
+                    '⚠️ 因本發報系統為自動發送，請勿直接回覆簡訊。',
+                    '預約回廠健診請致電廠端專線，將由專人為您安排：',
+                    '🏢 尚鵬汽車 內湖服務廠',
+                    '📞 預約專線：(02) 2796-8166',
+                    `💬 關懷服務專員：${item.assignedSa || '服務專員'}`
+                ].filter(Boolean).join('\n');
+
+                return `
+                    <div class="order-card" style="${isMonth1 ? 'border-left: 4px solid #dc2626;' : ''}">
+                        <div class="card-top">
+                            <div>
+                                <div class="car-heading">
+                                    <span>${item.brand} ${item.model}</span>
+                                    <span class="category-pill" style="${isMonth1 ? 'background:#fee2e2; color:#991b1b;' : isOver60 ? 'background:#fef3c7; color:#92400e;' : 'background:#e0f2fe; color:#0369a1;'}">
+                                        ${isMonth1 ? '🚨 滿月急迫(首保期)' : isOver60 ? '⚠️ 首保逾期追蹤' : '🌱 剛交車'}
+                                    </span>
+                                    <span class="category-pill" style="background:#f1f5f9; color:#334155;">${item.salesCategory}</span>
+                                </div>
+                                <div class="card-meta">
+                                    車牌：<strong>${plate}</strong> ｜ 車主：${item.owner}
+                                </div>
+                            </div>
+                            <div class="top-btn-group">
+                                <button class="btn-copy-main" onclick="copyText(\`${lineCopyText.replace(/`/g, "\\`")}\`)">📋 LINE/簡訊</button>
+                            </div>
+                        </div>
+
+                        <div class="cycle-strip ${isMonth1 ? 'danger' : ''}">
+                            <div class="strip-days">交車日：<strong>${item.deliveryDate}</strong> (已交車 <strong>${days}</strong> 天)</div>
+                            <div>
+                                <span class="pill-status ${isMonth1 ? 'badge-danger' : isOver60 ? 'badge-warn' : 'badge-green'}">
+                                    ${isMonth1 ? '🚨 滿月邀約期' : isOver60 ? '⚠️ 應回未回' : '正常用車'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <div><span class="info-label">車主名稱：</span><strong>${item.owner}</strong></div>
+                            <div>
+                                <span class="info-label">聯絡電話：</span>
+                                ${item.phone ? `<a href="tel:${item.phone}" class="tel-btn">📞 ${item.phone}</a>` : '<span style="color:#94a3af;">無電話</span>'}
+                            </div>
+                            <div><span class="info-label">交車業務：</span><strong>${item.salesPerson}</strong></div>
+                            <div><span class="info-label">指定專員：</span><strong style="color:var(--btn-blue); font-size:0.95rem;">${item.finalSa}</strong></div>
+                            <div style="grid-column: span 2; font-size:0.8rem; color:#64748b;">
+                                <span class="info-label">首保建議：</span>行駛滿月或達 1,000 公里實施原廠免費健診
+                            </div>
+
+                            <div class="custom-note-block">
+                                <div class="note-header">
+                                    <span class="note-title">☁️ 新車電聯備註 (以車牌永久記憶)：</span>
+                                    <span class="cloud-hint" id="${hintId}"></span>
+                                </div>
+                                <input type="text" class="note-input" value="${myNote.replace(/"/g, '&quot;')}" placeholder="點此輸入電聯進度 (如: 里程500km、約下週六、已在別廠保養)..." oninput="handleNoteInput('${plate}', this.value, '${hintId}')">
                             </div>
                         </div>
                     </div>
