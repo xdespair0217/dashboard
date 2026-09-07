@@ -67,6 +67,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      white-space: nowrap;
     }
     button:hover {
       border-color: var(--accent-cyan);
@@ -80,8 +81,8 @@
       font-weight: 700;
       box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
     }
-    .btn-action { background: var(--accent-purple-bg); border-color: #ddd6fe; color: var(--accent-purple); }
-    .btn-action:hover { background: var(--accent-purple); color: #ffffff; }
+    .btn-action { background: #dcfce7; border-color: #86efac; color: #166534; }
+    .btn-action:hover { background: #22c55e; color: #ffffff; }
     
     /* 螢光聚焦按鈕樣式 */
     .btn-glow { background: #fef3c7; border-color: #fde047; color: #b45309; font-weight: 700; }
@@ -231,6 +232,48 @@
       color: var(--text-muted);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
+
+    /* 手機版 (RWD) 適應樣式 */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 12px;
+        gap: 6px;
+      }
+      .brand-title {
+        font-size: 16px;
+        min-width: auto;
+        justify-content: center;
+      }
+      .btn-group {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .btn-group::-webkit-scrollbar { display: none; }
+      
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: 240px 1fr;
+      }
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--panel-border);
+      }
+      .glow-nav-bar {
+        top: auto;
+        bottom: 16px;
+        width: 90%;
+        justify-content: space-between;
+      }
+      .glow-info {
+        min-width: auto;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -255,7 +298,7 @@
       <button class="btn-glow" id="btn-glow-mode" onclick="toggleGlowPresentation()">✨ 脈衝聚焦簡報</button>
       <button id="btn-focus" onclick="toggleFocusMode()">🖥️ 全螢幕</button>
       <button id="btn-reset-all" onclick="resetAllData()">🔄 重置全部資料</button>
-      <button class="btn-action" onclick="exportSVG()">📥 匯出 SVG</button>
+      <button class="btn-action" onclick="exportHTML()">🌐 匯出網頁模式 (HTML)</button>
     </div>
   </header>
 
@@ -353,7 +396,7 @@
         document.getElementById('btn-focus').classList.add('active');
       } else {
         sidebar.style.display = 'flex';
-        ws.style.gridTemplateColumns = '380px 1fr';
+        ws.style.gridTemplateColumns = window.innerWidth <= 768 ? '1fr' : '380px 1fr';
         document.getElementById('btn-focus').classList.remove('active');
       }
     }
@@ -384,7 +427,6 @@
       document.getElementById('btn-glow-mode').classList.remove('active');
       document.getElementById('glowNavBar').style.display = 'none';
 
-      // 清除所有螢光標記
       document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
       resetView();
 
@@ -394,7 +436,6 @@
     function buildGlowTargets() {
       state.glowTargets = [];
 
-      // 1. 核心大標題
       const coreNode = document.getElementById('coreTitleNode');
       if (coreNode) {
         state.glowTargets.push({
@@ -406,7 +447,6 @@
         });
       }
 
-      // 2. 構面分支
       state.data.categories.forEach((cat, idx) => {
         const catNode = document.getElementById(`cat-group-${idx}`);
         if (catNode) {
@@ -429,7 +469,6 @@
       if (idx < 0 || idx >= state.glowTargets.length) return;
       state.glowStepIndex = idx;
 
-      // 移除上一次的 pulse
       document.querySelectorAll('.pulse-highlight').forEach(el => el.classList.remove('pulse-highlight'));
 
       const target = state.glowTargets[idx];
@@ -439,13 +478,11 @@
         targetEl.classList.add('pulse-highlight');
       }
 
-      // 鏡頭平滑跟隨
       const g = document.getElementById('viewportGroup');
       const dx = (900 - target.focusX) * target.scale;
       const dy = (500 - target.focusY) * target.scale;
       g.style.transform = `translate(${dx}px, ${dy}px) scale(${target.scale})`;
 
-      // 更新 HUD 文字
       document.getElementById('glowInfoText').textContent = `(${idx + 1}/${state.glowTargets.length}) ${target.name}`;
     }
 
@@ -453,7 +490,7 @@
       if (state.glowStepIndex < state.glowTargets.length - 1) {
         applyGlowStep(state.glowStepIndex + 1);
       } else {
-        applyGlowStep(0); // 循環回大標題
+        applyGlowStep(0);
       }
     }
 
@@ -912,15 +949,16 @@
       g.innerHTML = html;
     }
 
-    function exportSVG() {
-      const svg = document.getElementById('mainSvg');
-      const serializer = new XMLSerializer();
-      const source = serializer.serializeToString(svg);
-      const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+    /* 匯出為完整 HTML 獨立網頁檔案 */
+    function exportHTML() {
+      const htmlDoc = `<!DOCTYPE html>\n<html lang="zh-TW">\n${document.documentElement.innerHTML}\n</html>`;
+      const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${state.data.core}_${state.layout}.svg`;
+      a.download = `${state.data.core}_導覽網頁.html`;
       a.click();
+      URL.revokeObjectURL(url);
     }
 
     function renderAll() {
