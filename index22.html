@@ -406,22 +406,24 @@
             `;
         }
 
+        // 最佳化速度：儲存後採用局部即時更新，不卡頓
         function saveQuickNode(index) {
             quickButtonsData[index].title = document.getElementById('edit-q-title').value;
             quickButtonsData[index].fileUrl = document.getElementById('edit-q-file').value;
             const imgFile = document.getElementById('edit-q-image').files[0];
+            
             if (imgFile) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     quickButtonsData[index].imageUrl = e.target.result;
                     saveData();
-                    renderAll();
+                    renderQuickButtons();
                     alert('已儲存！');
                 };
                 reader.readAsDataURL(imgFile);
             } else {
                 saveData();
-                renderAll();
+                renderQuickButtons();
                 alert('已儲存！');
             }
         }
@@ -431,18 +433,19 @@
             workflowData[index].desc = document.getElementById('edit-w-desc').value;
             workflowData[index].fileUrl = document.getElementById('edit-w-file').value;
             const imgFile = document.getElementById('edit-w-image').files[0];
+            
             if (imgFile) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     workflowData[index].imageUrl = e.target.result;
                     saveData();
-                    renderAll();
+                    renderWorkflow();
                     alert('已儲存！');
                 };
                 reader.readAsDataURL(imgFile);
             } else {
                 saveData();
-                renderAll();
+                renderWorkflow();
                 alert('已儲存！');
             }
         }
