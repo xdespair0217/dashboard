@@ -908,7 +908,7 @@
                 </div>
 
                 <div class="filter-scroll-container" id="m130SaFilterRow">
-                    <span class="filter-label-chip">關懷專員：</span>
+                    <span class="filter-label-chip">服務專員：</span>
                     <button class="tab-btn active" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count" id="m130-sa-all">0</span></button>
                 </div>
             </div>
@@ -1677,7 +1677,7 @@
             triggerOptimizedRender();
         }
 
-        // ==================== ⏳ 130 久未回廠模組核心邏輯 ====================
+        // ==================== ⏳ 130 久未回廠模組核心邏輯 (修復接待選項) ====================
         function loadM130Data() {
             const grid = document.getElementById('cardsGrid');
             grid.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--text-light);">載入 130 久未回廠資料中...</div>';
@@ -1713,8 +1713,11 @@
                 seenPlates.add(plate);
 
                 const lostMonths = parseInt(r['失聯月數'] || '0', 10) || 0;
+                
+                // 💡 智能雙軌相容：優先抓指定專員，若未指定則抓原本的接待/服務專員，確保按鈕永不消失！
                 const assignedSa = (r['指定專員'] || '').trim();
-                const finalSa = assignedSa ? assignedSa : '待指派';
+                const lastSa = (r['上次接待'] || r['服務專員'] || r['接待'] || '').trim();
+                const finalSa = assignedSa ? assignedSa : (lastSa ? lastSa : '待指派');
 
                 m130List.push({
                     plate: plate,
@@ -1727,6 +1730,7 @@
                     item: String(r['定保項目'] || '').trim(),
                     nextDate: String(r['預估下次日'] || '-').trim(),
                     lostMonths: lostMonths,
+                    lastSa: lastSa || '未指派',
                     assignedSa: assignedSa,
                     finalSa: finalSa,
                     address: String(r['轄區地址'] || r['地址'] || '-').trim()
@@ -1773,8 +1777,8 @@
         function renderM130SaButtons() {
             const row = document.getElementById('m130SaFilterRow');
             row.innerHTML = `
-                <span class="filter-label-chip">關懷專員：</span>
-                <button class="tab-btn ${activeM130Sa === 'ALL' ? 'active' : ''}" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count">${m130List.length}</span></button>
+                <span class="filter-label-chip">服務專員：</span>
+                <button class="tab-btn ${activeM130Sa === 'ALL' ? 'active' : ''}" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count" id="m130-sa-all">${m130List.length}</span></button>
             `;
 
             const saCounts = {};
@@ -1821,7 +1825,7 @@
                 return;
             }
 
-            let csvContent = "\uFEFF車牌號碼,車型,車主/窗口,聯絡電話,指定專員,上次進廠日,前次里程,失聯月數,電聯追蹤備註\n";
+            let csvContent = "\uFEFF車牌號碼,車型,車主/窗口,聯絡電話,服務專員,上次進廠日,前次里程,失聯月數,電聯追蹤備註\n";
             list.forEach(item => {
                 const note = (cloudNotes[item.plate] || '').replace(/"/g, '""');
                 const contactPerson = item.driver ? `${item.driver}(駕駛)` : item.owner;
@@ -1884,7 +1888,7 @@
                                 <th>車型</th>
                                 <th>車主/窗口</th>
                                 <th>電話</th>
-                                <th>指定專員</th>
+                                <th>服務專員</th>
                                 <th>上次進廠</th>
                                 <th>電聯追蹤成果 / 車主回覆</th>
                             </tr>
@@ -1967,7 +1971,6 @@
                 });
             });
 
-            // 依交車天數由小到大排序 (最新交車排前面)
             m670List.sort((a, b) => a.days - b.days);
         }
 
@@ -2164,10 +2167,12 @@
                 if (currentMainTrack === 'ORDERS') triggerOptimizedRender();
                 if (currentMainTrack === 'M130') {
                     renderM130KPI();
+                    renderM130SaButtons();
                     triggerOptimizedRender();
                 }
                 if (currentMainTrack === 'M670') {
                     renderM670KPI();
+                    renderM670SaButtons();
                     triggerOptimizedRender();
                 }
                 delete window[callbackName];
@@ -2599,7 +2604,7 @@
                     if (activeM130Sa !== 'ALL' && sa !== activeM130Sa) return false;
 
                     if (searchVal) {
-                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
+                        const fullText = `${item.plate} ${item.model} ${item.owner} ${item.driver} ${item.phone} ${item.lastSa} ${item.assignedSa} ${item.item} ${item.address} ${myNote}`.toLowerCase();
                         if (!fullText.includes(searchVal)) return false;
                     }
 
@@ -2951,7 +2956,7 @@
                     '預約保養請直接致電廠端專線，將由專人為您安排：',
                     '🏢 尚鵬內湖保養廠',
                     '📞 預約專線：(02) 2796-8166',
-                    `💬 指定專員：${item.assignedSa || '服務專員'}`
+                    `💬 服務專員：${item.finalSa}`
                 ].filter(Boolean).join('\n');
 
                 return `
@@ -2989,9 +2994,8 @@
                                 <span class="info-label">通話：</span>
                                 ${item.phone ? `<a href="tel:${item.phone}" class="tel-btn">📞 ${item.phone}</a>` : '<span style="color:#94a3af;">無電話</span>'}
                             </div>
-                            <div style="grid-column: span 2;">
-                                <span class="info-label">指定專員：</span><strong style="color:var(--btn-blue); font-size:0.95rem;">${item.finalSa}</strong>
-                            </div>
+                            <div><span class="info-label">上次接待：</span>${item.lastSa}</div>
+                            <div><span class="info-label">服務專員：</span><strong style="color:var(--btn-blue); font-size:0.95rem;">${item.finalSa}</strong></div>
                             <div><span class="info-label">前次里程：</span><strong>${item.lastKm ? item.lastKm + ' km' : '-'}</strong></div>
                             <div><span class="info-label">預估下次：</span>${item.nextDate}</div>
                             
@@ -3043,7 +3047,7 @@
                     '預約回廠健診請致電廠端專線，將由專人為您安排：',
                     '🏢 尚鵬汽車 內湖服務廠',
                     '📞 預約專線：(02) 2796-8166',
-                    `💬 關懷服務專員：${item.assignedSa || '服務專員'}`
+                    `💬 關懷服務專員：${item.finalSa}`
                 ].filter(Boolean).join('\n');
 
                 return `
