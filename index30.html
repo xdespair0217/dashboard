@@ -52,11 +52,34 @@
         }
         .search-box input:focus { outline: none; border-color: #3182ce; background: #fff; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
         
-        .refresh-btn {
+        .btn-group { display: flex; gap: 8px; }
+        .refresh-btn, .manual-btn {
             background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px;
             border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 4px;
         }
-        .refresh-btn:hover { background: #e2e8f0; color: #1a202c; }
+        .refresh-btn:hover, .manual-btn:hover { background: #e2e8f0; color: #1a202c; }
+        .manual-btn { background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8; }
+        .manual-btn:hover { background: #bee3f8; }
+
+        /* 📖 系統說明書區塊 (預設收合) */
+        .manual-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #3182ce;
+            padding: 14px 18px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #4a5568;
+            display: none;
+            margin-top: 4px;
+            line-height: 1.6;
+        }
+        .manual-panel.show { display: block; }
+        .manual-panel h4 { margin: 0 0 8px 0; color: #1a202c; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+        .manual-item { background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .manual-item strong { color: #2b6cb0; }
 
         /* 🏷️ 分組標籤容器 */
         .filter-section {
@@ -73,6 +96,7 @@
         .tag {
             background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 5px 12px;
             border-radius: 16px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 5px;
         }
         .tag:hover { background: #e2e8f0; color: #1a202c; border-color: #a0aec0; }
         .tag.active { background: #2b6cb0; color: #ffffff; border-color: #2b6cb0; box-shadow: 0 2px 4px rgba(43, 108, 176, 0.2); }
@@ -80,8 +104,16 @@
         .tag.alert-tag.active { background: #e53e3e; color: #ffffff; border-color: #e53e3e; }
         .tag.person-tag { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
         .tag.person-tag.active { background: #22c55e; color: #ffffff; border-color: #22c55e; }
+        
+        /* 標籤內的數量小徽章 */
+        .tag-count {
+            background: rgba(0,0,0,0.08); padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: 700;
+        }
+        .tag.active .tag-count, .tag.alert-tag.active .tag-count, .tag.person-tag.active .tag-count {
+            background: rgba(255,255,255,0.25); color: #fff;
+        }
 
-        /* 📱 輕巧緊湊的卡片網格容器 (Grid) - 防回彈 */
+        /* 📱 卡片網格流容器 */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
@@ -91,7 +123,6 @@
             padding: 2px;
         }
 
-        /* 輕巧型單張案情卡片 */
         .data-card {
             background: #ffffff;
             border-radius: 8px;
@@ -105,7 +136,6 @@
         }
         .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
 
-        /* 卡片頂部：車號與按鈕群組 */
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -116,9 +146,6 @@
         .card-car-no { font-size: 15px; font-weight: 700; color: #2b6cb0; display: flex; align-items: center; gap: 6px; }
         .car-type-badge { background: #ebf8ff; color: #2b6cb0; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
 
-        .card-btn-group { display: flex; gap: 6px; }
-
-        /* 複製按鈕 */
         .action-btn {
             background-color: #edf2f7; color: #2b6cb0; border: 1px solid #cbd5e0; padding: 4px 10px;
             border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 3px;
@@ -127,7 +154,6 @@
         .action-btn:hover { background-color: #2b6cb0; color: #fff; border-color: #2b6cb0; }
         .action-btn.copied { background-color: #38a169; color: #fff; border-color: #38a169; }
 
-        /* 卡片內文資訊緊湊排版 */
         .card-body {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -147,7 +173,6 @@
         }
         .part-val { font-family: monospace; font-size: 12px; color: #2d3748; font-weight: 700; }
 
-        /* 卡片底部：警示狀態標籤 */
         .card-footer {
             display: flex;
             flex-wrap: wrap;
@@ -174,7 +199,34 @@
     <div class="control-panel">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 快速搜尋車號、車身碼、工單、料號..." onkeyup="applyFilters()">
-            <button class="refresh-btn" onclick="loadData()">🔄 重新整理資料</button>
+            <div class="btn-group">
+                <button class="manual-btn" onclick="toggleManual()">📖 系統說明書</button>
+                <button class="refresh-btn" onclick="loadData()">🔄 重新整理</button>
+            </div>
+        </div>
+
+        <!-- 📖 系統說明書摺疊面板 -->
+        <div class="manual-panel" id="manualPanel">
+            <h4>📌 尚鵬汽車待料監控系統 - 操作與智慧預警邏輯說明</h4>
+            <p>本系統直接對應廠內 Google 試算表（零件BO表），提供即時卡片流監控與自動警示：</p>
+            <div class="manual-grid">
+                <div class="manual-item">
+                    <strong>🛡️ 保固預警 (≤15天)</strong><br>
+                    當車輛零件之保固到期日與今天相差 15 天以內（或已過期）時觸發紅燈警示，提醒儘速處理。
+                </div>
+                <div class="manual-item">
+                    <strong>📦 到貨未進場 (>15天)</strong><br>
+                    當零件已到貨（有填到貨日），且 M 欄（通知狀態）尚未打勾，或到貨時間超過 15 天車輛仍未進場時觸發橘燈。
+                </div>
+                <div class="manual-item">
+                    <strong>🚨 總代理催料 (>27天)</strong><br>
+                    當訂貨日超過 27 天且尚未填入到貨日時觸發紫燈，提醒需向總代理積極催料。
+                </div>
+                <div class="manual-item">
+                    <strong>✅ 通知狀態 (M欄)</strong><br>
+                    同事於 BO 表 M 欄打勾 <code>✓</code> 代表已通知接待；未打勾則顯示尚未通知。
+                </div>
+            </div>
         </div>
         
         <div class="filter-section" id="filterTagsContainer"></div>
@@ -185,7 +237,6 @@
     </div>
 
     <script>
-        // 對應你最新的 零件BO表 CSV 連結 (gid=764234628)
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=764234628&single=true&output=csv';
 
         let parsedRows = [];
@@ -249,14 +300,34 @@
             renderCards();
         }
 
+        function toggleManual() {
+            let panel = document.getElementById('manualPanel');
+            panel.classList.toggle('show');
+        }
+
         function generateStructuredTags() {
             if (parsedRows.length <= 1) return;
             
-            let handlers = new Set();
+            // 📊 計算各個類型的即時數量
+            let totalCount = parsedRows.length - 1;
+            let warrantyCount = 0;
+            let arrivalCount = 0;
+            let agentCount = 0;
+            let handlerCounts = {};
+
             for (let i = 1; i < parsedRows.length; i++) {
-                let h = parsedRows[i][11]; // L 欄：交辦人員
+                let row = parsedRows[i];
+                let warrantyAlert = row[16] || '';
+                let arrivalAlert = row[17] || '';
+                let agentAlert = row[18] || '';
+                let h = row[11] || '';
+
+                if (warrantyAlert.includes('保固')) warrantyCount++;
+                if (arrivalAlert.includes('已到貨逾15天')) arrivalCount++;
+                if (agentAlert.includes('待料逾27天')) agentCount++;
+
                 if (h && h !== '未指定' && h !== '') {
-                    handlers.add(h);
+                    handlerCounts[h] = (handlerCounts[h] || 0) + 1;
                 }
             }
 
@@ -265,19 +336,19 @@
             let html = `
                 <div class="filter-row">
                     <span class="tag-group-label">📌 快速檢視：</span>
-                    <span class="tag ${currentTag === 'ALL' ? 'active' : ''}" onclick="setTagFilter('ALL', this)">全部顯示</span>
-                    <span class="tag alert-tag ${currentTag === 'ALERT_WARRANTY' ? 'active' : ''}" onclick="setTagFilter('ALERT_WARRANTY', this)">🛡️ 保固預警</span>
-                    <span class="tag alert-tag ${currentTag === 'ALERT_ARRIVAL' ? 'active' : ''}" onclick="setTagFilter('ALERT_ARRIVAL', this)">📦 到貨未進場</span>
-                    <span class="tag alert-tag ${currentTag === 'ALERT_AGENT' ? 'active' : ''}" onclick="setTagFilter('ALERT_AGENT', this)">🚨 總代理催料</span>
+                    <span class="tag ${currentTag === 'ALL' ? 'active' : ''}" onclick="setTagFilter('ALL', this)">全部顯示 <span class="tag-count">${totalCount}</span></span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_WARRANTY' ? 'active' : ''}" onclick="setTagFilter('ALERT_WARRANTY', this)">🛡️ 保固預警 (≤15天) <span class="tag-count">${warrantyCount}</span></span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_ARRIVAL' ? 'active' : ''}" onclick="setTagFilter('ALERT_ARRIVAL', this)">📦 到貨未進場 (>15天) <span class="tag-count">${arrivalCount}</span></span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_AGENT' ? 'active' : ''}" onclick="setTagFilter('ALERT_AGENT', this)">🚨 總代理催料 (>27天) <span class="tag-count">${agentCount}</span></span>
                 </div>
                 <div class="filter-row">
                     <span class="tag-group-label">👤 負責人員：</span>
             `;
 
-            handlers.forEach(h => {
+            for (let [h, count] of Object.entries(handlerCounts)) {
                 let isActive = currentTag === h ? 'active' : '';
-                html += `<span class="tag person-tag ${isActive}" onclick="setTagFilter('${h}', this)">${h}</span>`;
-            });
+                html += `<span class="tag person-tag ${isActive}" onclick="setTagFilter('${h}', this)">${h} <span class="tag-count">${count}</span></span>`;
+            }
 
             html += `</div>`;
             container.innerHTML = html;
@@ -304,9 +375,9 @@
                 if (searchInput && !rowString.includes(searchInput)) continue;
 
                 let handlerCell = row[11] || '';
-                let warrantyAlert = row[16] || ''; // Q 欄
-                let arrivalAlert = row[17] || '';  // R 欄
-                let agentAlert = row[18] || '';    // S 欄
+                let warrantyAlert = row[16] || '';
+                let arrivalAlert = row[17] || '';
+                let agentAlert = row[18] || '';
 
                 if (currentTag === 'ALERT_WARRANTY' && !warrantyAlert.includes('保固')) continue;
                 if (currentTag === 'ALERT_ARRIVAL' && !arrivalAlert.includes('已到貨逾15天')) continue;
@@ -315,7 +386,6 @@
 
                 matchCount++;
 
-                // M 欄打勾代表已通知接待
                 let mVal = (row[12] || '').trim();
                 let isNotified = (mVal === '✓' || mVal.toLowerCase() === 'true' || mVal !== '');
                 let noticeText = isNotified ? '已通知 (✓)' : '尚未通知';
