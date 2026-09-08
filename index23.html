@@ -12,7 +12,6 @@
             margin: 0; 
         }
         
-        /* 🌟 頂部標題列 */
         .header-bar {
             background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
             color: #ffffff;
@@ -32,7 +31,6 @@
         .header-bar h2 span { color: #63b3ed; }
         .update-time { font-size: 12px; color: #a0aec0; font-weight: 500; }
 
-        /* 🧠 控制與篩選面板 */
         .control-panel { 
             background: #ffffff;
             padding: 16px 20px;
@@ -58,7 +56,6 @@
         }
         .refresh-btn:hover { background: #e2e8f0; color: #1a202c; }
 
-        /* 🏷️ 分組標籤容器 */
         .filter-section {
             display: flex;
             flex-direction: column;
@@ -81,7 +78,6 @@
         .tag.person-tag { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
         .tag.person-tag.active { background: #22c55e; color: #ffffff; border-color: #22c55e; }
 
-        /* 📱 輕巧緊湊的卡片網格容器 (Grid) - 防回彈 */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
@@ -91,7 +87,6 @@
             padding: 2px;
         }
 
-        /* 輕巧型單張案情卡片 */
         .data-card {
             background: #ffffff;
             border-radius: 8px;
@@ -105,7 +100,6 @@
         }
         .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
 
-        /* 卡片頂部：車號與按鈕群組 */
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -118,7 +112,6 @@
 
         .card-btn-group { display: flex; gap: 6px; }
 
-        /* 複製與刪除按鈕 */
         .action-btn {
             background-color: #edf2f7; color: #2b6cb0; border: 1px solid #cbd5e0; padding: 4px 10px;
             border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 3px;
@@ -130,7 +123,6 @@
         .delete-btn { color: #e53e3e; border-color: #feb2b2; background: #fff5f5; }
         .delete-btn:hover { background-color: #e53e3e; color: #fff; border-color: #e53e3e; }
 
-        /* 卡片內文資訊緊湊排版 */
         .card-body {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -150,7 +142,6 @@
         }
         .part-val { font-family: monospace; font-size: 12px; color: #2d3748; font-weight: 700; }
 
-        /* 卡片底部：警示狀態標籤 */
         .card-footer {
             display: flex;
             flex-wrap: wrap;
@@ -169,13 +160,11 @@
 </head>
 <body>
 
-    <!-- 🌟 頂部標題列 -->
     <div class="header-bar">
         <h2>🛠️ 尚鵬汽車 <span>- 零件待料與智慧預警監控系統</span></h2>
         <div class="update-time" id="updateTime">最後更新：載入中...</div>
     </div>
 
-    <!-- 🧠 控制與篩選面板 -->
     <div class="control-panel">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 快速搜尋車號、車身碼、工單、料號..." onkeyup="applyFilters()">
@@ -185,15 +174,12 @@
         <div class="filter-section" id="filterTagsContainer"></div>
     </div>
 
-    <!-- 卡片網格流容器 -->
     <div class="card-grid" id="cardContainer">
         <div class="loading">正在從 Google 試算表同步資料與運算預警狀態...</div>
     </div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1243537505&single=true&output=csv';
-        
-        // 已內建你的專屬 Google Apps Script 部署網址
         const gasApiUrl = 'https://script.google.com/macros/s/AKfycbx5ntd6BtCMHK0c1VbmrQwIW_XaQTwTbC7P_BpHBz2vxpB_KXgBpaAG4DtrQnWusD3X8Q/exec';
 
         let parsedRows = [];
@@ -202,7 +188,7 @@
         async function loadData() {
             try {
                 document.getElementById('cardContainer').innerHTML = '<div class="loading">正在同步最新資料...</div>';
-                const response = await fetch(csvUrl + '&t=' + Date.now()); // 加上時間戳記避免快取
+                const response = await fetch(csvUrl + '&t=' + Date.now());
                 const data = await response.text();
                 parseCSV(data);
                 document.getElementById('updateTime').innerText = '最後更新：' + new Date().toLocaleTimeString();
@@ -323,7 +309,9 @@
 
                 matchCount++;
 
-                let isNotified = (row[12] === '✓');
+                // 💡 修正：直接精準對應 M 欄（索引 12）的打勾狀態
+                let mVal = (row[12] || '').trim();
+                let isNotified = (mVal === '✓' || mVal.toLowerCase() === 'true' || mVal !== '');
                 let noticeText = isNotified ? '已通知 (✓)' : '尚未通知';
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let targetRow = row.originalRowIndex;
