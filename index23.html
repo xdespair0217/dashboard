@@ -12,7 +12,7 @@
             margin: 0; 
         }
         
-        /* 🌟 頂部標題列（高質感深色系、字型配色優化） */
+        /* 🌟 頂部標題列 */
         .header-bar {
             background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
             color: #ffffff;
@@ -26,19 +26,13 @@
             border-bottom: 3px solid #3182ce;
         }
         .header-bar h2 { 
-            margin: 0; 
-            font-size: 19px; 
-            color: #ffffff; 
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+            margin: 0; font-size: 19px; color: #ffffff; font-weight: 700; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 10px; 
         }
-        .header-bar h2 span { color: #63b3ed; } /* 讓部分標題字體帶有高雅的科技藍 */
+        .header-bar h2 span { color: #63b3ed; }
         .update-time { font-size: 12px; color: #a0aec0; font-weight: 500; }
 
-        /* 🧠 控制與篩選面板（結構化邏輯排版） */
+        /* 🧠 控制與篩選面板 */
         .control-panel { 
             background: #ffffff;
             padding: 16px 20px;
@@ -51,18 +45,18 @@
             border: 1px solid #e2e8f0;
         }
         
+        .search-box { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .search-box input { 
-            padding: 10px 14px; 
-            width: 100%; 
-            max-width: 450px; 
-            background: #f8fafc; 
-            border: 1px solid #cbd5e0; 
-            color: #2d3748; 
-            border-radius: 6px; 
-            font-size: 13px; 
-            transition: all 0.2s;
+            padding: 10px 14px; width: 100%; max-width: 400px; background: #f8fafc; 
+            border: 1px solid #cbd5e0; color: #2d3748; border-radius: 6px; font-size: 13px; 
         }
         .search-box input:focus { outline: none; border-color: #3182ce; background: #fff; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
+        
+        .refresh-btn {
+            background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px;
+            border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .refresh-btn:hover { background: #e2e8f0; color: #1a202c; }
 
         /* 🏷️ 分組標籤容器 */
         .filter-section {
@@ -73,38 +67,18 @@
             padding-top: 10px;
         }
         .filter-section:first-of-type { border-top: none; padding-top: 0; }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .tag-group-label { font-size: 12px; font-weight: 700; color: #4a5568; min-width: 75px; display: flex; align-items: center; gap: 4px; }
         
-        .filter-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-        .tag-group-label { 
-            font-size: 12px; 
-            font-weight: 700; 
-            color: #4a5568; 
-            min-width: 75px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        /* 標籤按鈕樣式 */
         .tag {
             background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 5px 12px;
             border-radius: 16px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;
         }
         .tag:hover { background: #e2e8f0; color: #1a202c; border-color: #a0aec0; }
         .tag.active { background: #2b6cb0; color: #ffffff; border-color: #2b6cb0; box-shadow: 0 2px 4px rgba(43, 108, 176, 0.2); }
-        
-        /* 異常與人員專屬標籤色彩 */
         .tag.alert-tag { background: #fff5f5; border-color: #feb2b2; color: #c53030; }
-        .tag.alert-tag:hover { background: #fed7d7; }
         .tag.alert-tag.active { background: #e53e3e; color: #ffffff; border-color: #e53e3e; }
-
         .tag.person-tag { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-        .tag.person-tag:hover { background: #dcfce7; }
         .tag.person-tag.active { background: #22c55e; color: #ffffff; border-color: #22c55e; }
 
         /* 📱 輕巧緊湊的卡片網格容器 (Grid) - 防回彈 */
@@ -131,7 +105,7 @@
         }
         .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
 
-        /* 卡片頂部：車號與複製按鈕 */
+        /* 卡片頂部：車號與按鈕群組 */
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -142,14 +116,19 @@
         .card-car-no { font-size: 15px; font-weight: 700; color: #2b6cb0; display: flex; align-items: center; gap: 6px; }
         .car-type-badge { background: #ebf8ff; color: #2b6cb0; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
 
-        /* 複製按鈕 */
-        .copy-btn {
+        .card-btn-group { display: flex; gap: 6px; }
+
+        /* 複製與刪除按鈕 */
+        .action-btn {
             background-color: #edf2f7; color: #2b6cb0; border: 1px solid #cbd5e0; padding: 4px 10px;
             border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 3px;
             transition: all 0.2s;
         }
-        .copy-btn:hover { background-color: #2b6cb0; color: #fff; border-color: #2b6cb0; }
-        .copy-btn.copied { background-color: #38a169; color: #fff; border-color: #38a169; }
+        .action-btn:hover { background-color: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+        .action-btn.copied { background-color: #38a169; color: #fff; border-color: #38a169; }
+        
+        .delete-btn { color: #e53e3e; border-color: #feb2b2; background: #fff5f5; }
+        .delete-btn:hover { background-color: #e53e3e; color: #fff; border-color: #e53e3e; }
 
         /* 卡片內文資訊緊湊排版 */
         .card-body {
@@ -179,9 +158,7 @@
             border-top: 1px dashed #edf2f7;
             padding-top: 8px;
         }
-        .badge {
-            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
-        }
+        .badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
         .badge-red { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; }
         .badge-orange { background: #fffaf0; color: #dd6b20; border: 1px solid #fbd38d; }
         .badge-purple { background: #faf5ff; color: #805ad5; border: 1px solid #d6bcfa; }
@@ -198,16 +175,14 @@
         <div class="update-time" id="updateTime">最後更新：載入中...</div>
     </div>
 
-    <!-- 🧠 結構化邏輯排版的控制與篩選面板 -->
+    <!-- 🧠 控制與篩選面板 -->
     <div class="control-panel">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 快速搜尋車號、車身碼、工單、料號..." onkeyup="applyFilters()">
+            <button class="refresh-btn" onclick="loadData()">🔄 重新整理資料</button>
         </div>
         
-        <!-- 結構化分類標籤列 -->
-        <div class="filter-section" id="filterTagsContainer">
-            <!-- 動態生成群組 -->
-        </div>
+        <div class="filter-section" id="filterTagsContainer"></div>
     </div>
 
     <!-- 卡片網格流容器 -->
@@ -217,13 +192,17 @@
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1243537505&single=true&output=csv';
+        
+        // 已內建你的專屬 Google Apps Script 部署網址
+        const gasApiUrl = 'https://script.google.com/macros/s/AKfycbx5ntd6BtCMHK0c1VbmrQwIW_XaQTwTbC7P_BpHBz2vxpB_KXgBpaAG4DtrQnWusD3X8Q/exec';
 
         let parsedRows = [];
         let currentTag = 'ALL';
 
         async function loadData() {
             try {
-                const response = await fetch(csvUrl);
+                document.getElementById('cardContainer').innerHTML = '<div class="loading">正在同步最新資料...</div>';
+                const response = await fetch(csvUrl + '&t=' + Date.now()); // 加上時間戳記避免快取
                 const data = await response.text();
                 parseCSV(data);
                 document.getElementById('updateTime').innerText = '最後更新：' + new Date().toLocaleTimeString();
@@ -245,7 +224,7 @@
             const lines = text.split('\n');
             parsedRows = [];
 
-            lines.forEach(row => {
+            lines.forEach((row, index) => {
                 let result = [];
                 let inQuote = false;
                 let current = '';
@@ -262,13 +241,15 @@
                 }
                 result.push(current);
                 if (result.length > 1 && result[0].replace(/"/g, '').trim() !== '') {
-                    parsedRows.push(result.map((cell, idx) => {
+                    let cleanedRow = result.map((cell, idx) => {
                         let cleaned = cell.replace(/"/g, '').trim();
                         if ([0, 9, 10, 15].includes(idx)) {
                             return cleanDate(cleaned);
                         }
                         return cleaned;
-                    }));
+                    });
+                    cleanedRow.originalRowIndex = index + 1; 
+                    parsedRows.push(cleanedRow);
                 }
             });
 
@@ -276,7 +257,6 @@
             renderCards();
         }
 
-        // 🧠 建立邏輯化、分群明確的篩選標籤
         function generateStructuredTags() {
             if (parsedRows.length <= 1) return;
             
@@ -291,7 +271,6 @@
             let container = document.getElementById('filterTagsContainer');
             
             let html = `
-                <!-- 第一群組：核心狀態與預警 -->
                 <div class="filter-row">
                     <span class="tag-group-label">📌 快速檢視：</span>
                     <span class="tag ${currentTag === 'ALL' ? 'active' : ''}" onclick="setTagFilter('ALL', this)">全部顯示</span>
@@ -299,8 +278,6 @@
                     <span class="tag alert-tag ${currentTag === 'ALERT_ARRIVAL' ? 'active' : ''}" onclick="setTagFilter('ALERT_ARRIVAL', this)">📦 到貨未進場</span>
                     <span class="tag alert-tag ${currentTag === 'ALERT_AGENT' ? 'active' : ''}" onclick="setTagFilter('ALERT_AGENT', this)">🚨 總代理催料</span>
                 </div>
-                
-                <!-- 第二群組：交辦人員 -->
                 <div class="filter-row">
                     <span class="tag-group-label">👤 負責人員：</span>
             `;
@@ -316,7 +293,7 @@
 
         function setTagFilter(tag, element) {
             currentTag = tag;
-            generateStructuredTags(); // 重新渲染標籤以保持選取狀態
+            generateStructuredTags();
             renderCards();
         }
 
@@ -346,14 +323,22 @@
 
                 matchCount++;
 
+                let isNotified = (row[12] === '✓');
+                let noticeText = isNotified ? '已通知 (✓)' : '尚未通知';
+                let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
+                let targetRow = row.originalRowIndex;
+
                 html += `
-                    <div class="data-card">
+                    <div class="data-card" id="card-${targetRow}">
                         <div class="card-header">
                             <div class="card-car-no">
                                 🚗 ${row[2] || '未填車號'} 
                                 <span class="car-type-badge">${row[3] || 'N/A'}</span>
                             </div>
-                            <button class="copy-btn" onclick="copyRowInfo(${i}, this)">📋 複製</button>
+                            <div class="card-btn-group">
+                                <button class="action-btn" onclick="copyRowInfo(${i}, this)">📋 複製</button>
+                                <button class="action-btn delete-btn" onclick="deleteRow(${targetRow}, this)">🗑️ 刪除</button>
+                            </div>
                         </div>
                         
                         <div class="card-body">
@@ -374,8 +359,8 @@
                                 <div class="info-val">${row[11] || '未指定'}</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label">結案狀態</div>
-                                <div class="info-val" style="color: ${row[12] === '✓' ? '#38a169' : '#e53e3e'}">${row[12] === '✓' ? '已結案 (✓)' : '進行中'}</div>
+                                <div class="info-label">通知狀態 (M欄)</div>
+                                <div class="info-val" style="color: ${noticeColor}">${noticeText}</div>
                             </div>
                         </div>
 
@@ -393,6 +378,37 @@
             }
 
             container.innerHTML = html;
+        }
+
+        async function deleteRow(rowIndex, btnElement) {
+            if (!confirm('確定要從系統中永久刪除這筆已完成的單子嗎？這會同步清除試算表資料！')) return;
+
+            btnElement.innerText = '刪除中...';
+            btnElement.disabled = true;
+
+            try {
+                let response = await fetch(`${gasApiUrl}?action=delete&row=${rowIndex}`);
+                let result = await response.json();
+
+                if (result.status === 'success') {
+                    let card = document.getElementById(`card-${rowIndex}`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            loadData(); 
+                        }, 300);
+                    }
+                } else {
+                    alert('刪除失敗：' + result.message);
+                    btnElement.innerText = '🗑️ 刪除';
+                    btnElement.disabled = false;
+                }
+            } catch (err) {
+                alert('連線伺服器失敗，請確認 Apps Script 部署設定是否為「任何人」。');
+                btnElement.innerText = '🗑️ 刪除';
+                btnElement.disabled = false;
+            }
         }
 
         function applyFilters() {
