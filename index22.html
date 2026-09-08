@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客訴與賠償處理機制 SOP - Soros Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Noto Sans TC', sans-serif; }</style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col pb-20 md:pb-0">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md flex justify-between items-center sticky top-0 z-40">
+        <div>
+            <h1 class="text-lg md:text-2xl font-bold tracking-wider text-amber-400">客訴與賠償處理機制 SOP</h1>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">互動式流程解構與管理工具</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="text-xs text-amber-300 bg-slate-700/80 px-3 py-1.5 rounded-lg border border-slate-600">內嵌直達專用版</span>
+        </div>
+    </header>
+
+    <!-- 手機版底部導航欄 (Tab Bar) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-50 flex justify-around py-3 px-2 text-sm shadow-xl">
+        <button onclick="switchTab('workflow')" id="tab-btn-workflow" class="flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400">流程圖</button>
+        <button onclick="switchTab('quick')" id="tab-btn-quick" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">表單專區</button>
+        <button onclick="switchTab('email')" id="tab-btn-email" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">快速通報</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-8">
+        
+        <!-- 區塊一：表單與系統工具專區 -->
+        <section id="section-quick" class="tab-section bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base md:text-lg font-semibold text-amber-400 border-l-4 border-amber-400 pl-3">表單與系統工具專區</h2>
+                <span class="text-xs md:text-sm text-slate-400">點擊按鈕可開啟預覽畫面，圖片可點擊燈箱放大檢視</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                
+                <!-- 1. 顧客抱怨補償處置申請書 (已結尾 preview) -->
+                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
+                    <div>
+                        <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW01.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW01.png" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-sm leading-snug line-clamp-2">顧客抱怨補償處置申請書</h3>
+                    </div>
+                    <div>
+                        <button onclick="window.open('https://docs.google.com/document/d/1CFbRS2FlKZdcfK06eDDZqvnLLui2ZLxT/preview', '_blank')" class="mt-3 w-full bg-indigo-600/50 hover:bg-indigo-600 text-indigo-100 py-2 rounded-lg text-xs font-medium transition text-center border border-indigo-500/40 truncate">開啟瀏覽預覽</button>
+                    </div>
+                </div>
+
+                <!-- 2. 星聯汽車內部簽呈 (已結尾 preview) -->
+                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
+                    <div>
+                        <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW04.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW04.png" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-sm leading-snug line-clamp-2">星聯汽車內部簽呈</h3>
+                    </div>
+                    <div>
+                        <button onclick="window.open('https://docs.google.com/document/d/1hVZD5d3zteGXXiuXB07o-b62CCR7wDlt/preview', '_blank')" class="mt-3 w-full bg-indigo-600/50 hover:bg-indigo-600 text-indigo-100 py-2 rounded-lg text-xs font-medium transition text-center border border-indigo-500/40 truncate">開啟瀏覽預覽</button>
+                    </div>
+                </div>
+
+                <!-- 3. 文管中心/文件編號申請 -->
+                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
+                    <div>
+                        <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW04.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW04.png" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-sm leading-snug line-clamp-2">文管中心/文件編號申請</h3>
+                    </div>
+                    <div>
+                        <button onclick="window.open('https://signoff-mjl2csjnxq-de.a.run.app/', '_blank')" class="mt-3 w-full bg-indigo-600/50 hover:bg-indigo-600 text-indigo-100 py-2 rounded-lg text-xs font-medium transition text-center border border-indigo-500/40 truncate">開啟連結</button>
+                    </div>
+                </div>
+
+                <!-- 4. 電子簽呈工作台 -->
+                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
+                    <div>
+                        <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW03.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW03.png" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-sm leading-snug line-clamp-2">電子簽呈工作台</h3>
+                    </div>
+                    <div>
+                        <button onclick="window.open('https://signoff-mjl2csjnxq-de.a.run.app/', '_blank')" class="mt-3 w-full bg-indigo-600/50 hover:bg-indigo-600 text-indigo-100 py-2 rounded-lg text-xs font-medium transition text-center border border-indigo-500/40 truncate">開啟連結</button>
+                    </div>
+                </div>
+
+                <!-- 5. 客訴與賠償處理作業流程SOP -->
+                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
+                    <div>
+                        <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW05.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW05.png" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-sm leading-snug line-clamp-2">客訴與賠償處理作業流程SOP</h3>
+                    </div>
+                    <div>
+                        <button onclick="window.open('https://docs.google.com/document/d/1CFbRS2FlKZdcfK06eDDZqvnLLui2ZLxT/preview', '_blank')" class="mt-3 w-full bg-indigo-600/50 hover:bg-indigo-600 text-indigo-100 py-2 rounded-lg text-xs font-medium transition text-center border border-indigo-500/40 truncate">開啟瀏覽預覽</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- 區塊二：核心流程節點 -->
+            <div id="section-workflow" class="tab-section lg:col-span-2 space-y-5">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base md:text-xl font-semibold text-slate-200 border-l-4 border-amber-400 pl-3">核心流程節點</h2>
+                    <span class="text-xs md:text-sm text-slate-400">點擊圖片可放大檢視</span>
+                </div>
+
+                <div class="space-y-4">
+                    
+                    <!-- 節點 1 -->
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 transition shadow-lg flex flex-col md:flex-row gap-5 items-center">
+                        <div class="w-full md:w-44 h-28 bg-slate-900 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer shadow" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW06.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW06.png" class="w-full h-full object-cover">
+                            <span class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-amber-400 text-xs px-2 py-0.5 rounded font-bold">Stage 01</span>
+                        </div>
+                        <div class="flex-1 space-y-2 w-full">
+                            <h3 class="font-bold text-slate-100 text-base">事件進線與基礎建檔</h3>
+                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">記錄人、事、時、地、物基礎資料，備妥工單、成本與試算金額。</p>
+                        </div>
+                    </div>
+
+                    <!-- 節點 2 -->
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 transition shadow-lg flex flex-col md:flex-row gap-5 items-center">
+                        <div class="w-full md:w-44 h-28 bg-slate-900 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer shadow" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW07.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW07.png" class="w-full h-full object-cover">
+                            <span class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-amber-400 text-xs px-2 py-0.5 rounded font-bold">Stage 02</span>
+                        </div>
+                        <div class="flex-1 space-y-2 w-full">
+                            <h3 class="font-bold text-slate-100 text-base">案件屬性判定與分流</h3>
+                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">區分為『產品問題（總代理責任）』或『廠內人為疏失（廠內自理）』。</p>
+                        </div>
+                    </div>
+
+                    <!-- 節點 3 -->
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 transition shadow-lg flex flex-col md:flex-row gap-5 items-center">
+                        <div class="w-full md:w-44 h-28 bg-slate-900 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer shadow" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW01.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW01.png" class="w-full h-full object-cover">
+                            <span class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-amber-400 text-xs px-2 py-0.5 rounded font-bold">Stage 03-A</span>
+                        </div>
+                        <div class="flex-1 space-y-2 w-full">
+                            <h3 class="font-bold text-slate-100 text-base">【產品問題】總代理籌碼與事件單</h3>
+                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">與總代理溝通補償籌碼，填寫事件單，並執行內部 Email 通報。</p>
+                        </div>
+                    </div>
+
+                    <!-- 節點 4 -->
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 transition shadow-lg flex flex-col md:flex-row gap-5 items-center">
+                        <div class="w-full md:w-44 h-28 bg-slate-900 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-700 cursor-pointer shadow" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW04.png')">
+                            <img src="https://xdespair0217.github.io/dashboard/QW04.png" class="w-full h-full object-cover">
+                            <span class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-amber-400 text-xs px-2 py-0.5 rounded font-bold">Stage 03-B</span>
+                        </div>
+                        <div class="flex-1 space-y-2 w-full">
+                            <h3 class="font-bold text-slate-100 text-base">【廠內疏失】外部編號與內部簽呈</h3>
+                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">至文管中心產出編號，填入簽呈，轉入電子簽呈系統（總經理審核）。</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 區塊三：Email 派送區 -->
+            <div id="section-email" class="tab-section space-y-6">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-base font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-3">內部 Email 通報勾選派送</h2>
+                    <div class="space-y-4 text-sm">
+                        <p class="text-xs md:text-sm text-slate-300">請輸入車號並勾選收件對象（總經理將自動列入副本）</p>
+                        
+                        <div>
+                            <label class="block text-xs md:text-sm text-slate-400 mb-1.5">受理車號 (例如：ABC-1234)</label>
+                            <input type="text" id="email-car-id" placeholder="請輸入車號" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-200 text-sm focus:border-amber-400 outline-none">
+                        </div>
+
+                        <div class="space-y-2.5 pt-3 border-t border-slate-700">
+                            <p class="text-xs md:text-sm font-semibold text-amber-300">總經理（自動列入副本 CC）：</p>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" id="cc-manager" value="william@starunited.tw" checked disabled class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500">
+                                <span class="text-sm">徐文勇 (william@starunited.tw)</span>
+                            </label>
+                        </div>
+
+                        <div class="space-y-2.5 pt-3 border-t border-slate-700">
+                            <p class="text-xs md:text-sm font-semibold text-amber-300">收件人 (To)：</p>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="chris_wu@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">售後總監 - 吳柏毅</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="eric@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">銷售總監 - 廖宗俊</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="mike_chen@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">CRM 經理 - 陳永信</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="michael@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">營業所主管(內湖) - 楊智元</span>
+                            </label>
+                            <label class="flex items-center space-x-2.5 text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="tiger_yeh@starunited.tw" class="to-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500" checked>
+                                <span class="text-sm">營業所主管(北投) - 葉桓佑</span>
+                            </label>
+                        </div>
+
+                        <button onclick="generateMailto()" class="w-full mt-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl text-sm transition shadow-lg">
+                            產生郵件清單並發送通報
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- 圖片預覽燈箱 Modal -->
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4" onclick="closeLightbox()">
+        <div class="relative max-w-5xl max-h-[90vh]">
+            <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-xl border border-slate-700 object-contain shadow-2xl">
+            <p class="text-center text-sm text-slate-300 mt-3">點擊任意處關閉預覽</p>
+        </div>
+    </div>
+
+    <!-- 互動邏輯 -->
+    <script>
+        function openLightbox(url) {
+            if (!url) return;
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+        }
+
+        function switchTab(tabName) {
+            const sQ = document.getElementById('section-quick');
+            const sW = document.getElementById('section-workflow');
+            const sE = document.getElementById('section-email');
+            const bW = document.getElementById('tab-btn-workflow');
+            const bQ = document.getElementById('tab-btn-quick');
+            const bE = document.getElementById('tab-btn-email');
+
+            [bW, bQ, bE].forEach(b => b.className = "flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent");
+
+            if (window.innerWidth < 768) {
+                sQ.style.display = 'none';
+                sW.style.display = 'none';
+                sE.style.display = 'none';
+                if (tabName === 'workflow') {
+                    sW.style.display = 'block';
+                    bW.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                } else if (tabName === 'quick') {
+                    sQ.style.display = 'block';
+                    bQ.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                } else if (tabName === 'email') {
+                    sE.style.display = 'block';
+                    bE.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                }
+            }
+        }
+
+        window.onresize = function() {
+            if (window.innerWidth >= 768) {
+                document.getElementById('section-quick').style.display = 'block';
+                document.getElementById('section-workflow').style.display = 'block';
+                document.getElementById('section-email').style.display = 'block';
+            } else {
+                switchTab('workflow');
+            }
+        };
+
+        function generateMailto() {
+            const carIdInput = document.getElementById('email-car-id').value.trim();
+            const carTag = carIdInput ? `[${carIdInput}]` : "[未填車號]";
+            const toBoxes = document.querySelectorAll('.to-checkbox:checked');
+            if (toBoxes.length === 0) { alert('請至少勾選一位收件人！'); return; }
+            const toEmails = Array.from(toBoxes).map(b => b.value).join(',');
+            const subject = encodeURIComponent(`內部通報：${carTag} 客訴案件備忘錄`);
+            const body = encodeURIComponent(
+                "各位長官好，\n\n" +
+                "本案經評估後續可能衍生相關狀況，我們已先行列入案件備忘錄中進行管控。\n\n" +
+                "詳細之人、事、時、地、物紀錄、工單資料、成本及相關試算，請直接參閱系統與對應附件。後續我們將持續推進與追蹤處理進度，特此先行呈報備查。\n\n" +
+                "謝謝。"
+            );
+            window.location.href = `mailto:${toEmails}?cc=william@starunited.tw&subject=${subject}&body=${body}`;
+        }
+
+        if (window.innerWidth < 768) switchTab('workflow');
+    </script>
+</body>
+</html>
