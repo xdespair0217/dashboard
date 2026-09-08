@@ -140,6 +140,8 @@
         .card-car-no { font-size: 15px; font-weight: 700; color: #2b6cb0; display: flex; align-items: center; gap: 6px; }
         .car-type-badge { background: #ebf8ff; color: #2b6cb0; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
 
+        .card-btn-group { display: flex; gap: 6px; }
+
         .action-btn {
             background-color: #edf2f7; color: #2b6cb0; border: 1px solid #cbd5e0; padding: 4px 10px;
             border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 3px;
@@ -147,6 +149,9 @@
         }
         .action-btn:hover { background-color: #2b6cb0; color: #fff; border-color: #2b6cb0; }
         .action-btn.copied { background-color: #38a169; color: #fff; border-color: #38a169; }
+
+        .delete-btn { color: #e53e3e; border-color: #feb2b2; background: #fff5f5; }
+        .delete-btn:hover { background-color: #e53e3e; color: #fff; border-color: #e53e3e; }
 
         .card-body {
             display: grid;
@@ -158,7 +163,6 @@
         .info-label { font-size: 10px; color: #a0aec0; font-weight: 600; text-transform: uppercase; }
         .info-val { font-weight: 600; color: #2d3748; }
 
-        /* 💡 零件項目與備註捲軸框 */
         .part-row {
             grid-column: span 2;
             background: #f8fafc;
@@ -221,15 +225,15 @@
                 </div>
                 <div class="manual-item">
                     <strong>📦 到貨未進場 (>15天)</strong><br>
-                    當零件已到貨（有填到貨日），且到貨時間距今超過 15 天時觸發橘燈（廠內無完工日，依到貨天數判定）。
+                    當零件已到貨且距今超過 15 天時觸發橘燈（廠內無完工日，依到貨天數判定）。
                 </div>
                 <div class="manual-item">
                     <strong>🚨 總代理催料 (>27天)</strong><br>
                     當訂貨日超過 27 天且尚未填入到貨日時觸發紫燈。
                 </div>
                 <div class="manual-item">
-                    <strong>✅ 通知狀態 (M欄)</strong><br>
-                    於 BO 表 M 欄打勾 <code>✓</code> 代表已通知接待。
+                    <strong>🗑️ 一鍵封存</strong><br>
+                    點擊卡片右上角「刪除」會自動將該筆完工資料剪下並移動至「歷史封存」分頁。
                 </div>
             </div>
         </div>
@@ -243,6 +247,7 @@
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=764234628&single=true&output=csv';
+        const gasApiUrl = 'https://script.google.com/macros/s/你的GAS部署ID/exec'; // ⚠️ 請換上你實際的 GAS 網址
 
         let parsedRows = [];
         let currentTag = 'ALL';
@@ -395,7 +400,7 @@
                 let noticeText = isNotified ? '已通知 (✓)' : '尚未通知';
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let targetRow = row.originalRowIndex;
-                let noteVal = row[13] || ''; // N 欄：備註
+                let noteVal = row[13] || '';
 
                 html += `
                     <div class="data-card" id="card-${targetRow}">
@@ -406,6 +411,7 @@
                             </div>
                             <div class="card-btn-group">
                                 <button class="action-btn" onclick="copyRowInfo(${i}, this)">📋 複製</button>
+                                <button class="action-btn delete-btn" onclick="deleteRow(${targetRow}, this)">🗑️ 刪除</button>
                             </div>
                         </div>
                         
@@ -449,6 +455,37 @@
             }
 
             container.innerHTML = html;
+        }
+
+        async function deleteRow(rowIndex, btnElement) {
+            if (!confirm('確定要將這筆已完成的單子封存並移至「歷史封存」分頁嗎？')) return;
+
+            btnElement.innerText = '封存中...';
+            btnElement.disabled = true;
+
+            try {
+                let response = await fetch(`${gasApiUrl}?action=delete&row=${rowIndex}`);
+                let result = await response.json();
+
+                if (result.status === 'success') {
+                    let card = document.getElementById(`card-${rowIndex}`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            loadData(); 
+                        }, 300);
+                    }
+                } else {
+                    alert('封存失敗：' + result.message);
+                    btnElement.innerText = '🗑️ 刪除';
+                    btnElement.disabled = false;
+                }
+            } catch (err) {
+                alert('連線伺服器失敗，請確認 GAS 網址是否正確且已部署為任何人可存取。');
+                btnElement.innerText = '🗑️ 刪除';
+                btnElement.disabled = false;
+            }
         }
 
         function applyFilters() {
