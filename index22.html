@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Noto Sans TC', sans-serif; }</style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col pb-20 md:pb-0">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col pb-12 md:pb-0">
 
     <!-- Header -->
     <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md flex justify-between items-center sticky top-0 z-40">
@@ -21,11 +21,11 @@
         </div>
     </header>
 
-    <!-- 手機版底部導航欄 (Tab Bar) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-50 flex justify-around py-3 px-2 text-sm shadow-xl">
-        <button onclick="switchTab('workflow')" id="tab-btn-workflow" class="flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400">流程圖</button>
-        <button onclick="switchTab('quick')" id="tab-btn-quick" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">表單專區</button>
-        <button onclick="switchTab('email')" id="tab-btn-email" class="flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent">快速通報</button>
+    <!-- 手機版置頂導航欄 (Tab Bar - 置於上方，電腦版自動隱藏) -->
+    <nav class="md:hidden bg-slate-800/95 border-b border-slate-700 sticky top-[73px] z-30 flex justify-around py-2.5 px-2 text-sm shadow-md">
+        <button onclick="switchTab('workflow')" id="tab-btn-workflow" class="flex-1 py-1 text-center font-bold text-amber-400 border-b-2 border-amber-400">流程圖</button>
+        <button onclick="switchTab('quick')" id="tab-btn-quick" class="flex-1 py-1 text-center font-medium text-slate-400 border-b-2 border-transparent">表單專區</button>
+        <button onclick="switchTab('email')" id="tab-btn-email" class="flex-1 py-1 text-center font-medium text-slate-400 border-b-2 border-transparent">快速通報</button>
     </nav>
 
     <!-- Main Content -->
@@ -251,7 +251,7 @@
             const bQ = document.getElementById('tab-btn-quick');
             const bE = document.getElementById('tab-btn-email');
 
-            [bW, bQ, bE].forEach(b => b.className = "flex-1 py-1 text-center font-medium text-slate-400 border-t-2 border-transparent");
+            [bW, bQ, bE].forEach(b => b.className = "flex-1 py-1 text-center font-medium text-slate-400 border-b-2 border-transparent");
 
             if (window.innerWidth < 768) {
                 sQ.style.display = 'none';
@@ -259,15 +259,14 @@
                 sE.style.display = 'none';
                 if (tabName === 'workflow') {
                     sW.style.display = 'block';
-                    bW.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                    bW.className = "flex-1 py-1 text-center font-bold text-amber-400 border-b-2 border-amber-400";
                 } else if (tabName === 'quick') {
                     sQ.style.display = 'block';
-                    bQ.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                    bQ.className = "flex-1 py-1 text-center font-bold text-amber-400 border-b-2 border-amber-400";
                 } else if (tabName === 'email') {
                     sE.style.display = 'block';
-                    bE.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
+                    bE.className = "flex-1 py-1 text-center font-bold text-amber-400 border-b-2 border-amber-400";
                 }
-                // 切換分頁時自動滾動回頁面頂部
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
