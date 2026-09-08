@@ -39,7 +39,7 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 
-                <!-- 1. 顧客抱怨補償處置申請書 (直接下載) -->
+                <!-- 1. 顧客抱怨補償處置申請書 -->
                 <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
                     <div>
                         <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW01.png')">
@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <!-- 2. 星聯汽車內部簽呈 (直接下載) -->
+                <!-- 2. 星聯汽車內部簽呈 -->
                 <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
                     <div>
                         <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW04.png')">
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <!-- 5. 客訴與賠償處理作業流程SOP (改回點開顯示預覽) -->
+                <!-- 5. 客訴與賠償處理作業流程SOP -->
                 <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col justify-between transition shadow-md">
                     <div>
                         <div class="h-28 bg-slate-950 rounded-lg overflow-hidden mb-3 relative border border-slate-800 cursor-pointer" onclick="openLightbox('https://xdespair0217.github.io/dashboard/QW05.png')">
@@ -267,6 +267,8 @@
                     sE.style.display = 'block';
                     bE.className = "flex-1 py-1 text-center font-bold text-amber-400 border-t-2 border-amber-400";
                 }
+                // 切換分頁時自動滾動回頁面頂部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
