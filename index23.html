@@ -112,9 +112,10 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
             gap: 14px;
-            max-height: 70vh;
+            max-height: 72vh;
             overflow-y: auto;
             padding: 2px;
+            will-change: transform;
         }
 
         .data-card {
@@ -126,7 +127,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            transition: transform 0.1s;
         }
         .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
 
@@ -163,6 +163,7 @@
         .info-label { font-size: 10px; color: #a0aec0; font-weight: 600; text-transform: uppercase; }
         .info-val { font-weight: 600; color: #2d3748; }
 
+        /* 💡 零件項目與備註捲軸框 (支援多零件捲動) */
         .part-row {
             grid-column: span 2;
             background: #f8fafc;
@@ -174,14 +175,15 @@
             gap: 4px;
         }
         .part-scroll-box {
-            max-height: 65px;
+            max-height: 85px;
             overflow-y: auto;
             padding-right: 4px;
         }
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
         .part-val { font-family: monospace; font-size: 12px; color: #2d3748; font-weight: 700; line-height: 1.4; }
-        .note-val { font-size: 11px; color: #718096; margin-top: 2px; border-top: 1px dashed #e2e8f0; padding-top: 2px; }
+        .note-val { font-size: 11px; color: #718096; margin-top: 3px; border-top: 1px dashed #e2e8f0; padding-top: 3px; }
+        .qty-badge { background: #fed7d7; color: #9b2c2c; padding: 1px 5px; border-radius: 3px; font-size: 11px; font-weight: 700; }
 
         .card-footer {
             display: flex;
@@ -208,7 +210,7 @@
 
     <div class="control-panel">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🔍 快速搜尋車號、車身碼、工單、料號..." onkeyup="applyFilters()">
+            <input type="text" id="searchInput" placeholder="🔍 快速搜尋車號、車身碼、工單、料號..." oninput="debounceSearch()">
             <div class="btn-group">
                 <button class="manual-btn" onclick="toggleManual()">📖 系統說明書</button>
                 <button class="refresh-btn" onclick="loadData()">🔄 重新整理</button>
@@ -217,23 +219,23 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 尚鵬汽車待料監控系統 - 操作與智慧預警邏輯說明</h4>
-            <p>本系統直接對應廠內 Google 試算表（零件BO表），提供即時卡片流監控與自動警示：</p>
+            <p>本系統直接對應廠內 Google 試算表（零件BO表），提供高效卡片流監控：</p>
             <div class="manual-grid">
                 <div class="manual-item">
                     <strong>🛡️ 保固預警 (≤15天)</strong><br>
-                    當車輛零件之保固到期日與今天相差 15 天以內（或已過期）時觸發紅燈警示。
+                    保固到期日至今天差 15 天以內（或已過期）觸發紅燈。
                 </div>
                 <div class="manual-item">
                     <strong>📦 到貨未進場 (>15天)</strong><br>
-                    當零件已到貨且距今超過 15 天時觸發橘燈（廠內無完工日，依到貨天數判定）。
+                    到貨日期距今超過 15 天未進場觸發橘燈。
                 </div>
                 <div class="manual-item">
                     <strong>🚨 總代理催料 (>27天)</strong><br>
-                    當訂貨日超過 27 天且尚未填入到貨日時觸發紫燈。
+                    訂貨日超過 27 天且無到貨日時觸發紫燈。
                 </div>
                 <div class="manual-item">
-                    <strong>🗑️ 一鍵封存</strong><br>
-                    點擊卡片右上角「刪除」會自動將該筆完工資料剪下並移動至「歷史封存」分頁。
+                    <strong>📦 數量核對與庫存</strong><br>
+                    自動比對需求數量，未建檔或數量異常會明確標示 <code>(數: 0)</code> 或警告。
                 </div>
             </div>
         </div>
@@ -247,10 +249,11 @@
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=764234628&single=true&output=csv';
-        const gasApiUrl = 'https://script.google.com/macros/s/你的GAS部署ID/exec'; // ⚠️ 請換上你實際的 GAS 網址
+        const gasApiUrl = 'https://script.google.com/macros/s/你的GAS部署ID/exec'; // ⚠️ 請換上實際 GAS 網址
 
         let parsedRows = [];
         let currentTag = 'ALL';
+        let searchTimeout = null;
 
         async function loadData() {
             try {
@@ -369,6 +372,13 @@
             renderCards();
         }
 
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                renderCards();
+            }, 150); // 💡 防抖動優化：輸入時延遲 150ms 才渲染，大幅提升順暢度
+        }
+
         function renderCards() {
             if (parsedRows.length === 0) return;
 
@@ -401,6 +411,10 @@
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let targetRow = row.originalRowIndex;
                 let noteVal = row[13] || '';
+                let qtyVal = row[8] || '1';
+
+                // 💡 數量核對與未建檔防呆：如果數量為空或 0，明顯標示警告
+                let qtyDisplay = (parseInt(qtyVal) > 0) ? `數: ${qtyVal}` : `<span class="qty-badge">⚠️ 數量異常/缺 (0)</span>`;
 
                 html += `
                     <div class="data-card" id="card-${targetRow}">
@@ -417,9 +431,9 @@
                         
                         <div class="card-body">
                             <div class="part-row">
-                                <div class="info-label">零件項目與備註</div>
+                                <div class="info-label">零件項目與數量核對</div>
                                 <div class="part-scroll-box">
-                                    <div class="part-val">${row[6] || ''} - ${row[7] || ''} (數: ${row[8] || '1'})</div>
+                                    <div class="part-val">${row[6] || '未填料號'} - ${row[7] || '尚未建檔/未到'} (${qtyDisplay})</div>
                                     ${noteVal ? `<div class="note-val">📝 備註：${noteVal}</div>` : ''}
                                 </div>
                             </div>
@@ -482,14 +496,10 @@
                     btnElement.disabled = false;
                 }
             } catch (err) {
-                alert('連線伺服器失敗，請確認 GAS 網址是否正確且已部署為任何人可存取。');
+                alert('連線伺服器失敗，請確認 GAS 網址是否正確。');
                 btnElement.innerText = '🗑️ 刪除';
                 btnElement.disabled = false;
             }
-        }
-
-        function applyFilters() {
-            renderCards();
         }
 
         function copyRowInfo(index, btnElement) {
