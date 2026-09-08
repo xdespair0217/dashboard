@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>尚鵬汽車 - 零件待料與智慧預警監控系統</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; 
+            background: #f4f6f9; 
+            color: #2d3748; 
+            padding: 16px; 
+            margin: 0; 
+        }
+        
+        /* 🌟 頂部標題列（高質感深色系、字型配色優化） */
+        .header-bar {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #ffffff;
+            padding: 16px 22px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            border-bottom: 3px solid #3182ce;
+        }
+        .header-bar h2 { 
+            margin: 0; 
+            font-size: 19px; 
+            color: #ffffff; 
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .header-bar h2 span { color: #63b3ed; } /* 讓部分標題字體帶有高雅的科技藍 */
+        .update-time { font-size: 12px; color: #a0aec0; font-weight: 500; }
+
+        /* 🧠 控制與篩選面板（結構化邏輯排版） */
+        .control-panel { 
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 14px;
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            border: 1px solid #e2e8f0;
+        }
+        
+        .search-box input { 
+            padding: 10px 14px; 
+            width: 100%; 
+            max-width: 450px; 
+            background: #f8fafc; 
+            border: 1px solid #cbd5e0; 
+            color: #2d3748; 
+            border-radius: 6px; 
+            font-size: 13px; 
+            transition: all 0.2s;
+        }
+        .search-box input:focus { outline: none; border-color: #3182ce; background: #fff; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
+
+        /* 🏷️ 分組標籤容器 */
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px dashed #edf2f7;
+            padding-top: 10px;
+        }
+        .filter-section:first-of-type { border-top: none; padding-top: 0; }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .tag-group-label { 
+            font-size: 12px; 
+            font-weight: 700; 
+            color: #4a5568; 
+            min-width: 75px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* 標籤按鈕樣式 */
+        .tag {
+            background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 5px 12px;
+            border-radius: 16px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;
+        }
+        .tag:hover { background: #e2e8f0; color: #1a202c; border-color: #a0aec0; }
+        .tag.active { background: #2b6cb0; color: #ffffff; border-color: #2b6cb0; box-shadow: 0 2px 4px rgba(43, 108, 176, 0.2); }
+        
+        /* 異常與人員專屬標籤色彩 */
+        .tag.alert-tag { background: #fff5f5; border-color: #feb2b2; color: #c53030; }
+        .tag.alert-tag:hover { background: #fed7d7; }
+        .tag.alert-tag.active { background: #e53e3e; color: #ffffff; border-color: #e53e3e; }
+
+        .tag.person-tag { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        .tag.person-tag:hover { background: #dcfce7; }
+        .tag.person-tag.active { background: #22c55e; color: #ffffff; border-color: #22c55e; }
+
+        /* 📱 輕巧緊湊的卡片網格容器 (Grid) - 防回彈 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 14px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        /* 輕巧型單張案情卡片 */
+        .data-card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.1s;
+        }
+        .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+
+        /* 卡片頂部：車號與複製按鈕 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 8px;
+        }
+        .card-car-no { font-size: 15px; font-weight: 700; color: #2b6cb0; display: flex; align-items: center; gap: 6px; }
+        .car-type-badge { background: #ebf8ff; color: #2b6cb0; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+        /* 複製按鈕 */
+        .copy-btn {
+            background-color: #edf2f7; color: #2b6cb0; border: 1px solid #cbd5e0; padding: 4px 10px;
+            border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 3px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background-color: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+        .copy-btn.copied { background-color: #38a169; color: #fff; border-color: #38a169; }
+
+        /* 卡片內文資訊緊湊排版 */
+        .card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 10px;
+            font-size: 12px;
+        }
+        .info-row { display: flex; flex-direction: column; }
+        .info-label { font-size: 10px; color: #a0aec0; font-weight: 600; text-transform: uppercase; }
+        .info-val { font-weight: 600; color: #2d3748; }
+
+        .part-row {
+            grid-column: span 2;
+            background: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 5px;
+            border-left: 3px solid #3182ce;
+        }
+        .part-val { font-family: monospace; font-size: 12px; color: #2d3748; font-weight: 700; }
+
+        /* 卡片底部：警示狀態標籤 */
+        .card-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            border-top: 1px dashed #edf2f7;
+            padding-top: 8px;
+        }
+        .badge {
+            font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+        }
+        .badge-red { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; }
+        .badge-orange { background: #fffaf0; color: #dd6b20; border: 1px solid #fbd38d; }
+        .badge-purple { background: #faf5ff; color: #805ad5; border: 1px solid #d6bcfa; }
+        .badge-normal { background: #f7fafc; color: #718096; border: 1px solid #e2e8f0; }
+
+        .loading { text-align: center; color: #718096; font-style: italic; padding: 30px; grid-column: span 2; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <!-- 🌟 頂部標題列 -->
+    <div class="header-bar">
+        <h2>🛠️ 尚鵬汽車 <span>- 零件待料與智慧預警監控系統</span></h2>
+        <div class="update-time" id="updateTime">最後更新：載入中...</div>
+    </div>
+
+    <!-- 🧠 結構化邏輯排版的控制與篩選面板 -->
+    <div class="control-panel">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 快速搜尋車號、車身碼、工單、料號..." onkeyup="applyFilters()">
+        </div>
+        
+        <!-- 結構化分類標籤列 -->
+        <div class="filter-section" id="filterTagsContainer">
+            <!-- 動態生成群組 -->
+        </div>
+    </div>
+
+    <!-- 卡片網格流容器 -->
+    <div class="card-grid" id="cardContainer">
+        <div class="loading">正在從 Google 試算表同步資料與運算預警狀態...</div>
+    </div>
+
+    <script>
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1243537505&single=true&output=csv';
+
+        let parsedRows = [];
+        let currentTag = 'ALL';
+
+        async function loadData() {
+            try {
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                parseCSV(data);
+                document.getElementById('updateTime').innerText = '最後更新：' + new Date().toLocaleTimeString();
+            } catch (error) {
+                document.getElementById('cardContainer').innerHTML = '<div class="loading" style="color:#e53e3e;">載入資料失敗，請檢查網路連線或確認第三分頁是否已正確發布 CSV。</div>';
+            }
+        }
+
+        function cleanDate(str) {
+            if (!str) return '';
+            let trimmed = str.replace(/"/g, '').trim();
+            if (trimmed.startsWith('0') && trimmed.includes('/')) {
+                return trimmed.substring(1);
+            }
+            return trimmed;
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            parsedRows = [];
+
+            lines.forEach(row => {
+                let result = [];
+                let inQuote = false;
+                let current = '';
+                for (let i = 0; i < row.length; i++) {
+                    let char = row[i];
+                    if (char === '"') {
+                        inQuote = !inQuote;
+                    } else if (char === ',' && !inQuote) {
+                        result.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current);
+                if (result.length > 1 && result[0].replace(/"/g, '').trim() !== '') {
+                    parsedRows.push(result.map((cell, idx) => {
+                        let cleaned = cell.replace(/"/g, '').trim();
+                        if ([0, 9, 10, 15].includes(idx)) {
+                            return cleanDate(cleaned);
+                        }
+                        return cleaned;
+                    }));
+                }
+            });
+
+            generateStructuredTags();
+            renderCards();
+        }
+
+        // 🧠 建立邏輯化、分群明確的篩選標籤
+        function generateStructuredTags() {
+            if (parsedRows.length <= 1) return;
+            
+            let handlers = new Set();
+            for (let i = 1; i < parsedRows.length; i++) {
+                let h = parsedRows[i][11];
+                if (h && h !== '未指定' && h !== '') {
+                    handlers.add(h);
+                }
+            }
+
+            let container = document.getElementById('filterTagsContainer');
+            
+            let html = `
+                <!-- 第一群組：核心狀態與預警 -->
+                <div class="filter-row">
+                    <span class="tag-group-label">📌 快速檢視：</span>
+                    <span class="tag ${currentTag === 'ALL' ? 'active' : ''}" onclick="setTagFilter('ALL', this)">全部顯示</span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_WARRANTY' ? 'active' : ''}" onclick="setTagFilter('ALERT_WARRANTY', this)">🛡️ 保固預警</span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_ARRIVAL' ? 'active' : ''}" onclick="setTagFilter('ALERT_ARRIVAL', this)">📦 到貨未進場</span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_AGENT' ? 'active' : ''}" onclick="setTagFilter('ALERT_AGENT', this)">🚨 總代理催料</span>
+                </div>
+                
+                <!-- 第二群組：交辦人員 -->
+                <div class="filter-row">
+                    <span class="tag-group-label">👤 負責人員：</span>
+            `;
+
+            handlers.forEach(h => {
+                let isActive = currentTag === h ? 'active' : '';
+                html += `<span class="tag person-tag ${isActive}" onclick="setTagFilter('${h}', this)">${h}</span>`;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function setTagFilter(tag, element) {
+            currentTag = tag;
+            generateStructuredTags(); // 重新渲染標籤以保持選取狀態
+            renderCards();
+        }
+
+        function renderCards() {
+            if (parsedRows.length === 0) return;
+
+            let searchInput = document.getElementById('searchInput').value.toUpperCase();
+            let container = document.getElementById('cardContainer');
+            let html = '';
+            let matchCount = 0;
+
+            for (let i = 1; i < parsedRows.length; i++) {
+                let row = parsedRows[i];
+                let rowString = row.join(' ').toUpperCase();
+                
+                if (searchInput && !rowString.includes(searchInput)) continue;
+
+                let handlerCell = row[11] || '';
+                let warrantyAlert = row[16] || '';
+                let arrivalAlert = row[17] || '';
+                let agentAlert = row[18] || '';
+
+                if (currentTag === 'ALERT_WARRANTY' && !warrantyAlert.includes('保固')) continue;
+                if (currentTag === 'ALERT_ARRIVAL' && !arrivalAlert.includes('已到貨逾15天')) continue;
+                if (currentTag === 'ALERT_AGENT' && !agentAlert.includes('待料逾27天')) continue;
+                if (currentTag !== 'ALL' && !currentTag.startsWith('ALERT_') && handlerCell !== currentTag) continue;
+
+                matchCount++;
+
+                html += `
+                    <div class="data-card">
+                        <div class="card-header">
+                            <div class="card-car-no">
+                                🚗 ${row[2] || '未填車號'} 
+                                <span class="car-type-badge">${row[3] || 'N/A'}</span>
+                            </div>
+                            <button class="copy-btn" onclick="copyRowInfo(${i}, this)">📋 複製</button>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="part-row">
+                                <div class="info-label">零件項目</div>
+                                <div class="part-val">${row[6] || ''} - ${row[7] || ''} (數: ${row[8] || '1'})</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">單號 (訂單 / 工單)</div>
+                                <div class="info-val" style="font-size:11px;">${row[1] || 'N/A'} / ${row[5] || 'N/A'}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">日期 (訂貨 ➔ 到貨)</div>
+                                <div class="info-val">${row[9] || '-'} ➔ ${row[10] || '未到'}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">負責交辦</div>
+                                <div class="info-val">${row[11] || '未指定'}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">結案狀態</div>
+                                <div class="info-val" style="color: ${row[12] === '✓' ? '#38a169' : '#e53e3e'}">${row[12] === '✓' ? '已結案 (✓)' : '進行中'}</div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <span class="badge ${warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${warrantyAlert || '保固正常'}</span>
+                            <span class="badge ${arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${arrivalAlert || '進場正常'}</span>
+                            <span class="badge ${agentAlert.includes('待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${agentAlert || '總代理正常'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (matchCount === 0) {
+                html = `<div class="loading" style="grid-column: span 2;">沒有找到符合條件的案情資料</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function applyFilters() {
+            renderCards();
+        }
+
+        function copyRowInfo(index, btnElement) {
+            let row = parsedRows[index];
+
+            let textToCopy = `【尚鵬汽車 - 待料案情追蹤提醒】\n` +
+                             `🚗 車號：${row[2] || '未填'} (車型: ${row[3] || 'N/A'})\n` +
+                             `📄 訂單號碼：${row[1] || 'N/A'}\n` +
+                             `📋 工單號碼：${row[5] || 'N/A'}\n` +
+                             `🛠️ 零件：${row[6]} - ${row[7]}\n` +
+                             `📦 數量：${row[8]}\n` +
+                             `📅 訂貨日：${row[9]}\n` +
+                             `🚚 到貨日：${row[10] || '尚未到貨'}\n` +
+                             `👤 負責交辦：${row[11] || '未指定'}\n` +
+                             `----------------------------------\n` +
+                             `🚨 【異常狀態與注意提醒】\n` +
+                             `• 🛡️ 保固狀態：${row[16] || '正常'}\n` +
+                             `• 📦 到貨進場：${row[17] || '正常'}\n` +
+                             `• ⏳ 總代理進度：${row[18] || '正常'}\n` +
+                             `----------------------------------\n` +
+                             `請相關人員協助留意處理，謝謝！`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                let originalText = btnElement.innerHTML;
+                btnElement.innerHTML = '✅ 已複製';
+                btnElement.classList.add('copied');
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.classList.remove('copied');
+                }, 1500);
+            }).catch(err => {
+                alert('複製失敗，請檢查瀏覽器剪貼簿權限。');
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
