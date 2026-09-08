@@ -6,7 +6,13 @@
     <title>客訴與賠償處理機制 SOP - Soros Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Noto Sans TC', sans-serif; }</style>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        /* 手機版分頁鎖定隱藏 */
+        @media (max-width: 767px) {
+            .mobile-hidden { display: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
 
@@ -21,7 +27,7 @@
         </div>
     </header>
 
-    <!-- 手機版專屬置頂導航欄 (僅在手機螢幕顯示，電腦端自動隱藏) -->
+    <!-- 手機版專屬置頂導航欄 (頂端釘選，點擊絕對穩定) -->
     <nav class="md:hidden bg-slate-800 border-b border-slate-700 sticky top-[73px] z-30 flex justify-around py-2.5 px-2 text-sm shadow-xl">
         <button onclick="switchMobileTab('workflow')" id="m-btn-workflow" class="flex-1 py-1.5 text-center font-bold text-amber-400 border-b-2 border-amber-400">流程圖</button>
         <button onclick="switchMobileTab('quick')" id="m-btn-quick" class="flex-1 py-1.5 text-center font-medium text-slate-400 border-b-2 border-transparent">表單專區</button>
@@ -32,7 +38,7 @@
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-8">
         
         <!-- 區塊一：表單與系統工具專區 -->
-        <section id="panel-quick" class="content-panel bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl">
+        <section id="panel-quick" class="content-panel bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl mobile-hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-base md:text-lg font-semibold text-amber-400 border-l-4 border-amber-400 pl-3">表單與系統工具專區</h2>
                 <span class="text-xs md:text-sm text-slate-400">點擊按鈕可下載或預覽，圖片可點擊燈箱放大檢視</span>
@@ -126,7 +132,7 @@
                         </div>
                         <div class="flex-1 space-y-2 w-full">
                             <h3 class="font-bold text-slate-100 text-base">事件進線與基礎建檔</h3>
-                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">記錄人、事,、時、地、物基礎資料，備妥工單、成本與試算金額。</p>
+                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">記錄人、事、時、地、物基礎資料，備妥工單、成本與試算金額。</p>
                         </div>
                     </div>
 
@@ -170,7 +176,7 @@
             </div>
 
             <!-- 區塊三：Email 派送區 -->
-            <div id="panel-email" class="content-panel space-y-6">
+            <div id="panel-email" class="content-panel space-y-6 mobile-hidden">
                 <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
                     <h2 class="text-base font-semibold text-amber-400 mb-4 border-b border-slate-700 pb-3">內部 Email 通報勾選派送</h2>
                     <div class="space-y-4 text-sm">
@@ -231,8 +237,10 @@
         </div>
     </div>
 
-    <!-- 手機版獨立切換邏輯 -->
+    <!-- 手機版絕對鎖定切換邏輯 -->
     <script>
+        let currentActiveTab = 'workflow'; // 預設記錄當前分頁
+
         function openLightbox(url) {
             if (!url) return;
             document.getElementById('lightbox-img').src = url;
@@ -244,6 +252,7 @@
         }
 
         function switchMobileTab(tab) {
+            currentActiveTab = tab; // 鎖定目前分頁
             const pQuick = document.getElementById('panel-quick');
             const pWorkflow = document.getElementById('panel-workflow');
             const pEmail = document.getElementById('panel-email');
@@ -252,37 +261,39 @@
             const bQ = document.getElementById('m-btn-quick');
             const bE = document.getElementById('m-btn-email');
 
-            // 預設重置按鈕樣式
+            // 重置所有按鈕樣式
             [bW, bQ, bE].forEach(b => {
                 b.className = "flex-1 py-1.5 text-center font-medium text-slate-400 border-b-2 border-transparent";
             });
 
             if (window.innerWidth < 768) {
-                pQuick.style.display = 'none';
-                pWorkflow.style.display = 'none';
-                pEmail.style.display = 'none';
+                // 先全部加上 mobile-hidden 隱藏
+                pQuick.classList.add('mobile-hidden');
+                pWorkflow.classList.add('mobile-hidden');
+                pEmail.classList.add('mobile-hidden');
 
                 if (tab === 'workflow') {
-                    pWorkflow.style.display = 'block';
+                    pWorkflow.classList.remove('mobile-hidden');
                     bW.className = "flex-1 py-1.5 text-center font-bold text-amber-400 border-b-2 border-amber-400";
                 } else if (tab === 'quick') {
-                    pQuick.style.display = 'block';
+                    pQuick.classList.remove('mobile-hidden');
                     bQ.className = "flex-1 py-1.5 text-center font-bold text-amber-400 border-b-2 border-amber-400";
                 } else if (tab === 'email') {
-                    pEmail.style.display = 'block';
+                    pEmail.classList.remove('mobile-hidden');
                     bE.className = "flex-1 py-1.5 text-center font-bold text-amber-400 border-b-2 border-amber-400";
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
+        // 當螢幕尺寸改變時的防呆處理
         window.onresize = function() {
             if (window.innerWidth >= 768) {
-                document.getElementById('panel-quick').style.display = 'block';
-                document.getElementById('panel-workflow').style.display = 'block';
-                document.getElementById('panel-email').style.display = 'block';
+                document.getElementById('panel-quick').classList.remove('mobile-hidden');
+                document.getElementById('panel-workflow').classList.remove('mobile-hidden');
+                document.getElementById('panel-email').classList.remove('mobile-hidden');
             } else {
-                switchMobileTab('workflow');
+                switchMobileTab(currentActiveTab); // 保持當前分頁，絕不亂跳
             }
         };
 
@@ -302,7 +313,7 @@
             window.location.href = `mailto:${toEmails}?cc=william@starunited.tw&subject=${subject}&body=${body}`;
         }
 
-        // 初始化手機版預設顯示流程圖
+        // 初始化手機版預設顯示
         if (window.innerWidth < 768) {
             switchMobileTab('workflow');
         }
