@@ -164,7 +164,6 @@
 
         .vin-span { font-family: monospace; color: #4a5568; background: #f7fafc; padding: 1px 4px; border-radius: 3px; border: 1px solid #e2e8f0; }
 
-        /* 💡 多零件捲軸清單區塊（完美復活） */
         .part-row {
             grid-column: span 2;
             background: #f8fafc;
@@ -186,7 +185,7 @@
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
         
-        /* 💡 常駐備註輸入框樣式 */
+        /* 💡 常駐備註輸入框（置於卡片最下方） */
         .note-input-container {
             grid-column: span 2;
             background: #fffaf0;
@@ -196,6 +195,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            margin-top: 4px;
         }
         .note-input-header {
             display: flex;
@@ -313,15 +313,15 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統支援多零件捲軸清單、車身碼複製與常駐備註：</p>
+            <p>本系統支援多零件捲軸清單與卡片底部常駐備註：</p>
             <div class="manual-grid">
                 <div class="manual-item">
-                    <strong>📦 多零件捲軸清單</strong><br>
-                    同一張工單底下的多個零件會自動聚合並在卡片中以捲軸清單完整呈現。
+                    <strong>📝 卡片底部備註</strong><br>
+                    每張卡片的最下方隨時設有備註輸入框，直接打字，移開游標即會自動儲存至試算表 N 欄。
                 </div>
                 <div class="manual-item">
-                    <strong>📝 常駐備註</strong><br>
-                    直接在卡片的備註框打字，移開游標即會自動儲存至試算表 N 欄。
+                    <strong>📋 複製車身碼</strong><br>
+                    一鍵複製 VIN 碼，快速對應車輛。
                 </div>
             </div>
         </div>
@@ -542,7 +542,6 @@
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let noteVal = card.note || '';
 
-                // 💡 完整生成多零件捲軸清單
                 let partsHtml = '';
                 card.parts.forEach(p => {
                     partsHtml += `
@@ -568,7 +567,7 @@
                         </div>
                         
                         <div class="card-body">
-                            <!-- 💡 復活的多零件捲軸清單區塊 -->
+                            <!-- 1. 多零件清單 -->
                             <div class="part-row">
                                 <div class="info-label">零件項目清單 (共 ${card.parts.length} 項)</div>
                                 <div class="part-scroll-box">
@@ -576,15 +575,7 @@
                                 </div>
                             </div>
                             
-                            <!-- 💡 常駐備註輸入框 -->
-                            <div class="note-input-container">
-                                <div class="note-input-header">
-                                    <span>📝 常駐備註提醒 (隨打隨存)</span>
-                                    <span style="font-size:9px; color:#c05621;" id="save-status-${card.primaryRowIndex}">已同步</span>
-                                </div>
-                                <textarea class="persistent-note-input" placeholder="輸入要提醒接待或現場的事項..." onblur="autoSaveNote(${card.primaryRowIndex}, this)">${noteVal}</textarea>
-                            </div>
-
+                            <!-- 2. 車身碼 -->
                             <div class="info-row" style="grid-column: span 2;">
                                 <div class="info-label">車身碼 (VIN)</div>
                                 <div class="info-val">
@@ -592,6 +583,8 @@
                                     <button class="action-btn" style="padding:2px 6px; font-size:10px;" onclick="copyText('${card.vin}', this)">📋 複製車身碼</button>
                                 </div>
                             </div>
+
+                            <!-- 3. 單號、日期、交辦、狀態 -->
                             <div class="info-row">
                                 <div class="info-label">單號 (訂單 / 工單)</div>
                                 <div class="info-val" style="font-size:11px;">${card.orderNo || 'N/A'} / ${card.wo || 'N/A'}</div>
@@ -607,6 +600,15 @@
                             <div class="info-row">
                                 <div class="info-label">通知狀態 (M欄)</div>
                                 <div class="info-val" style="color: ${noticeColor}">${noticeText}</div>
+                            </div>
+
+                            <!-- 4. 備註（完美移至卡片最下方） -->
+                            <div class="note-input-container">
+                                <div class="note-input-header">
+                                    <span>📝 備註提醒（點擊即可修改，移開自動儲存）</span>
+                                    <span style="font-size:9px; color:#c05621;" id="save-status-${card.primaryRowIndex}">已同步</span>
+                                </div>
+                                <textarea class="persistent-note-input" placeholder="輸入要提醒接待或現場的事項..." onblur="autoSaveNote(${card.primaryRowIndex}, this)">${noteVal}</textarea>
                             </div>
                         </div>
 
@@ -650,10 +652,6 @@
                     <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</div>
                     <div class="modal-parts-box">${partsHtml}</div>
                 </div>
-                <div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px;">
-                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 常駐備註提醒 (點擊即可修改，移開游標自動儲存)</div>
-                    <textarea class="persistent-note-input" style="min-height:50px;" onblur="autoSaveNote(${card.primaryRowIndex}, this)">${card.note || ''}</textarea>
-                </div>
                 <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                     <div><strong>🏷️ 車身碼 (VIN)：</strong> <span class="vin-span">${card.vin}</span></div>
                     <button class="action-btn" onclick="copyText('${card.vin}', this)">📋 複製車身碼</button>
@@ -665,6 +663,10 @@
                     <div><strong>🚚 到貨日期：</strong>${card.arrDate || '尚未到貨'}</div>
                     <div><strong>👤 負責交辦：</strong>${card.handler || '未指定'}</div>
                     <div><strong>🔔 通知狀態：</strong><span style="color:${noticeColor}; font-weight:700;">${noticeText}</span></div>
+                </div>
+                <div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px;">
+                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 常駐備註提醒 (點擊即可修改，移開游標自動儲存)</div>
+                    <textarea class="persistent-note-input" style="min-height:50px;" onblur="autoSaveNote(${card.primaryRowIndex}, this)">${card.note || ''}</textarea>
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px dashed #e2e8f0; padding-top:10px;">
                     <span class="badge ${card.warrantyAlert && card.warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${card.warrantyAlert || '保固正常'}</span>
