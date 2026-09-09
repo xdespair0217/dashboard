@@ -164,6 +164,7 @@
 
         .vin-span { font-family: monospace; color: #4a5568; background: #f7fafc; padding: 1px 4px; border-radius: 3px; border: 1px solid #e2e8f0; }
 
+        /* 💡 多零件捲軸清單區塊（完美復活） */
         .part-row {
             grid-column: span 2;
             background: #f8fafc;
@@ -175,7 +176,7 @@
             gap: 4px;
         }
         .part-scroll-box {
-            max-height: 85px;
+            max-height: 95px;
             overflow-y: auto;
             padding-right: 4px;
             display: flex;
@@ -312,15 +313,15 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統支援常駐備註輸入框與即時自動儲存：</p>
+            <p>本系統支援多零件捲軸清單、車身碼複製與常駐備註：</p>
             <div class="manual-grid">
                 <div class="manual-item">
-                    <strong>📝 常駐備註</strong><br>
-                    每張卡片上隨時都有一個備註輸入框，直接打字修改，**滑開或點擊其他地方（失去焦點）就會自動儲存並寫回 Excel**！
+                    <strong>📦 多零件捲軸清單</strong><br>
+                    同一張工單底下的多個零件會自動聚合並在卡片中以捲軸清單完整呈現。
                 </div>
                 <div class="manual-item">
-                    <strong>📋 複製車身碼</strong><br>
-                    一鍵複製 VIN 碼，快速對應車輛。
+                    <strong>📝 常駐備註</strong><br>
+                    直接在卡片的備註框打字，移開游標即會自動儲存至試算表 N 欄。
                 </div>
             </div>
         </div>
@@ -541,6 +542,7 @@
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let noteVal = card.note || '';
 
+                // 💡 完整生成多零件捲軸清單
                 let partsHtml = '';
                 card.parts.forEach(p => {
                     partsHtml += `
@@ -566,6 +568,7 @@
                         </div>
                         
                         <div class="card-body">
+                            <!-- 💡 復活的多零件捲軸清單區塊 -->
                             <div class="part-row">
                                 <div class="info-label">零件項目清單 (共 ${card.parts.length} 項)</div>
                                 <div class="part-scroll-box">
@@ -573,11 +576,11 @@
                                 </div>
                             </div>
                             
-                            <!-- 💡 常駐備註輸入框：隨打隨存 -->
+                            <!-- 💡 常駐備註輸入框 -->
                             <div class="note-input-container">
                                 <div class="note-input-header">
-                                    <span>📝 常駐備註提醒 (點擊即可修改)</span>
-                                    <span style="font-size:9px; color:#c05621;" id="save-status-${card.primaryRowIndex}">自動儲存中</span>
+                                    <span>📝 常駐備註提醒 (隨打隨存)</span>
+                                    <span style="font-size:9px; color:#c05621;" id="save-status-${card.primaryRowIndex}">已同步</span>
                                 </div>
                                 <textarea class="persistent-note-input" placeholder="輸入要提醒接待或現場的事項..." onblur="autoSaveNote(${card.primaryRowIndex}, this)">${noteVal}</textarea>
                             </div>
@@ -648,7 +651,7 @@
                     <div class="modal-parts-box">${partsHtml}</div>
                 </div>
                 <div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px;">
-                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 常駐備註提醒 (點擊即可修改，點擊空白處自動儲存)</div>
+                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 常駐備註提醒 (點擊即可修改，移開游標自動儲存)</div>
                     <textarea class="persistent-note-input" style="min-height:50px;" onblur="autoSaveNote(${card.primaryRowIndex}, this)">${card.note || ''}</textarea>
                 </div>
                 <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
@@ -690,7 +693,6 @@
             }
         }
 
-        // 💡 自動儲存備註（當你在輸入框打完字、點擊外面或移開游標時觸發）
         async function autoSaveNote(rowIndex, textareaElement) {
             let newNote = textareaElement.value;
             let statusSpan = document.getElementById(`save-status-${rowIndex}`);
@@ -702,14 +704,14 @@
 
                 if (result.status === 'success') {
                     if (statusSpan) {
-                        statusSpan.innerText = '✓ 已儲存至Excel';
-                        setTimeout(() => { statusSpan.innerText = '自動儲存中'; }, 2500);
+                        statusSpan.innerText = '✓ 已儲存';
+                        setTimeout(() => { statusSpan.innerText = '已同步'; }, 2000);
                     }
                 } else {
-                    if (statusSpan) statusSpan.innerText = '❌ 儲存失敗';
+                    if (statusSpan) statusSpan.innerText = '❌ 失敗';
                 }
             } catch (err) {
-                if (statusSpan) statusSpan.innerText = '❌ 網路錯誤';
+                if (statusSpan) statusSpan.innerText = '❌ 錯誤';
             }
         }
 
