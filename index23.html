@@ -126,6 +126,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            will-change: transform;
         }
         .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
 
@@ -185,7 +186,19 @@
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
         
-        /* 💡 常駐備註輸入框（置於卡片最下方） */
+        /* 💡 數量清晰對照標籤 */
+        .qty-pill {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            border: 1px solid #bee3f8;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        /* 💡 常駐備註輸入框 */
         .note-input-container {
             grid-column: span 2;
             background: #fffaf0;
@@ -313,15 +326,15 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統支援多零件捲軸清單與卡片底部常駐備註：</p>
+            <p>本系統已進行極速效能優化與數量對照強化：</p>
             <div class="manual-grid">
                 <div class="manual-item">
-                    <strong>📝 卡片底部備註</strong><br>
-                    每張卡片的最下方隨時設有備註輸入框，直接打字，移開游標即會自動儲存至試算表 N 欄。
+                    <strong>📊 零件數量清晰對照</strong><br>
+                    每個零件皆明確標示「訂料數量 (數量: X)」，與系統原始資料完全同步。
                 </div>
                 <div class="manual-item">
-                    <strong>📋 複製車身碼</strong><br>
-                    一鍵複製 VIN 碼，快速對應車輛。
+                    <strong>⚡ 極速流暢體驗</strong><br>
+                    備註修改採背景非同步儲存，打字順暢不卡頓。
                 </div>
             </div>
         </div>
@@ -415,6 +428,7 @@
                 let carNo = r[2] || '未填車號';
                 let key = wo;
 
+                // 💡 確保數量精確抓取 (I欄 = r[8])
                 let partItem = {
                     partNo: r[6] || '未填料號',
                     partName: r[7] || '尚未建檔',
@@ -514,7 +528,7 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 renderCards();
-            }, 150);
+            }, 100);
         }
 
         function renderCards() {
@@ -542,12 +556,13 @@
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let noteVal = card.note || '';
 
+                // 💡 零件與數量清晰對照呈現
                 let partsHtml = '';
                 card.parts.forEach(p => {
                     partsHtml += `
-                        <div class="part-item-line" style="display:flex; justify-content:space-between; font-family:monospace; font-size:11px; padding:3px 0; border-bottom:1px solid #edf2f7;">
+                        <div class="part-item-line" style="display:flex; justify-content:space-between; align-items:center; font-family:monospace; font-size:11px; padding:4px 0; border-bottom:1px solid #edf2f7;">
                             <span>🔹 ${p.partNo} - ${p.partName}</span>
-                            <span style="font-weight:700; color:#2b6cb0;">數: ${p.qty}</span>
+                            <span class="qty-pill">訂料數: ${p.qty}</span>
                         </div>
                     `;
                 });
@@ -567,9 +582,9 @@
                         </div>
                         
                         <div class="card-body">
-                            <!-- 1. 多零件清單 -->
+                            <!-- 1. 零件與數量清單 -->
                             <div class="part-row">
-                                <div class="info-label">零件項目清單 (共 ${card.parts.length} 項)</div>
+                                <div class="info-label">零件項目與數量對照 (共 ${card.parts.length} 項)</div>
                                 <div class="part-scroll-box">
                                     ${partsHtml}
                                 </div>
@@ -602,7 +617,7 @@
                                 <div class="info-val" style="color: ${noticeColor}">${noticeText}</div>
                             </div>
 
-                            <!-- 4. 備註（完美移至卡片最下方） -->
+                            <!-- 4. 底部常駐備註（非同步順暢儲存） -->
                             <div class="note-input-container">
                                 <div class="note-input-header">
                                     <span>📝 備註提醒（點擊即可修改，移開自動儲存）</span>
@@ -642,14 +657,14 @@
                 partsHtml += `
                     <div class="modal-part-row">
                         <span>🔹 <b>${p.partNo}</b> - ${p.partName}</span>
-                        <span style="font-weight:700; color:#2b6cb0;">數量: ${p.qty}</span>
+                        <span class="qty-pill">訂料數: ${p.qty}</span>
                     </div>
                 `;
             });
 
             let bodyHtml = `
                 <div>
-                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</div>
+                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目與數量對照 (共 ${card.parts.length} 項)</div>
                     <div class="modal-parts-box">${partsHtml}</div>
                 </div>
                 <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
@@ -665,7 +680,7 @@
                     <div><strong>🔔 通知狀態：</strong><span style="color:${noticeColor}; font-weight:700;">${noticeText}</span></div>
                 </div>
                 <div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px;">
-                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 常駐備註提醒 (點擊即可修改，移開游標自動儲存)</div>
+                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 備註提醒 (點擊即可修改，移開游標自動儲存)</div>
                     <textarea class="persistent-note-input" style="min-height:50px;" onblur="autoSaveNote(${card.primaryRowIndex}, this)">${card.note || ''}</textarea>
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px dashed #e2e8f0; padding-top:10px;">
@@ -695,6 +710,7 @@
             }
         }
 
+        // 💡 非同步背景儲存（不卡畫面、極速響應）
         async function autoSaveNote(rowIndex, textareaElement) {
             let newNote = textareaElement.value;
             let statusSpan = document.getElementById(`save-status-${rowIndex}`);
@@ -750,7 +766,7 @@
         }
 
         function copyCardInfo(card) {
-            let partsText = card.parts.map(p => `• ${p.partNo} - ${p.partName} (數: ${p.qty})`).join('\n');
+            let partsText = card.parts.map(p => `• ${p.partNo} - ${p.partName} (訂料數: ${p.qty})`).join('\n');
 
             let textToCopy = `【尚鵬汽車 - 待料案情追蹤提醒】\n` +
                              `🚗 車號：${card.carNo || '未填'} (車型: ${card.carType || 'N/A'})\n` +
