@@ -184,7 +184,17 @@
         }
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
-        .note-val { font-size: 11px; color: #718096; margin-top: 2px; border-top: 1px dashed #e2e8f0; padding-top: 2px; }
+        .note-box {
+            grid-column: span 2;
+            background: #fffaf0;
+            border: 1px solid #feebc8;
+            padding: 6px 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-content { font-size: 11px; color: #9c4221; font-weight: 600; word-break: break-all; }
 
         .card-footer {
             display: flex;
@@ -275,19 +285,19 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統支援多零件聚合、智慧預警與車身碼快速複製：</p>
+            <p>本系統支援多零件聚合、車身碼複製與即時備註提醒：</p>
             <div class="manual-grid">
                 <div class="manual-item">
+                    <strong>📝 備註提醒</strong><br>
+                    點擊卡片上的「✏️ 編輯備註」按鈕，可即時為接待或現場留下交辦提醒事項。
+                </div>
+                <div class="manual-item">
                     <strong>📋 複製車身碼</strong><br>
-                    點擊卡片或燈箱中的車身碼旁複製按鈕，可單獨將車身碼複製到剪貼簿。
+                    點擊車身碼旁的複製按鈕，快速將 VIN 複製到剪貼簿。
                 </div>
                 <div class="manual-item">
                     <strong>🛡️ 保固預警 (≤15天)</strong><br>
                     保固到期日至今天差 15 天以內觸發紅燈。
-                </div>
-                <div class="manual-item">
-                    <strong>📦 到貨未進場 (>15天)</strong><br>
-                    到貨日期距今超過 15 天未進場觸發橘燈。
                 </div>
                 <div class="manual-item">
                     <strong>⏳ 總代理催料 (>27天)</strong><br>
@@ -538,12 +548,21 @@
                         
                         <div class="card-body">
                             <div class="part-row">
-                                <div class="info-label">零件項目清單 (共 ${card.parts.length} 項)</div>
+                                <div class="info-label" style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>零件項目清單 (共 ${card.parts.length} 項)</span>
+                                    <button class="action-btn" style="padding:1px 6px; font-size:10px;" onclick="editNote(${card.primaryRowIndex}, '${escapeHtml(noteVal)}')">✏️ 編輯備註</button>
+                                </div>
                                 <div class="part-scroll-box">
                                     ${partsHtml}
-                                    ${noteVal ? `<div class="note-val">📝 備註：${noteVal}</div>` : ''}
                                 </div>
                             </div>
+                            
+                            ${noteVal ? `
+                            <div class="note-box">
+                                <div class="note-content">📝 備註提醒：${noteVal}</div>
+                                <button class="action-btn" style="padding:1px 5px; font-size:9px;" onclick="editNote(${card.primaryRowIndex}, '${escapeHtml(noteVal)}')">修改</button>
+                            </div>` : ''}
+
                             <div class="info-row" style="grid-column: span 2;">
                                 <div class="info-label">車身碼 (VIN)</div>
                                 <div class="info-val">
@@ -606,9 +625,13 @@
 
             let bodyHtml = `
                 <div>
-                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</div>
+                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</span>
+                        <button class="action-btn" onclick="editNote(${card.primaryRowIndex}, '${escapeHtml(card.note || '')}')">✏️ 編輯備註提醒</button>
+                    </div>
                     <div class="modal-parts-box">${partsHtml}</div>
                 </div>
+                ${card.note ? `<div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px; color:#9c4221;">📝 <strong>備註提醒：</strong>${card.note}</div>` : ''}
                 <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                     <div><strong>🏷️ 車身碼 (VIN)：</strong> <span class="vin-span">${card.vin}</span></div>
                     <button class="action-btn" onclick="copyText('${card.vin}', this)">📋 複製車身碼</button>
@@ -621,7 +644,6 @@
                     <div><strong>👤 負責交辦：</strong>${card.handler || '未指定'}</div>
                     <div><strong>🔔 通知狀態：</strong><span style="color:${noticeColor}; font-weight:700;">${noticeText}</span></div>
                 </div>
-                ${card.note ? `<div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px; color:#9c4221;">📝 <strong>備註說明：</strong>${card.note}</div>` : ''}
                 <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px dashed #e2e8f0; padding-top:10px;">
                     <span class="badge ${card.warrantyAlert && card.warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${card.warrantyAlert || '保固正常'}</span>
                     <span class="badge ${card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${card.arrivalAlert || '進場正常'}</span>
@@ -647,6 +669,29 @@
             if (event.target.id === 'detailModal') {
                 closeModal();
             }
+        }
+
+        async function editNote(rowIndex, currentNote) {
+            let newNote = prompt("請輸入要提醒接待或現場的備註內容：", currentNote);
+            if (newNote === null) return; // 取消
+
+            try {
+                let response = await fetch(`${gasApiUrl}?action=updateNote&row=${rowIndex}&note=${encodeURIComponent(newNote)}`);
+                let result = await response.json();
+
+                if (result.status === 'success') {
+                    alert('✅ 備註已成功更新！');
+                    loadData();
+                } else {
+                    alert('更新備註失敗：' + result.message);
+                }
+            } catch (err) {
+                alert('連線伺服器失敗，請確認 GAS 網址是否正確。');
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
         function copyText(text, btnElement) {
@@ -690,6 +735,7 @@
                              `📄 訂單號碼：${card.orderNo || 'N/A'}\n` +
                              `📋 工單號碼：${card.wo || 'N/A'}\n` +
                              `🛠️ 零件清單：\n${partsText}\n` +
+                             `${card.note ? `📝 備註提醒：${card.note}\n` : ''}` +
                              `📅 訂貨日：${card.ordDate || '-'} ➔ 到貨日：${card.arrDate || '尚未到貨'}\n` +
                              `👤 負責交辦：${card.handler || '未指定'}\n` +
                              `----------------------------------\n` +
