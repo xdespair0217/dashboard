@@ -184,17 +184,44 @@
         }
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
-        .note-box {
+        
+        /* 💡 常駐備註輸入框樣式 */
+        .note-input-container {
             grid-column: span 2;
             background: #fffaf0;
             border: 1px solid #feebc8;
-            padding: 6px 10px;
+            padding: 8px 10px;
             border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .note-input-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 11px;
+            color: #9c4221;
+            font-weight: 700;
         }
-        .note-content { font-size: 11px; color: #9c4221; font-weight: 600; word-break: break-all; }
+        .persistent-note-input {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 12px;
+            color: #2d3748;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 38px;
+            box-sizing: border-box;
+        }
+        .persistent-note-input:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.15);
+        }
 
         .card-footer {
             display: flex;
@@ -285,23 +312,15 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統支援多零件聚合、車身碼複製與即時備註提醒：</p>
+            <p>本系統支援常駐備註輸入框與即時自動儲存：</p>
             <div class="manual-grid">
                 <div class="manual-item">
-                    <strong>📝 備註提醒</strong><br>
-                    點擊卡片上的「✏️ 編輯備註」按鈕，可即時為接待或現場留下交辦提醒事項。
+                    <strong>📝 常駐備註</strong><br>
+                    每張卡片上隨時都有一個備註輸入框，直接打字修改，**滑開或點擊其他地方（失去焦點）就會自動儲存並寫回 Excel**！
                 </div>
                 <div class="manual-item">
                     <strong>📋 複製車身碼</strong><br>
-                    點擊車身碼旁的複製按鈕，快速將 VIN 複製到剪貼簿。
-                </div>
-                <div class="manual-item">
-                    <strong>🛡️ 保固預警 (≤15天)</strong><br>
-                    保固到期日至今天差 15 天以內觸發紅燈。
-                </div>
-                <div class="manual-item">
-                    <strong>⏳ 總代理催料 (>27天)</strong><br>
-                    訂貨日超過 27 天且尚未到貨時觸發紫燈。
+                    一鍵複製 VIN 碼，快速對應車輛。
                 </div>
             </div>
         </div>
@@ -548,20 +567,20 @@
                         
                         <div class="card-body">
                             <div class="part-row">
-                                <div class="info-label" style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span>零件項目清單 (共 ${card.parts.length} 項)</span>
-                                    <button class="action-btn" style="padding:1px 6px; font-size:10px;" onclick="editNote(${card.primaryRowIndex}, '${escapeHtml(noteVal)}')">✏️ 編輯備註</button>
-                                </div>
+                                <div class="info-label">零件項目清單 (共 ${card.parts.length} 項)</div>
                                 <div class="part-scroll-box">
                                     ${partsHtml}
                                 </div>
                             </div>
                             
-                            ${noteVal ? `
-                            <div class="note-box">
-                                <div class="note-content">📝 備註提醒：${noteVal}</div>
-                                <button class="action-btn" style="padding:1px 5px; font-size:9px;" onclick="editNote(${card.primaryRowIndex}, '${escapeHtml(noteVal)}')">修改</button>
-                            </div>` : ''}
+                            <!-- 💡 常駐備註輸入框：隨打隨存 -->
+                            <div class="note-input-container">
+                                <div class="note-input-header">
+                                    <span>📝 常駐備註提醒 (點擊即可修改)</span>
+                                    <span style="font-size:9px; color:#c05621;" id="save-status-${card.primaryRowIndex}">自動儲存中</span>
+                                </div>
+                                <textarea class="persistent-note-input" placeholder="輸入要提醒接待或現場的事項..." onblur="autoSaveNote(${card.primaryRowIndex}, this)">${noteVal}</textarea>
+                            </div>
 
                             <div class="info-row" style="grid-column: span 2;">
                                 <div class="info-label">車身碼 (VIN)</div>
@@ -625,13 +644,13 @@
 
             let bodyHtml = `
                 <div>
-                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</span>
-                        <button class="action-btn" onclick="editNote(${card.primaryRowIndex}, '${escapeHtml(card.note || '')}')">✏️ 編輯備註提醒</button>
-                    </div>
+                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</div>
                     <div class="modal-parts-box">${partsHtml}</div>
                 </div>
-                ${card.note ? `<div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px; color:#9c4221;">📝 <strong>備註提醒：</strong>${card.note}</div>` : ''}
+                <div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px;">
+                    <div style="font-size:11px; color:#9c4221; font-weight:700; margin-bottom:4px;">📝 常駐備註提醒 (點擊即可修改，點擊空白處自動儲存)</div>
+                    <textarea class="persistent-note-input" style="min-height:50px;" onblur="autoSaveNote(${card.primaryRowIndex}, this)">${card.note || ''}</textarea>
+                </div>
                 <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                     <div><strong>🏷️ 車身碼 (VIN)：</strong> <span class="vin-span">${card.vin}</span></div>
                     <button class="action-btn" onclick="copyText('${card.vin}', this)">📋 複製車身碼</button>
@@ -671,27 +690,27 @@
             }
         }
 
-        async function editNote(rowIndex, currentNote) {
-            let newNote = prompt("請輸入要提醒接待或現場的備註內容：", currentNote);
-            if (newNote === null) return; // 取消
+        // 💡 自動儲存備註（當你在輸入框打完字、點擊外面或移開游標時觸發）
+        async function autoSaveNote(rowIndex, textareaElement) {
+            let newNote = textareaElement.value;
+            let statusSpan = document.getElementById(`save-status-${rowIndex}`);
+            if (statusSpan) statusSpan.innerText = '儲存中...';
 
             try {
                 let response = await fetch(`${gasApiUrl}?action=updateNote&row=${rowIndex}&note=${encodeURIComponent(newNote)}`);
                 let result = await response.json();
 
                 if (result.status === 'success') {
-                    alert('✅ 備註已成功更新！');
-                    loadData();
+                    if (statusSpan) {
+                        statusSpan.innerText = '✓ 已儲存至Excel';
+                        setTimeout(() => { statusSpan.innerText = '自動儲存中'; }, 2500);
+                    }
                 } else {
-                    alert('更新備註失敗：' + result.message);
+                    if (statusSpan) statusSpan.innerText = '❌ 儲存失敗';
                 }
             } catch (err) {
-                alert('連線伺服器失敗，請確認 GAS 網址是否正確。');
+                if (statusSpan) statusSpan.innerText = '❌ 網路錯誤';
             }
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
         function copyText(text, btnElement) {
