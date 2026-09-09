@@ -115,7 +115,6 @@
             max-height: 72vh;
             overflow-y: auto;
             padding: 2px;
-            will-change: transform;
         }
 
         .data-card {
@@ -163,7 +162,6 @@
         .info-label { font-size: 10px; color: #a0aec0; font-weight: 600; text-transform: uppercase; }
         .info-val { font-weight: 600; color: #2d3748; }
 
-        /* 💡 零件項目與備註捲軸框 (支援多零件捲動) */
         .part-row {
             grid-column: span 2;
             background: #f8fafc;
@@ -178,12 +176,13 @@
             max-height: 85px;
             overflow-y: auto;
             padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
-        .part-val { font-family: monospace; font-size: 12px; color: #2d3748; font-weight: 700; line-height: 1.4; }
-        .note-val { font-size: 11px; color: #718096; margin-top: 3px; border-top: 1px dashed #e2e8f0; padding-top: 3px; }
-        .qty-badge { background: #fed7d7; color: #9b2c2c; padding: 1px 5px; border-radius: 3px; font-size: 11px; font-weight: 700; }
+        .note-val { font-size: 11px; color: #718096; margin-top: 2px; border-top: 1px dashed #e2e8f0; padding-top: 2px; }
 
         .card-footer {
             display: flex;
@@ -197,6 +196,61 @@
         .badge-orange { background: #fffaf0; color: #dd6b20; border: 1px solid #fbd38d; }
         .badge-purple { background: #faf5ff; color: #805ad5; border: 1px solid #d6bcfa; }
         .badge-normal { background: #f7fafc; color: #718096; border: 1px solid #e2e8f0; }
+
+        /* 💡 寬敞大燈箱 (Modal) 樣式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000; padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        
+        .modal-content {
+            background: #ffffff;
+            width: 100%; max-width: 750px;
+            max-height: 85vh;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            animation: modalPop 0.2s ease-out;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            background: #1a202c; color: #fff; padding: 14px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .modal-close-btn {
+            background: rgba(255,255,255,0.1); border: none; color: #fff; width: 28px; height: 28px;
+            border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-close-btn:hover { background: #e53e3e; }
+
+        .modal-body {
+            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; font-size: 13px;
+        }
+        
+        .modal-parts-box {
+            background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 6px; padding: 12px;
+            max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+        }
+        .modal-part-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #e2e8f0;
+            font-family: monospace; font-size: 12px;
+        }
+
+        .modal-footer {
+            background: #f8fafc; padding: 12px 20px; border-top: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
 
         .loading { text-align: center; color: #718096; font-style: italic; padding: 30px; grid-column: span 2; font-size: 13px; }
     </style>
@@ -218,12 +272,16 @@
         </div>
 
         <div class="manual-panel" id="manualPanel">
-            <h4>📌 尚鵬汽車待料監控系統 - 操作與智慧預警邏輯說明</h4>
-            <p>本系統直接對應廠內 Google 試算表（零件BO表），提供高效卡片流監控：</p>
+            <h4>📌 系統操作說明書</h4>
+            <p>本系統透過中繼分頁自動聚合工單資料：</p>
             <div class="manual-grid">
                 <div class="manual-item">
+                    <strong>🔍 展開大燈箱</strong><br>
+                    點擊卡片右上角的「展開燈箱」按鈕，可開啟寬敞的大型視窗，完整檢視該張工單底下的所有零件與數量對照。
+                </div>
+                <div class="manual-item">
                     <strong>🛡️ 保固預警 (≤15天)</strong><br>
-                    保固到期日至今天差 15 天以內（或已過期）觸發紅燈。
+                    保固到期日至今天差 15 天以內觸發紅燈。
                 </div>
                 <div class="manual-item">
                     <strong>📦 到貨未進場 (>15天)</strong><br>
@@ -233,10 +291,6 @@
                     <strong>🚨 總代理催料 (>27天)</strong><br>
                     訂貨日超過 27 天且無到貨日時觸發紫燈。
                 </div>
-                <div class="manual-item">
-                    <strong>📦 數量核對與庫存</strong><br>
-                    自動比對需求數量，未建檔或數量異常會明確標示 <code>(數: 0)</code> 或警告。
-                </div>
             </div>
         </div>
         
@@ -244,14 +298,27 @@
     </div>
 
     <div class="card-grid" id="cardContainer">
-        <div class="loading">正在從 Google 試算表同步資料與運算預警狀態...</div>
+        <div class="loading">正在從 Google 試算表同步資料與解析工單...</div>
+    </div>
+
+    <!-- 💡 大燈箱 (Modal) 結構 -->
+    <div class="modal-overlay" id="detailModal" onclick="closeModalOnOutside(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">🚗 燈箱詳情</div>
+                <button class="modal-close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBodyContent"></div>
+            <div class="modal-footer" id="modalFooterContent"></div>
+        </div>
     </div>
 
     <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=764234628&single=true&output=csv';
-        const gasApiUrl = 'https://script.google.com/macros/s/你的GAS部署ID/exec'; // ⚠️ 請換上實際 GAS 網址
+        // 💡 已帶入你的「看板資料源」正式 CSV 網址
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1217814788&single=true&output=csv';
+        const gasApiUrl = 'https://script.google.com/macros/s/你的GAS部署ID/exec'; 
 
-        let parsedRows = [];
+        let mergedCards = [];
         let currentTag = 'ALL';
         let searchTimeout = null;
 
@@ -278,7 +345,7 @@
 
         function parseCSV(text) {
             const lines = text.split('\n');
-            parsedRows = [];
+            let rawRows = [];
 
             lines.forEach((row, index) => {
                 let result = [];
@@ -305,10 +372,54 @@
                         return cleaned;
                     });
                     cleanedRow.originalRowIndex = index + 1; 
-                    parsedRows.push(cleanedRow);
+                    rawRows.push(cleanedRow);
                 }
             });
 
+            let cardMap = new Map();
+
+            for (let i = 1; i < rawRows.length; i++) {
+                let r = rawRows[i];
+                let wo = r[5] || r[1] || 'UNKNOWN'; 
+                let carNo = r[2] || '未填車號';
+                let key = wo;
+
+                let partItem = {
+                    partNo: r[6] || '未填料號',
+                    partName: r[7] || '尚未建檔',
+                    qty: parseInt(r[8]) || 1
+                };
+
+                if (!cardMap.has(key)) {
+                    cardMap.set(key, {
+                        date: r[0],
+                        orderNo: r[1],
+                        carNo: carNo,
+                        carType: r[3],
+                        vin: r[4],
+                        wo: r[5],
+                        parts: [partItem],
+                        ordDate: r[9],
+                        arrDate: r[10],
+                        handler: r[11],
+                        status: r[12],
+                        note: r[13],
+                        warrantyDate: r[15],
+                        warrantyAlert: r[16],
+                        arrivalAlert: r[17],
+                        agentAlert: r[18],
+                        primaryRowIndex: r.originalRowIndex
+                    });
+                } else {
+                    let existing = cardMap.get(key);
+                    existing.parts.push(partItem);
+                    if (r[13] && !existing.note.includes(r[13])) {
+                        existing.note += (existing.note ? ' / ' : '') + r[13];
+                    }
+                }
+            }
+
+            mergedCards = Array.from(cardMap.values());
             generateStructuredTags();
             renderCards();
         }
@@ -319,29 +430,24 @@
         }
 
         function generateStructuredTags() {
-            if (parsedRows.length <= 1) return;
+            if (mergedCards.length === 0) return;
             
-            let totalCount = parsedRows.length - 1;
+            let totalCount = mergedCards.length;
             let warrantyCount = 0;
             let arrivalCount = 0;
             let agentCount = 0;
             let handlerCounts = {};
 
-            for (let i = 1; i < parsedRows.length; i++) {
-                let row = parsedRows[i];
-                let warrantyAlert = row[16] || '';
-                let arrivalAlert = row[17] || '';
-                let agentAlert = row[18] || '';
-                let h = row[11] || '';
+            mergedCards.forEach(card => {
+                if (card.warrantyAlert && card.warrantyAlert.includes('保固')) warrantyCount++;
+                if (card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天')) arrivalCount++;
+                if (card.agentAlert && card.agentAlert.includes('待料逾27天')) agentCount++;
 
-                if (warrantyAlert.includes('保固')) warrantyCount++;
-                if (arrivalAlert.includes('已到貨逾15天')) arrivalCount++;
-                if (agentAlert.includes('待料逾27天')) agentCount++;
-
+                let h = card.handler || '';
                 if (h && h !== '未指定' && h !== '') {
                     handlerCounts[h] = (handlerCounts[h] || 0) + 1;
                 }
-            }
+            });
 
             let container = document.getElementById('filterTagsContainer');
             
@@ -376,78 +482,77 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 renderCards();
-            }, 150); // 💡 防抖動優化：輸入時延遲 150ms 才渲染，大幅提升順暢度
+            }, 150);
         }
 
         function renderCards() {
-            if (parsedRows.length === 0) return;
+            if (mergedCards.length === 0) return;
 
             let searchInput = document.getElementById('searchInput').value.toUpperCase();
             let container = document.getElementById('cardContainer');
             let html = '';
             let matchCount = 0;
 
-            for (let i = 1; i < parsedRows.length; i++) {
-                let row = parsedRows[i];
-                let rowString = row.join(' ').toUpperCase();
-                
-                if (searchInput && !rowString.includes(searchInput)) continue;
+            mergedCards.forEach((card, index) => {
+                let cardString = JSON.stringify(card).toUpperCase();
+                if (searchInput && !cardString.includes(searchInput)) return;
 
-                let handlerCell = row[11] || '';
-                let warrantyAlert = row[16] || '';
-                let arrivalAlert = row[17] || '';
-                let agentAlert = row[18] || '';
-
-                if (currentTag === 'ALERT_WARRANTY' && !warrantyAlert.includes('保固')) continue;
-                if (currentTag === 'ALERT_ARRIVAL' && !arrivalAlert.includes('已到貨逾15天')) continue;
-                if (currentTag === 'ALERT_AGENT' && !agentAlert.includes('待料逾27天')) continue;
-                if (currentTag !== 'ALL' && !currentTag.startsWith('ALERT_') && handlerCell !== currentTag) continue;
+                if (currentTag === 'ALERT_WARRANTY' && (!card.warrantyAlert || !card.warrantyAlert.includes('保固'))) return;
+                if (currentTag === 'ALERT_ARRIVAL' && (!card.arrivalAlert || !card.arrivalAlert.includes('已到貨逾15天'))) return;
+                if (currentTag === 'ALERT_AGENT' && (!card.agentAlert || !card.agentAlert.includes('待料逾27天'))) return;
+                if (currentTag !== 'ALL' && !currentTag.startsWith('ALERT_') && card.handler !== currentTag) return;
 
                 matchCount++;
 
-                let mVal = (row[12] || '').trim();
+                let mVal = (card.status || '').trim();
                 let isNotified = (mVal === '✓' || mVal.toLowerCase() === 'true' || mVal !== '');
                 let noticeText = isNotified ? '已通知 (✓)' : '尚未通知';
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
-                let targetRow = row.originalRowIndex;
-                let noteVal = row[13] || '';
-                let qtyVal = row[8] || '1';
+                let noteVal = card.note || '';
 
-                // 💡 數量核對與未建檔防呆：如果數量為空或 0，明顯標示警告
-                let qtyDisplay = (parseInt(qtyVal) > 0) ? `數: ${qtyVal}` : `<span class="qty-badge">⚠️ 數量異常/缺 (0)</span>`;
+                let partsHtml = '';
+                card.parts.forEach(p => {
+                    partsHtml += `
+                        <div class="part-item-line" style="display:flex; justify-content:space-between; font-family:monospace; font-size:11px; padding:3px 0; border-bottom:1px solid #edf2f7;">
+                            <span>🔹 ${p.partNo} - ${p.partName}</span>
+                            <span style="font-weight:700; color:#2b6cb0;">數: ${p.qty}</span>
+                        </div>
+                    `;
+                });
 
                 html += `
-                    <div class="data-card" id="card-${targetRow}">
+                    <div class="data-card" id="card-${card.primaryRowIndex}">
                         <div class="card-header">
                             <div class="card-car-no">
-                                🚗 ${row[2] || '未填車號'} 
-                                <span class="car-type-badge">${row[3] || 'N/A'}</span>
+                                🚗 ${card.carNo || '未填車號'} 
+                                <span class="car-type-badge">${card.carType || 'N/A'}</span>
                             </div>
                             <div class="card-btn-group">
-                                <button class="action-btn" onclick="copyRowInfo(${i}, this)">📋 複製</button>
-                                <button class="action-btn delete-btn" onclick="deleteRow(${targetRow}, this)">🗑️ 刪除</button>
+                                <button class="action-btn" onclick="openModal(${index})" style="background:#ebf8ff; color:#2b6cb0; border-color:#bee3f8;">🔍 展開燈箱</button>
+                                <button class="action-btn" onclick='copyCardInfo(${JSON.stringify(card)})'>📋 複製</button>
+                                <button class="action-btn delete-btn" onclick="deleteRow(${card.primaryRowIndex}, this)">🗑️ 封存</button>
                             </div>
                         </div>
                         
                         <div class="card-body">
                             <div class="part-row">
-                                <div class="info-label">零件項目與數量核對</div>
+                                <div class="info-label">零件項目清單 (共 ${card.parts.length} 項)</div>
                                 <div class="part-scroll-box">
-                                    <div class="part-val">${row[6] || '未填料號'} - ${row[7] || '尚未建檔/未到'} (${qtyDisplay})</div>
+                                    ${partsHtml}
                                     ${noteVal ? `<div class="note-val">📝 備註：${noteVal}</div>` : ''}
                                 </div>
                             </div>
                             <div class="info-row">
                                 <div class="info-label">單號 (訂單 / 工單)</div>
-                                <div class="info-val" style="font-size:11px;">${row[1] || 'N/A'} / ${row[5] || 'N/A'}</div>
+                                <div class="info-val" style="font-size:11px;">${card.orderNo || 'N/A'} / ${card.wo || 'N/A'}</div>
                             </div>
                             <div class="info-row">
                                 <div class="info-label">日期 (訂貨 ➔ 到貨)</div>
-                                <div class="info-val">${row[9] || '-'} ➔ ${row[10] || '未到'}</div>
+                                <div class="info-val">${card.ordDate || '-'} ➔ ${card.arrDate || '未到'}</div>
                             </div>
                             <div class="info-row">
                                 <div class="info-label">負責交辦</div>
-                                <div class="info-val">${row[11] || '未指定'}</div>
+                                <div class="info-val">${card.handler || '未指定'}</div>
                             </div>
                             <div class="info-row">
                                 <div class="info-label">通知狀態 (M欄)</div>
@@ -456,13 +561,13 @@
                         </div>
 
                         <div class="card-footer">
-                            <span class="badge ${warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${warrantyAlert || '保固正常'}</span>
-                            <span class="badge ${arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${arrivalAlert || '進場正常'}</span>
-                            <span class="badge ${agentAlert.includes('待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${agentAlert || '總代理正常'}</span>
+                            <span class="badge ${card.warrantyAlert && card.warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${card.warrantyAlert || '保固正常'}</span>
+                            <span class="badge ${card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${card.arrivalAlert || '進場正常'}</span>
+                            <span class="badge ${card.agentAlert && card.agentAlert.includes('待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${card.agentAlert || '總代理正常'}</span>
                         </div>
                     </div>
                 `;
-            }
+            });
 
             if (matchCount === 0) {
                 html = `<div class="loading" style="grid-column: span 2;">沒有找到符合條件的案情資料</div>`;
@@ -471,67 +576,106 @@
             container.innerHTML = html;
         }
 
-        async function deleteRow(rowIndex, btnElement) {
-            if (!confirm('確定要將這筆已完成的單子封存並移至「歷史封存」分頁嗎？')) return;
+        function openModal(index) {
+            let card = mergedCards[index];
+            let mVal = (card.status || '').trim();
+            let isNotified = (mVal === '✓' || mVal.toLowerCase() === 'true' || mVal !== '');
+            let noticeText = isNotified ? '已通知 (✓)' : '尚未通知';
+            let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
 
-            btnElement.innerText = '封存中...';
-            btnElement.disabled = true;
+            document.getElementById('modalTitle').innerHTML = `🚗 車號：${card.carNo || '未填'} <span class="car-type-badge">${card.carType || 'N/A'}</span>`;
+
+            let partsHtml = '';
+            card.parts.forEach(p => {
+                partsHtml += `
+                    <div class="modal-part-row">
+                        <span>🔹 <b>${p.partNo}</b> - ${p.partName}</span>
+                        <span style="font-weight:700; color:#2b6cb0;">數量: ${p.qty}</span>
+                    </div>
+                `;
+            });
+
+            let bodyHtml = `
+                <div>
+                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目完整清單與數量對照 (共 ${card.parts.length} 項)</div>
+                    <div class="modal-parts-box">${partsHtml}</div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <div><strong>📄 訂單號碼：</strong>${card.orderNo || 'N/A'}</div>
+                    <div><strong>📋 工單號碼：</strong>${card.wo || 'N/A'}</div>
+                    <div><strong>📅 訂貨日期：</strong>${card.ordDate || '-'}</div>
+                    <div><strong>🚚 到貨日期：</strong>${card.arrDate || '尚未到貨'}</div>
+                    <div><strong>👤 負責交辦：</strong>${card.handler || '未指定'}</div>
+                    <div><strong>🔔 通知狀態：</strong><span style="color:${noticeColor}; font-weight:700;">${noticeText}</span></div>
+                </div>
+                ${card.note ? `<div style="background:#fffaf0; border:1px solid #feebc8; padding:10px 14px; border-radius:6px; color:#9c4221;">📝 <strong>備註說明：</strong>${card.note}</div>` : ''}
+                <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px dashed #e2e8f0; padding-top:10px;">
+                    <span class="badge ${card.warrantyAlert && card.warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${card.warrantyAlert || '保固正常'}</span>
+                    <span class="badge ${card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${card.arrivalAlert || '進場正常'}</span>
+                    <span class="badge ${card.agentAlert && card.agentAlert.includes('待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${card.agentAlert || '總代理正常'}</span>
+                </div>
+            `;
+            document.getElementById('modalBodyContent').innerHTML = bodyHtml;
+
+            let footerHtml = `
+                <button class="action-btn delete-btn" onclick="deleteRow(${card.primaryRowIndex}, this)">🗑️ 封存此案</button>
+                <button class="action-btn" onclick='copyCardInfo(${JSON.stringify(card)})'>📋 複製案情摘要</button>
+            `;
+            document.getElementById('modalFooterContent').innerHTML = footerHtml;
+
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        function closeModalOnOutside(event) {
+            if (event.target.id === 'detailModal') {
+                closeModal();
+            }
+        }
+
+        async function deleteRow(rowIndex, btnElement) {
+            if (!confirm('⚠️ 確定要將這筆已完成的單子封存並移至「歷史封存」分頁嗎？')) return;
 
             try {
                 let response = await fetch(`${gasApiUrl}?action=delete&row=${rowIndex}`);
                 let result = await response.json();
 
                 if (result.status === 'success') {
-                    let card = document.getElementById(`card-${rowIndex}`);
-                    if (card) {
-                        card.style.transition = 'opacity 0.3s';
-                        card.style.opacity = '0';
-                        setTimeout(() => {
-                            loadData(); 
-                        }, 300);
-                    }
+                    closeModal();
+                    loadData(); 
                 } else {
                     alert('封存失敗：' + result.message);
-                    btnElement.innerText = '🗑️ 刪除';
-                    btnElement.disabled = false;
                 }
             } catch (err) {
                 alert('連線伺服器失敗，請確認 GAS 網址是否正確。');
-                btnElement.innerText = '🗑️ 刪除';
-                btnElement.disabled = false;
             }
         }
 
-        function copyRowInfo(index, btnElement) {
-            let row = parsedRows[index];
+        function copyCardInfo(card) {
+            let partsText = card.parts.map(p => `• ${p.partNo} - ${p.partName} (數: ${p.qty})`).join('\n');
 
             let textToCopy = `【尚鵬汽車 - 待料案情追蹤提醒】\n` +
-                             `🚗 車號：${row[2] || '未填'} (車型: ${row[3] || 'N/A'})\n` +
-                             `📄 訂單號碼：${row[1] || 'N/A'}\n` +
-                             `📋 工單號碼：${row[5] || 'N/A'}\n` +
-                             `🛠️ 零件：${row[6]} - ${row[7]}\n` +
-                             `📦 數量：${row[8]}\n` +
-                             `📅 訂貨日：${row[9]}\n` +
-                             `🚚 到貨日：${row[10] || '尚未到貨'}\n` +
-                             `👤 負責交辦：${row[11] || '未指定'}\n` +
+                             `🚗 車號：${card.carNo || '未填'} (車型: ${card.carType || 'N/A'})\n` +
+                             `📄 訂單號碼：${card.orderNo || 'N/A'}\n` +
+                             `📋 工單號碼：${card.wo || 'N/A'}\n` +
+                             `🛠️ 零件清單：\n${partsText}\n` +
+                             `📅 訂貨日：${card.ordDate || '-'} ➔ 到貨日：${card.arrDate || '尚未到貨'}\n` +
+                             `👤 負責交辦：${card.handler || '未指定'}\n` +
                              `----------------------------------\n` +
                              `🚨 【異常狀態與注意提醒】\n` +
-                             `• 🛡️ 保固狀態：${row[16] || '正常'}\n` +
-                             `• 📦 到貨進場：${row[17] || '正常'}\n` +
-                             `• ⏳ 總代理進度：${row[18] || '正常'}\n` +
+                             `• 🛡️ 保固狀態：${card.warrantyAlert || '正常'}\n` +
+                             `• 📦 到貨進場：${card.arrivalAlert || '正常'}\n` +
+                             `• ⏳ 總代理進度：${card.agentAlert || '正常'}\n` +
                              `----------------------------------\n` +
                              `請相關人員協助留意處理，謝謝！`;
 
             navigator.clipboard.writeText(textToCopy).then(() => {
-                let originalText = btnElement.innerHTML;
-                btnElement.innerHTML = '✅ 已複製';
-                btnElement.classList.add('copied');
-                setTimeout(() => {
-                    btnElement.innerHTML = originalText;
-                    btnElement.classList.remove('copied');
-                }, 1500);
+                alert('✅ 已成功複製該車號的完整案情摘要！');
             }).catch(err => {
-                alert('複製失敗，請檢查瀏覽器剪貼簿權限。');
+                alert('複製失敗，請檢查瀏覽器權限。');
             });
         }
 
