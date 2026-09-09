@@ -273,7 +273,7 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統透過中繼分頁自動聚合工單資料：</p>
+            <p>本系統透過「完整明細」分頁自動向下填補並聚合工單資料：</p>
             <div class="manual-grid">
                 <div class="manual-item">
                     <strong>🔍 展開大燈箱</strong><br>
@@ -288,8 +288,8 @@
                     到貨日期距今超過 15 天未進場觸發橘燈。
                 </div>
                 <div class="manual-item">
-                    <strong>🚨 總代理催料 (>27天)</strong><br>
-                    訂貨日超過 27 天且無到貨日時觸發紫燈。
+                    <strong>⏳ 總代理催料 (>27天)</strong><br>
+                    訂貨日超過 27 天且尚未到貨時觸發紫燈。
                 </div>
             </div>
         </div>
@@ -314,7 +314,7 @@
     </div>
 
     <script>
-        // 💡 已帶入你的「看板資料源」正式 CSV 網址
+        // 💡 已對應你最新的「完整明細」正式 CSV 網址
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1217814788&single=true&output=csv';
         const gasApiUrl = 'https://script.google.com/macros/s/你的GAS部署ID/exec'; 
 
@@ -441,7 +441,7 @@
             mergedCards.forEach(card => {
                 if (card.warrantyAlert && card.warrantyAlert.includes('保固')) warrantyCount++;
                 if (card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天')) arrivalCount++;
-                if (card.agentAlert && card.agentAlert.includes('待料逾27天')) agentCount++;
+                if (card.agentAlert && card.agentAlert.includes('總代理待料逾27天')) agentCount++;
 
                 let h = card.handler || '';
                 if (h && h !== '未指定' && h !== '') {
@@ -457,7 +457,7 @@
                     <span class="tag ${currentTag === 'ALL' ? 'active' : ''}" onclick="setTagFilter('ALL', this)">全部顯示 <span class="tag-count">${totalCount}</span></span>
                     <span class="tag alert-tag ${currentTag === 'ALERT_WARRANTY' ? 'active' : ''}" onclick="setTagFilter('ALERT_WARRANTY', this)">🛡️ 保固預警 (≤15天) <span class="tag-count">${warrantyCount}</span></span>
                     <span class="tag alert-tag ${currentTag === 'ALERT_ARRIVAL' ? 'active' : ''}" onclick="setTagFilter('ALERT_ARRIVAL', this)">📦 到貨未進場 (>15天) <span class="tag-count">${arrivalCount}</span></span>
-                    <span class="tag alert-tag ${currentTag === 'ALERT_AGENT' ? 'active' : ''}" onclick="setTagFilter('ALERT_AGENT', this)">🚨 總代理催料 (>27天) <span class="tag-count">${agentCount}</span></span>
+                    <span class="tag alert-tag ${currentTag === 'ALERT_AGENT' ? 'active' : ''}" onclick="setTagFilter('ALERT_AGENT', this)">⏳ 總代理催料 (>27天) <span class="tag-count">${agentCount}</span></span>
                 </div>
                 <div class="filter-row">
                     <span class="tag-group-label">👤 負責人員：</span>
@@ -499,7 +499,7 @@
 
                 if (currentTag === 'ALERT_WARRANTY' && (!card.warrantyAlert || !card.warrantyAlert.includes('保固'))) return;
                 if (currentTag === 'ALERT_ARRIVAL' && (!card.arrivalAlert || !card.arrivalAlert.includes('已到貨逾15天'))) return;
-                if (currentTag === 'ALERT_AGENT' && (!card.agentAlert || !card.agentAlert.includes('待料逾27天'))) return;
+                if (currentTag === 'ALERT_AGENT' && (!card.agentAlert || !card.agentAlert.includes('總代理待料逾27天'))) return;
                 if (currentTag !== 'ALL' && !currentTag.startsWith('ALERT_') && card.handler !== currentTag) return;
 
                 matchCount++;
@@ -563,7 +563,7 @@
                         <div class="card-footer">
                             <span class="badge ${card.warrantyAlert && card.warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${card.warrantyAlert || '保固正常'}</span>
                             <span class="badge ${card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${card.arrivalAlert || '進場正常'}</span>
-                            <span class="badge ${card.agentAlert && card.agentAlert.includes('待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${card.agentAlert || '總代理正常'}</span>
+                            <span class="badge ${card.agentAlert && card.agentAlert.includes('總代理待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${card.agentAlert || '總代理正常'}</span>
                         </div>
                     </div>
                 `;
@@ -612,7 +612,7 @@
                 <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px dashed #e2e8f0; padding-top:10px;">
                     <span class="badge ${card.warrantyAlert && card.warrantyAlert.includes('保固') ? 'badge-red' : 'badge-normal'}">🛡️ ${card.warrantyAlert || '保固正常'}</span>
                     <span class="badge ${card.arrivalAlert && card.arrivalAlert.includes('已到貨逾15天') ? 'badge-orange' : 'badge-normal'}">📦 ${card.arrivalAlert || '進場正常'}</span>
-                    <span class="badge ${card.agentAlert && card.agentAlert.includes('待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${card.agentAlert || '總代理正常'}</span>
+                    <span class="badge ${card.agentAlert && card.agentAlert.includes('總代理待料逾27天') ? 'badge-purple' : 'badge-normal'}">⏳ ${card.agentAlert || '總代理正常'}</span>
                 </div>
             `;
             document.getElementById('modalBodyContent').innerHTML = bodyHtml;
@@ -655,7 +655,7 @@
         }
 
         function copyCardInfo(card) {
-            let partsText = card.parts.map(p => `• ${p.partNo} - ${p.partName} (數: ${p.qty})`).join('\n');
+            let partsText = card.parts.map(p => `• ${p.p.partNo} - ${p.partName} (數: ${p.qty})`).join('\n');
 
             let textToCopy = `【尚鵬汽車 - 待料案情追蹤提醒】\n` +
                              `🚗 車號：${card.carNo || '未填'} (車型: ${card.carType || 'N/A'})\n` +
