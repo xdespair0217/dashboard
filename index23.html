@@ -126,7 +126,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            will-change: transform;
         }
         .data-card:hover { border-color: #cbd5e0; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
 
@@ -186,19 +185,17 @@
         .part-scroll-box::-webkit-scrollbar { width: 4px; }
         .part-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
         
-        /* 💡 數量清晰對照標籤 */
+        .qty-info-group { display: flex; gap: 6px; align-items: center; }
         .qty-pill {
-            background: #ebf8ff;
-            color: #2b6cb0;
-            border: 1px solid #bee3f8;
-            padding: 1px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            font-family: monospace;
+            background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8;
+            padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: monospace;
         }
+        .stock-pill {
+            background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+            padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: monospace;
+        }
+        .stock-pill.zero { background: #fff5f5; color: #c53030; border-color: #feb2b2; }
 
-        /* 💡 常駐備註輸入框 */
         .note-input-container {
             grid-column: span 2;
             background: #fffaf0;
@@ -211,38 +208,18 @@
             margin-top: 4px;
         }
         .note-input-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: #9c4221;
-            font-weight: 700;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; color: #9c4221; font-weight: 700;
         }
         .persistent-note-input {
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid #cbd5e0;
-            border-radius: 4px;
-            padding: 6px 8px;
-            font-size: 12px;
-            color: #2d3748;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 38px;
-            box-sizing: border-box;
+            width: 100%; background: #ffffff; border: 1px solid #cbd5e0;
+            border-radius: 4px; padding: 6px 8px; font-size: 12px; color: #2d3748;
+            font-family: inherit; resize: vertical; min-height: 38px; box-sizing: border-box;
         }
-        .persistent-note-input:focus {
-            outline: none;
-            border-color: #3182ce;
-            box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.15);
-        }
+        .persistent-note-input:focus { outline: none; border-color: #3182ce; box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.15); }
 
         .card-footer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            border-top: 1px dashed #edf2f7;
-            padding-top: 8px;
+            display: flex; flex-wrap: wrap; gap: 5px; border-top: 1px dashed #edf2f7; padding-top: 8px;
         }
         .badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
         .badge-red { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; }
@@ -250,61 +227,30 @@
         .badge-purple { background: #faf5ff; color: #805ad5; border: 1px solid #d6bcfa; }
         .badge-normal { background: #f7fafc; color: #718096; border: 1px solid #e2e8f0; }
 
-        /* 💡 大燈箱 (Modal) 樣式 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(3px);
-            display: none; justify-content: center; align-items: center;
-            z-index: 1000; padding: 20px;
+            background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(3px);
+            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
         }
         .modal-overlay.show { display: flex; }
-        
         .modal-content {
-            background: #ffffff;
-            width: 100%; max-width: 750px;
-            max-height: 85vh;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-            display: flex; flex-direction: column;
-            overflow: hidden;
-            animation: modalPop 0.2s ease-out;
+            background: #ffffff; width: 100%; max-width: 750px; max-height: 85vh;
+            border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: flex; flex-direction: column; overflow: hidden; animation: modalPop 0.2s ease-out;
         }
-        @keyframes modalPop {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        @keyframes modalPop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .modal-header {
-            background: #1a202c; color: #fff; padding: 14px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .modal-header { background: #1a202c; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
         .modal-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .modal-close-btn {
             background: rgba(255,255,255,0.1); border: none; color: #fff; width: 28px; height: 28px;
             border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
         .modal-close-btn:hover { background: #e53e3e; }
-
-        .modal-body {
-            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; font-size: 13px;
-        }
-        
-        .modal-parts-box {
-            background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 6px; padding: 12px;
-            max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
-        }
-        .modal-part-row {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #e2e8f0;
-            font-family: monospace; font-size: 12px;
-        }
-
-        .modal-footer {
-            background: #f8fafc; padding: 12px 20px; border-top: 1px solid #e2e8f0;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
+        .modal-body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; font-size: 13px; }
+        .modal-parts-box { background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 6px; padding: 12px; max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .modal-part-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 12px; }
+        .modal-footer { background: #f8fafc; padding: 12px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .loading { text-align: center; color: #718096; font-style: italic; padding: 30px; grid-column: span 2; font-size: 13px; }
     </style>
 </head>
@@ -326,15 +272,15 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統已進行極速效能優化與數量對照強化：</p>
+            <p>本系統支援工單智慧遞補與 T 欄即時庫存自動對應：</p>
             <div class="manual-grid">
                 <div class="manual-item">
-                    <strong>📊 零件數量清晰對照</strong><br>
-                    每個零件皆明確標示「訂料數量 (數量: X)」，與系統原始資料完全同步。
+                    <strong>🚗 智慧工單資料遞補</strong><br>
+                    即使下方零件列的車號空白，系統也會自動向上對齊，將多個零件完美歸納至同一台車卡片。
                 </div>
                 <div class="manual-item">
-                    <strong>⚡ 極速流暢體驗</strong><br>
-                    備註修改採背景非同步儲存，打字順暢不卡頓。
+                    <strong>📊 訂料數 vs 即時庫存</strong><br>
+                    自動抓取 T 欄即時庫存，無庫存時顯示紅色 0。
                 </div>
             </div>
         </div>
@@ -343,7 +289,7 @@
     </div>
 
     <div class="card-grid" id="cardContainer">
-        <div class="loading">正在從 Google 試算表同步資料與解析工單...</div>
+        <div class="loading">正在從 Google 試算表同步資料...</div>
     </div>
 
     <!-- 💡 大燈箱 (Modal) 結構 -->
@@ -421,46 +367,82 @@
             });
 
             let cardMap = new Map();
+            
+            // 💡 智慧遞補變數：用來記錄上一筆有資料的工單、車號、車身碼、日期等
+            let lastValidWo = 'UNKNOWN';
+            let lastValidCarNo = '未填車號';
+            let lastValidCarType = '';
+            let lastValidVin = '未填車身碼';
+            let lastValidOrderNo = '';
+            let lastValidOrdDate = '';
+            let lastValidArrDate = '';
+            let lastValidHandler = '';
+            let lastValidStatus = '';
+            let lastValidNote = '';
+            let lastValidWarrantyDate = '';
+            let lastValidWarrantyAlert = '';
+            let lastValidArrivalAlert = '';
+            let lastValidAgentAlert = '';
 
             for (let i = 1; i < rawRows.length; i++) {
                 let r = rawRows[i];
-                let wo = r[5] || r[1] || 'UNKNOWN'; 
-                let carNo = r[2] || '未填車號';
-                let key = wo;
+                
+                // 如果這一行有填工單或車號，就更新「最新有效主單據」
+                if (r[5]) lastValidWo = r[5];
+                if (r[1]) lastValidOrderNo = r[1];
+                if (r[2]) lastValidCarNo = r[2];
+                if (r[3]) lastValidCarType = r[3];
+                if (r[4]) lastValidVin = r[4];
+                if (r[9]) lastValidOrdDate = r[9];
+                if (r[10]) lastValidArrDate = r[10];
+                if (r[11]) lastValidHandler = r[11];
+                if (r[12]) lastValidStatus = r[12];
+                if (r[13]) lastValidNote = r[13];
+                if (r[15]) lastValidWarrantyDate = r[15];
+                if (r[16]) lastValidWarrantyAlert = r[16];
+                if (r[17]) lastValidArrivalAlert = r[17];
+                if (r[18]) lastValidAgentAlert = r[18];
 
-                // 💡 確保數量精確抓取 (I欄 = r[8])
+                let key = lastValidWo;
+
+                // 💡 欄位對照：G欄料號(6), H欄名稱(7), I欄數量(8), T欄即時庫存(19)
+                let stockVal = parseInt(r[19]) || 0;
+
                 let partItem = {
                     partNo: r[6] || '未填料號',
                     partName: r[7] || '尚未建檔',
-                    qty: parseInt(r[8]) || 1
+                    qty: parseInt(r[8]) || 1,
+                    stock: stockVal
                 };
+
+                // 如果這個零件沒有料號也沒有名稱，跳過不處理
+                if (partItem.partNo === '未填料號' && partItem.partName === '尚未建檔') continue;
 
                 if (!cardMap.has(key)) {
                     cardMap.set(key, {
-                        date: r[0],
-                        orderNo: r[1],
-                        carNo: carNo,
-                        carType: r[3],
-                        vin: r[4] || '未填車身碼',
-                        wo: r[5],
+                        orderNo: lastValidOrderNo,
+                        carNo: lastValidCarNo,
+                        carType: lastValidCarType,
+                        vin: lastValidVin,
+                        wo: lastValidWo,
                         parts: [partItem],
-                        ordDate: r[9],
-                        arrDate: r[10],
-                        handler: r[11],
-                        status: r[12],
-                        note: r[13],
-                        warrantyDate: r[15],
-                        warrantyAlert: r[16],
-                        arrivalAlert: r[17],
-                        agentAlert: r[18],
+                        ordDate: lastValidOrdDate,
+                        arrDate: lastValidArrDate,
+                        handler: lastValidHandler,
+                        status: lastValidStatus,
+                        note: lastValidNote,
+                        warrantyDate: lastValidWarrantyDate,
+                        warrantyAlert: lastValidWarrantyAlert,
+                        arrivalAlert: lastValidArrivalAlert,
+                        agentAlert: lastValidAgentAlert,
                         primaryRowIndex: r.originalRowIndex
                     });
                 } else {
                     let existing = cardMap.get(key);
                     existing.parts.push(partItem);
-                    if (r[4] && existing.vin === '未填車身碼') existing.vin = r[4];
-                    if (r[13] && !existing.note.includes(r[13])) {
-                        existing.note += (existing.note ? ' / ' : '') + r[13];
+                    if (lastValidVin && existing.vin === '未填車身碼') existing.vin = lastValidVin;
+                    if (lastValidNote && !existing.note.includes(lastValidNote)) {
+                        existing.note += (existing.note ? ' / ' : '') + lastValidNote;
                     }
                 }
             }
@@ -556,13 +538,16 @@
                 let noticeColor = isNotified ? '#3182ce' : '#e53e3e';
                 let noteVal = card.note || '';
 
-                // 💡 零件與數量清晰對照呈現
                 let partsHtml = '';
                 card.parts.forEach(p => {
+                    let stockClass = p.stock === 0 ? 'stock-pill zero' : 'stock-pill';
                     partsHtml += `
                         <div class="part-item-line" style="display:flex; justify-content:space-between; align-items:center; font-family:monospace; font-size:11px; padding:4px 0; border-bottom:1px solid #edf2f7;">
                             <span>🔹 ${p.partNo} - ${p.partName}</span>
-                            <span class="qty-pill">訂料數: ${p.qty}</span>
+                            <div class="qty-info-group">
+                                <span class="qty-pill">訂料: ${p.qty}</span>
+                                <span class="${stockClass}">庫存: ${p.stock}</span>
+                            </div>
                         </div>
                     `;
                 });
@@ -582,15 +567,13 @@
                         </div>
                         
                         <div class="card-body">
-                            <!-- 1. 零件與數量清單 -->
                             <div class="part-row">
-                                <div class="info-label">零件項目與數量對照 (共 ${card.parts.length} 項)</div>
+                                <div class="info-label">零件項目與即時庫存對照 (共 ${card.parts.length} 項)</div>
                                 <div class="part-scroll-box">
                                     ${partsHtml}
                                 </div>
                             </div>
                             
-                            <!-- 2. 車身碼 -->
                             <div class="info-row" style="grid-column: span 2;">
                                 <div class="info-label">車身碼 (VIN)</div>
                                 <div class="info-val">
@@ -599,7 +582,6 @@
                                 </div>
                             </div>
 
-                            <!-- 3. 單號、日期、交辦、狀態 -->
                             <div class="info-row">
                                 <div class="info-label">單號 (訂單 / 工單)</div>
                                 <div class="info-val" style="font-size:11px;">${card.orderNo || 'N/A'} / ${card.wo || 'N/A'}</div>
@@ -617,7 +599,6 @@
                                 <div class="info-val" style="color: ${noticeColor}">${noticeText}</div>
                             </div>
 
-                            <!-- 4. 底部常駐備註（非同步順暢儲存） -->
                             <div class="note-input-container">
                                 <div class="note-input-header">
                                     <span>📝 備註提醒（點擊即可修改，移開自動儲存）</span>
@@ -654,17 +635,21 @@
 
             let partsHtml = '';
             card.parts.forEach(p => {
+                let stockClass = p.stock === 0 ? 'stock-pill zero' : 'stock-pill';
                 partsHtml += `
                     <div class="modal-part-row">
                         <span>🔹 <b>${p.partNo}</b> - ${p.partName}</span>
-                        <span class="qty-pill">訂料數: ${p.qty}</span>
+                        <div class="qty-info-group">
+                            <span class="qty-pill">訂料: ${p.qty}</span>
+                            <span class="${stockClass}">庫存: ${p.stock}</span>
+                        </div>
                     </div>
                 `;
             });
 
             let bodyHtml = `
                 <div>
-                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目與數量對照 (共 ${card.parts.length} 項)</div>
+                    <div style="font-size:12px; color:#4a5568; font-weight:700; margin-bottom:6px;">📦 零件項目與即時庫存對照 (共 ${card.parts.length} 項)</div>
                     <div class="modal-parts-box">${partsHtml}</div>
                 </div>
                 <div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
@@ -710,7 +695,6 @@
             }
         }
 
-        // 💡 非同步背景儲存（不卡畫面、極速響應）
         async function autoSaveNote(rowIndex, textareaElement) {
             let newNote = textareaElement.value;
             let statusSpan = document.getElementById(`save-status-${rowIndex}`);
@@ -766,14 +750,14 @@
         }
 
         function copyCardInfo(card) {
-            let partsText = card.parts.map(p => `• ${p.partNo} - ${p.partName} (訂料數: ${p.qty})`).join('\n');
+            let partsText = card.parts.map(p => `• ${p.partNo} - ${p.partName} (訂料: ${p.qty} | 庫存: ${p.stock})`).join('\n');
 
             let textToCopy = `【尚鵬汽車 - 待料案情追蹤提醒】\n` +
                              `🚗 車號：${card.carNo || '未填'} (車型: ${card.carType || 'N/A'})\n` +
                              `🏷️ 車身碼：${card.vin}\n` +
                              `📄 訂單號碼：${card.orderNo || 'N/A'}\n` +
                              `📋 工單號碼：${card.wo || 'N/A'}\n` +
-                             `🛠️ 零件清單：\n${partsText}\n` +
+                             `🛠️ 零件與庫存清單：\n${partsText}\n` +
                              `${card.note ? `📝 備註提醒：${card.note}\n` : ''}` +
                              `📅 訂貨日：${card.ordDate || '-'} ➔ 到貨日：${card.arrDate || '尚未到貨'}\n` +
                              `👤 負責交辦：${card.handler || '未指定'}\n` +
