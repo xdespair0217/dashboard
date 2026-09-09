@@ -285,15 +285,23 @@
 
         <div class="manual-panel" id="manualPanel">
             <h4>📌 系統操作說明書</h4>
-            <p>本系統會精準對應試算表各欄位（料號、名稱、數量），並支援備註與車身碼管理：</p>
+            <p>本系統支援多零件聚合、車身碼複製與即時備註提醒：</p>
             <div class="manual-grid">
                 <div class="manual-item">
                     <strong>📝 備註提醒</strong><br>
-                    點擊卡片上的「✏️ 編輯備註」按鈕，即時更新現場與接待提醒。
+                    點擊卡片上的「✏️ 編輯備註」按鈕，可即時為接待或現場留下交辦提醒事項。
                 </div>
                 <div class="manual-item">
                     <strong>📋 複製車身碼</strong><br>
-                    一鍵複製 VIN 碼，快速對應車輛。
+                    點擊車身碼旁的複製按鈕，快速將 VIN 複製到剪貼簿。
+                </div>
+                <div class="manual-item">
+                    <strong>🛡️ 保固預警 (≤15天)</strong><br>
+                    保固到期日至今天差 15 天以內觸發紅燈。
+                </div>
+                <div class="manual-item">
+                    <strong>⏳ 總代理催料 (>27天)</strong><br>
+                    訂貨日超過 27 天且尚未到貨時觸發紫燈。
                 </div>
             </div>
         </div>
@@ -369,7 +377,6 @@
                 if (result.length > 1 && result[0].replace(/"/g, '').trim() !== '') {
                     let cleanedRow = result.map((cell, idx) => {
                         let cleaned = cell.replace(/"/g, '').trim();
-                        // 針對日期欄位做清理
                         if ([0, 9, 10, 15].includes(idx)) {
                             return cleanDate(cleaned);
                         }
@@ -388,7 +395,6 @@
                 let carNo = r[2] || '未填車號';
                 let key = wo;
 
-                // 💡 精準對應：G欄料號(6), H欄名稱(7), I欄數量(8)
                 let partItem = {
                     partNo: r[6] || '未填料號',
                     partName: r[7] || '尚未建檔',
@@ -667,7 +673,7 @@
 
         async function editNote(rowIndex, currentNote) {
             let newNote = prompt("請輸入要提醒接待或現場的備註內容：", currentNote);
-            if (newNote === null) return;
+            if (newNote === null) return; // 取消
 
             try {
                 let response = await fetch(`${gasApiUrl}?action=updateNote&row=${rowIndex}&note=${encodeURIComponent(newNote)}`);
