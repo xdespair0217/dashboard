@@ -17,17 +17,7 @@
             
             --teal-primary: #0d9488;
             --teal-hover: #0f766e;
-            --teal-light: #ccfbf1;
             
-            --pill-warn-bg: #fef3c7;
-            --pill-warn-text: #b45309;
-            --pill-danger-bg: #fee2e2;
-            --pill-danger-text: #b91c1c;
-            --pill-blue-bg: #e0f2fe;
-            --pill-blue-text: #0369a1;
-            --pill-purple-bg: #f3e8ff;
-            --pill-purple-text: #7e22ce;
-
             --btn-blue: #2563eb;
             --alert-red: #ef4444;
         }
@@ -66,13 +56,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            letter-spacing: 0.3px;
         }
         .navbar-sub {
             font-size: 0.72rem;
             color: var(--text-muted);
             margin-top: 2px;
-            letter-spacing: 0.5px;
         }
         .status-badge {
             background: rgba(16, 185, 129, 0.15);
@@ -87,7 +75,6 @@
             gap: 5px;
         }
 
-        /* 模式與頁籤切換容器 */
         .mode-switcher-container {
             max-width: 1440px;
             margin: 16px auto 0 auto;
@@ -197,17 +184,25 @@
         }
         .search-box:focus { border-color: var(--teal-primary); }
 
-        /* 現代化戰情卡片網格與表格容器 */
+        /* 強化版表格容器：支援完整左右卷軸 */
         .table-container {
             background: var(--card-bg);
             border-radius: 12px;
-            overflow-x: auto;
+            overflow-x: auto; /* 確保左右卷軸出現 */
+            overflow-y: auto;
             border: 1px solid var(--border-card);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             max-height: 72vh;
+            -webkit-overflow-scrolling: touch;
         }
 
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+        table {
+            width: max-content; /* 讓表格依內容撐開，強制啟用左右卷軸 */
+            min-width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
         th {
             background: #0f172a;
             color: #f8fafc;
@@ -219,6 +214,7 @@
             top: 0;
             z-index: 10;
             border-bottom: 2px solid var(--border-card);
+            white-space: nowrap;
         }
         td {
             padding: 12px 18px;
@@ -228,7 +224,7 @@
         }
         tr:hover { background-color: rgba(51, 65, 85, 0.4); }
 
-        /* 狀態標籤徽章 (Badges) */
+        /* 狀態標籤徽章 */
         .badge {
             padding: 4px 10px;
             border-radius: 6px;
@@ -237,6 +233,7 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            white-space: nowrap;
         }
         .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
         .badge-yellow { background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); }
@@ -255,7 +252,6 @@
 </head>
 <body>
 
-    <!-- 頂部導覽列 -->
     <div class="navbar">
         <div>
             <div class="navbar-title"><span>📊</span> 尚鵬汽車 — 全自動採購與呆滯診斷 Web 戰情室</div>
@@ -265,7 +261,6 @@
     </div>
 
     <div class="mode-switcher-container">
-        <!-- 頂部導覽頁籤 (模組化按鈕) -->
         <div class="dual-track-nav">
             <div class="primary-modes" id="tab-bar-container">
                 <button class="mode-btn active" onclick="switchTab('dash', this)"><span>📌</span> Dashboard 綜合總覽</button>
@@ -278,7 +273,6 @@
     </div>
 
     <div class="main-container">
-        <!-- KPI 卡片區域 -->
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-title">叫貨到貨前置天數</div>
@@ -298,13 +292,11 @@
             </div>
         </div>
 
-        <!-- 搜尋與筆數控制列 -->
         <div class="toolbar">
             <input type="text" id="search-input" class="search-box" placeholder="🔍 快速搜尋料號、零件名稱或儲位..." oninput="filterTable()">
             <div id="row-count-display" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">顯示筆數：--</div>
         </div>
 
-        <!-- 數據表格容器 -->
         <div class="table-container">
             <table id="data-table">
                 <thead>
@@ -318,12 +310,11 @@
     </div>
 
     <script>
-        // 5 個精準對應的 Google Sheets CSV 網址
         const csvUrls = {
             dash: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=924197170&single=true&output=csv",
             top100: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=992058063&single=true&output=csv",
             custom: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=2067466362&single=true&output=csv",
-            target: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1442502573&single=true&output=csv",
+            target: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXPpPPYN7Fw9cjO/pub?gid=1442502573&single=true&output=csv",
             manual: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=314474430&single=true&output=csv"
         };
 
@@ -365,9 +356,11 @@
                     return;
                 }
 
+                // 智慧定位標題行：尋找包含特定欄位名稱（如 "NO." 或 "料號"）的那一行
                 let headerRowIdx = 0;
-                for (let i = 0; i < Math.min(20, data.length); i++) {
-                    if (data[i].some(cell => cell.includes("料號") || cell.includes("月份") || cell.includes("章節主題") || cell.includes("來源分類"))) {
+                for (let i = 0; i < Math.min(15, data.length); i++) {
+                    const rowStr = data[i].join(' ');
+                    if (rowStr.includes("NO.") || rowStr.includes("料號") || rowStr.includes("零件名稱") || rowStr.includes("月份")) {
                         headerRowIdx = i;
                         break;
                     }
@@ -426,6 +419,7 @@
         function switchTab(tabId, btn) {
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            document.getElementById('search-input').value = ';';
             document.getElementById('search-input').value = '';
             fetchAndRenderCSV(tabId);
         }
@@ -437,7 +431,6 @@
             document.getElementById('row-count-display').innerText = `搜尋結果：${filteredRows.length} 筆`;
         }
 
-        // 初始化載入
         fetchAndRenderCSV('dash');
     </script>
 </body>
