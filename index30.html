@@ -2675,7 +2675,21 @@
 
                 const myNote = cloudNotes[orderNo] || '';
                 const hintId = `hint_${orderNo}`;
-                const copyText = `【未結追蹤】車牌: ${o['牌照號碼'] || '-'} | 工單: ${orderNo} | 車型: ${o['品牌'] || ''} ${o['車型'] || ''} | 接待: ${o['接待'] || '未指派'} | 技師: ${o['技師'] || '未指派'} | 進廠: ${days}天 | 金額: $${amtVal.toLocaleString()} | 狀態: ${o['狀態'] || '-'} | 備註: ${myNote || '無'}`;
+                
+                const lineCopyText = [
+                    '📋【未結工單追蹤】',
+                    '━━━━━━━━━━━━',
+                    `▪ 車牌號碼：${o['牌照號碼'] || '-'}`,
+                    `▪ 工單號碼：${orderNo}`,
+                    `▪ 車輛型號：${((o['品牌'] || '') + ' ' + (o['車型'] || '')).trim()}${o['工單類別'] ? ` (${o['工單類別']})` : ''}`,
+                    `▪ 工單狀態：${o['狀態'] || '-'}`,
+                    `▪ 進廠天數：${days} 天`,
+                    `▪ 合計金額：$${amtVal.toLocaleString()}`,
+                    `▪ 服務專員：${o['接待'] || '未指派'}`,
+                    `▪ 主修技師：${o['技師'] || '未指派'}`,
+                    myNote ? `▪ 備註資訊：${myNote}` : '',
+                    '━━━━━━━━━━━━'
+                ].filter(Boolean).join('\n');
 
                 return `
                     <div class="order-card" style="${isClosed ? 'opacity:0.85; border-color:#cbd5e1;' : ''}">
@@ -2691,7 +2705,7 @@
                                 </div>
                             </div>
                             <div class="top-btn-group">
-                                <button class="btn-copy-main" onclick="copyText('${copyText.replace(/'/g, "\\'")}')">📋 複製</button>
+                                <button class="btn-copy-main" onclick="copyText(\`${lineCopyText.replace(/`/g, "\\`")}\`)">📋 複製</button>
                                 ${!isClosed ? 
                                     `<button class="btn-close-order" onclick="closeWorkOrder('${orderNo}')">🗑️ 結案</button>` : 
                                     `<button class="btn-reopen" onclick="reopenWorkOrder('${orderNo}')">↩️ 復原</button>`
