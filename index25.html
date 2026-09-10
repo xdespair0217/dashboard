@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新凱集團核決權限查詢系統 (2026.09起適用)</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --primary: #1e3799;
+            --primary-light: #4a69bd;
+            --accent: #e58e26;
+            --border-color: #dcdde1;
+            --hover-bg: #f8f9fa;
+            --tag-bg: #e1ebf0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding: 15px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        header { background: linear-gradient(135deg, #1e3799, #0c2461); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 15px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; }
+        header h1 { font-size: 22px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
+        header p { font-size: 13px; opacity: 0.85; }
+        
+        /* 原始 PDF 按鈕樣式 */
+        .pdf-btn {
+            background-color: var(--accent);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+        .pdf-btn:hover { background-color: #d35400; transform: translateY(-1px); }
+
+        .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        @media(max-width: 900px) { .controls { grid-template-columns: 1fr; } }
+        
+        .search-box, .filter-box { background: var(--card-bg); padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="text"], select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; transition: border 0.2s; }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); }
+        
+        .table-responsive { width: 100%; overflow-x: auto; background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .matrix-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .matrix-table th { background: #f1f2f6; color: #2f3640; font-weight: 600; text-align: left; padding: 12px 14px; font-size: 13px; border-bottom: 2px solid var(--border-color); }
+        .matrix-table td { padding: 12px 14px; border-bottom: 1px solid #f1f2f6; font-size: 13px; vertical-align: top; }
+        .matrix-table tr:hover { background-color: var(--hover-bg); }
+        
+        .badge { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: var(--tag-bg); color: var(--primary); margin-right: 4px; margin-bottom: 4px; }
+        .badge-sec { background: #fff2e2; color: #d35400; }
+        
+        .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat-card { background: var(--card-bg); padding: 12px 16px; border-radius: 8px; flex: 1; min-width: 180px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid var(--primary); }
+        .stat-card h3 { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+        .stat-card .value { font-size: 16px; font-weight: bold; color: var(--text-main); }
+        
+        footer { text-align: center; font-size: 12px; color: var(--text-muted); margin: 30px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="header-top">
+            <div>
+                <h1>📊 新凱集團核決權限表查詢系統</h1>
+                <p>適用公司：新凱、星聯、尚鵬、富豪租賃、北特、美特、優好建設、大谷營造｜檔案編號：DMC-F-001-V2.0（2026/09 起適用）[cite: 1]</p>
+            </div>
+            <a href="https://drive.google.com/file/d/1GMvFzUeykRivNWEWsRiiFDL2aUu-BTdV/preview" target="_blank" class="pdf-btn">
+                📄 檢視原始 PDF 文件
+            </a>
+        </div>
+    </header>
+
+    <div class="stats-bar">
+        <div class="stat-card">
+            <h3>涵蓋主流程分類</h3>
+            <div class="value">11 大類核心業務</div>
+        </div>
+        <div class="stat-card">
+            <h3>適用事業據點</h3>
+            <div class="value">內湖廠 / 跨集團通用</div>
+        </div>
+        <div class="stat-card">
+            <h3>審核與核決記號</h3>
+            <div class="value">✓ 審核 / ● 核決</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="search-box">
+            <label for="searchInput">🔍 關鍵字搜尋（項目、內容、合約、廢棄物...）</label>
+            <input type="text" id="searchInput" placeholder="輸入關鍵字立刻過濾..." onkeyup="filterTable()">
+        </div>
+        <div class="filter-box">
+            <label for="categoryFilter">📁 依業務分類篩選</label>
+            <select id="categoryFilter" onchange="filterTable()">
+                <option value="">全部類別 (All Categories)</option>
+                <option value="1、公司治理">1、公司治理與制度</option>
+                <option value="2、公文之處理">2、公文、法務與智財</option>
+                <option value="3、人資">3、人資行政與人事</option>
+                <option value="4、請購/採購">4、請購/採購/驗收/請款/資產</option>
+                <option value="5、營業計畫">5、營業計畫與預算</option>
+                <option value="6、媒體公關">6、媒體公關、行銷、廣宣</option>
+                <option value="7、商品開發">7、商品開發、商品行政</option>
+                <option value="8、展間客戶">8、展間客戶體驗 & 銷售</option>
+                <option value="9、維修及售後">9、維修及售後服務</option>
+                <option value="10、資訊">10、資訊系統與權限</option>
+                <option value="11、財務及會計">11、財務及會計</option>
+            </select>
+        </div>
+        <div class="filter-box">
+            <label for="levelFilter">👤 依簽核層級過濾</label>
+            <select id="levelFilter" onchange="filterTable()">
+                <option value="">全部層級</option>
+                <option value="部級主管">部級主管</option>
+                <option value="處級主管">處級主管</option>
+                <option value="事業總經理">事業總經理</option>
+                <option value="營運長">集團營運長</option>
+                <option value="副董">集團副董</option>
+                <option value="董事長">集團董事長</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="matrix-table" id="matrixTable">
+            <thead>
+                <tr>
+                    <th style="width: 9%;">項目編號</th>
+                    <th style="width: 26%;">工作項目 / 內容描述</th>
+                    <th style="width: 12%;">業務分類</th>
+                    <th style="width: 38%;">簽核層級與權限分配</th>
+                    <th style="width: 15%;">備註與注意事項</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td><b>1-1</b></td>
+                    <td>公司章程擬訂、修改及頒布</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>部級/處級主管(審核) ➔ 總經理/營運長(審核) ➔ 副董/董事長(核決)</td>
+                    <td>依法規與集團規範辦理</td>
+                </tr>
+                <tr>
+                    <td><b>1-2</b></td>
+                    <td>董事會、股東會之召開期程/議案內容</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理 ➔ 集團營運長/副董/董事長</td>
+                    <td>依公司法及集團治理規範</td>
+                </tr>
+                <tr>
+                    <td><b>1-3</b></td>
+                    <td>背書保證作業辦法/資金貸與他人作業程序/取得或處份資產程序之增修</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理 ➔ 營運長/副董/董事長核決</td>
+                    <td>需經董事會/股東會法定程序者依規定辦理</td>
+                </tr>
+                <tr>
+                    <td><b>1-4</b></td>
+                    <td>內控制度制定/增修（含事業體範圍）</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理 ➔ 營運長/董事長</td>
+                    <td>適用範圍僅涉及事業體者，由使用單位主管提出，相關權責單位會審。</td>
+                </tr>
+                <tr>
+                    <td><b>1-5</b></td>
+                    <td>規章制度/辦法/流程圖/表單及合約、發包工程或其他具契約效力之報價單審閱（含買賣合約、租賃合約、長期/高金額超過20萬契約）</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>依金額或契約性質逐級呈核至董事長</td>
+                    <td>1. 買賣、租賃、法律、重大風險合約需會辦法務部門。<br>2. 未訂定核決權限之簽呈，逐級呈核至董事長。</td>
+                </tr>
+                <tr>
+                    <td><b>1-6</b></td>
+                    <td>轉投資事業及關係企業間之股權移轉、保證背書、借貸、股利盈餘、人事派代等事項</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>部級 ➔ 處級 ➔ 總經理 ➔ 營運長 ➔ 副董 ➔ 董事長</td>
+                    <td>需會辦法務部門及簽呈提報</td>
+                </tr>
+                <tr>
+                    <td><b>1-7</b></td>
+                    <td>公司併購或分割、產業策略聯盟、國際合作、國外投資等重大決策事宜等重要契約簽定</td>
+                    <td><span class="badge badge-sec">1、公司治理</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 董事長核決</td>
+                    <td>重大策略決策</td>
+                </tr>
+                <tr>
+                    <td><b>2-1</b></td>
+                    <td>商標及專利登記、證照註冊申請及撤銷</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>處級主管 ➔ 總經理 ➔ 董事長</td>
+                    <td>需會辦法務部門及簽呈提報</td>
+                </tr>
+                <tr>
+                    <td><b>2-2-1</b></td>
+                    <td>一般法訴文件（存證信函收文、開庭通知、法院通知、訴狀繕本、執行命令等）</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理</td>
+                    <td>1. 需會辦法務部門。<br>2. 以法律程序申請單呈報。<br>3. 富豪租賃租金逾期三個月以上存證信函得免逐案提報（按月彙整報董事長）。</td>
+                </tr>
+                <tr>
+                    <td><b>2-2-2</b></td>
+                    <td>重大法訴文件（存證信函發文、起訴狀、答辯狀、判決書、假扣押等）</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 董事長</td>
+                    <td>1. 需會辦法務部門。<br>2. 以簽呈呈報。</td>
+                </tr>
+                <tr>
+                    <td><b>2-3</b></td>
+                    <td>對外發函或外來公文回函（如消費爭議、政府機關函查等）</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 總經理</td>
+                    <td>透過用印申請單，送總經理核准後辦理</td>
+                </tr>
+                <tr>
+                    <td><b>2-4</b></td>
+                    <td>政府機關行政處分書、限期改善、停工、開會通知、陳述意見</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 董事長</td>
+                    <td>需會辦法務部門，以簽呈呈報</td>
+                </tr>
+                <tr>
+                    <td><b>2-5</b></td>
+                    <td>消費爭議處理與協調會議紀錄</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 總經理</td>
+                    <td>透過用印申請單送總經理核准</td>
+                </tr>
+                <tr>
+                    <td><b>2-6</b></td>
+                    <td>其他法人/外部合作廠開會通知、會議記錄、合約等往來文件</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 總經理</td>
+                    <td>若涉及重大經營決策或公司權益，必要時提董事長核定</td>
+                </tr>
+                <tr>
+                    <td><b>2-7</b></td>
+                    <td>協會/公會等開會通知、入會申請、會議記錄、繳納會費</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 總經理</td>
+                    <td>日常會費及例行參與</td>
+                </tr>
+                <tr>
+                    <td><b>2-8</b></td>
+                    <td>主管機構申報類-例行性（職安、環保、消防、營業稅、營所稅、扣繳等）</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>承辦單位 ➔ 部級/處級主管 ➔ 總經理備查</td>
+                    <td>由承辦單位依規定申報，定期彙整報表供總經理核閱</td>
+                </tr>
+                <tr>
+                    <td><b>2-9</b></td>
+                    <td>主管機構申報類-非例行性/重大性（勞動檢查、職災事故、環保申報異常、國稅局來函、行政救濟等）</td>
+                    <td><span class="badge badge-sec">2、公文法務</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理 ➔ 營運長 ➔ 董事長</td>
+                    <td>需會辦法務部門及簽呈提報</td>
+                </tr>
+                <tr>
+                    <td><b>3-1 ~ 3-4</b></td>
+                    <td>組織異動、部門職掌與員額編制、人事規章擬修訂、工作職掌說明書</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理 ➔ 營運長 ➔ 董事長</td>
+                    <td>依集團組織規章與編制辦理</td>
+                </tr>
+                <tr>
+                    <td><b>3-5-1</b></td>
+                    <td>人員聘雇 / 離職 / 留停 / 資遣 / 調任 / 晉升 / 降職 / 獎懲</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>• 一般同仁：處級主管/總經理<br>• 關鍵崗位：集團副董/董事長核決</td>
+                    <td>關鍵崗位依集團《關鍵崗位職務表》認定</td>
+                </tr>
+                <tr>
+                    <td><b>3-5-2</b></td>
+                    <td>人員調薪（特殊調薪）</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>• 一般同仁：總經理/營運長<br>• 關鍵崗位：董事長核決</td>
+                    <td>特殊調薪需附詳細評估簽呈</td>
+                </tr>
+                <tr>
+                    <td><b>3-6 ~ 3-11</b></td>
+                    <td>人員退休撫卹、約聘、顧問聘僱、薪資現金領取、人資證明文件申請</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>部級/處級主管 ➔ 事業總經理 ➔ 營運長</td>
+                    <td>顧問聘僱需報董事長核定</td>
+                </tr>
+                <tr>
+                    <td><b>3-12 ~ 3-14</b></td>
+                    <td>員工加班申請 / 未刷卡補登 / 請假（公出、病假、事假等）</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>• 1日內：一級主管<br>• 2~4日：二級主管<br>• 5日以上：三級主管</td>
+                    <td>依人事出勤管理辦法</td>
+                </tr>
+                <tr>
+                    <td><b>3-15</b></td>
+                    <td>參加國內各公私立機構舉辦之各項訓練或講習</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>• 6千以下：部門主管<br>• 6千~3萬：處級主管<br>• 3萬以上：總經理/營運長</td>
+                    <td>依教育訓練預算執行</td>
+                </tr>
+                <tr>
+                    <td><b>3-16 ~ 3-24</b></td>
+                    <td>勞健保、團保、放假公告、薪資紅利發放、招聘廣告、出差、考核</td>
+                    <td><span class="badge badge-sec">3、人資行政</span></td>
+                    <td>依各項人資管理辦法執行</td>
+                    <td>國內出差依差旅費支給辦法逕送會計部核銷</td>
+                </tr>
+                <tr>
+                    <td><b>4-1-1</b></td>
+                    <td>印鑑刻印申請：名片印製、職名章刻印、行政章/發票章</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>部級/處級主管 ➔ 總經理</td>
+                    <td>依行政規範辦理</td>
+                </tr>
+                <tr>
+                    <td><b>4-1-2</b></td>
+                    <td>印鑑刻印申請：經濟部登記大、小章 / 銀行印鑑大、小章</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 董事長</td>
+                    <td>涉及重大銀行與登記印鑑需最高層級核決</td>
+                </tr>
+                <tr>
+                    <td><b>4-2</b></td>
+                    <td>車輛採購：新車採購、中古車採購（客戶/外部車商/關係企業等）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>依核定預算辦理（一般採購 / 特別採購）</td>
+                    <td>1. 以 SELEKT 車輛收購確認單呈報。<br>2. 不得逾核定預算。</td>
+                </tr>
+                <tr>
+                    <td><b>4-3</b></td>
+                    <td>零件採購（一般、漆料、鈑烤、VMI自動撥補、特別採購）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>工單需求 / VMI系統自動撥補 / 依金額分級核決</td>
+                    <td>特別採購需以簽呈提報</td>
+                </tr>
+                <tr>
+                    <td><b>4-4</b></td>
+                    <td>展間、服務廠區營運採購（委外服務、耗材、維修保養、設備修繕、資訊設備等）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>• 1萬以下：部級<br>• 1~3萬：處級<br>• 3~10萬：總經理<br>• 10~20萬：營運長<br>• 20~50萬：副董<br>• 50萬以上：董事長</td>
+                    <td>1. 需提供合格供應商名冊。<br>2. 越級採購需2-3家詢比價。</td>
+                </tr>
+                <tr>
+                    <td><b>4-5-1</b></td>
+                    <td>零用金請款（行政雜支、交通費、餐費、庶務採購，2,000元以下）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>一級主管核准</td>
+                    <td>限額內零用金便捷撥付</td>
+                </tr>
+                <tr>
+                    <td><b>4-5-2</b></td>
+                    <td>一般請款（零件、費用、成本薪資、耗材外包、預支費用、工程費用等）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>依金額分級（同 4-4 採購核決權限級距）</td>
+                    <td>應檢附已完成驗收並經權責人員確認之「驗收單」</td>
+                </tr>
+                <tr>
+                    <td><b>4-5-3</b></td>
+                    <td>例行性請款（租金支出、水電瓦斯、已核准請購單/簽呈）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>• 3萬以下：部級主管<br>• 3萬以上：處級主管/總經理</td>
+                    <td>須具備指定條件並檢附合約、請購單或簽呈</td>
+                </tr>
+                <tr>
+                    <td><b>4-5-4</b></td>
+                    <td>特殊請款（廣告費、勞務費、佣金、交際費、保險費等）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>依金額級距分級核決</td>
+                    <td>1. 須由核決人親簽。<br>2. 費用申請人 ≠ 裁決人。</td>
+                </tr>
+                <tr>
+                    <td><b>4-6</b></td>
+                    <td>處分固定資產（含廢舊及不適用資產出售、報廢、富豪租賃專案出售返還保證金）</td>
+                    <td><span class="badge badge-sec">4、採購請款</span></td>
+                    <td>依金額分級呈報總經理、營運長至董事長核決</td>
+                    <td>附表規範辦理</td>
+                </tr>
+                <tr>
+                    <td><b>5-1 ~ 5-6</b></td>
+                    <td>年度營業計畫、預算編列、績效獎金辦法、異業結盟、產品價格與銷售條件、每月營業目標</td>
+                    <td><span class="badge badge-sec">5、營業計畫</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 副董 ➔ 董事長</td>
+                    <td>集團核心營運策略與目標管理</td>
+                </tr>
+                <tr>
+                    <td><b>6-1 ~ 6-6</b></td>
+                    <td>媒體公關、年度廣宣企劃、每月活動促銷、媒體計畫、發布新聞稿、社群媒體操作</td>
+                    <td><span class="badge badge-sec">6、媒體公關</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 董事長（依預算分級）</td>
+                    <td>日常推播由部級核准，大型廣宣須呈報總經理/營運長</td>
+                </tr>
+                <tr>
+                    <td><b>7-1 ~ 7-2</b></td>
+                    <td>商品異動（價格變更、組合異動）、新車檢驗標準流程審驗</td>
+                    <td><span class="badge badge-sec">7、商品行政</span></td>
+                    <td>處級主管 ➔ 總經理 ➔ 營運長</td>
+                    <td>確保商品符合法規與總代理規範</td>
+                </tr>
+                <tr>
+                    <td><b>8-1</b></td>
+                    <td>客訴案件通報處理（一般件 vs 嚴重件：退車/檸檬車/新聞事件/網路投訴等）</td>
+                    <td><span class="badge badge-sec">8、客戶體驗</span></td>
+                    <td>• 一般件：部級/處級<br>• 嚴重件：總經理 ➔ 營運長 ➔ 董事長</td>
+                    <td>涉及商譽、退車、媒體投訴須即時向上呈報</td>
+                </tr>
+                <tr>
+                    <td><b>8-2</b></td>
+                    <td>公關/補償禮申請（5,000元以下 vs 5,001元以上；精品配件內帳類）</td>
+                    <td><span class="badge badge-sec">8、客戶體驗</span></td>
+                    <td>部級主管 ➔ 處級主管 ➔ 總經理</td>
+                    <td>每月銷售/售服處列出總表呈總經理核閱</td>
+                </tr>
+                <tr>
+                    <td><b>8-3</b></td>
+                    <td>總代理業務配車核定 / 集團高階主管配車</td>
+                    <td><span class="badge badge-sec">8、客戶體驗</span></td>
+                    <td>事業總經理 ➔ 營運長 ➔ 副董 ➔ 董事長</td>
+                    <td>主管配車與業務車調配</td>
+                </tr>
+                <tr>
+                    <td><b>8-4 ~ 8-6</b></td>
+                    <td>銷售合約贈品配件、新車訂金退款（審閱期內/外）、銷售條件核對單</td>
+                    <td><span class="badge badge-sec">8、客戶體驗</span></td>
+                    <td>組經理 / 據點長 / 處級主管 / 銷售最高主管</td>
+                    <td>審閱期外退訂需跑簽呈辦理</td>
+                </tr>
+                <tr>
+                    <td><b>8-7</b></td>
+                    <td>車款未清切結書與交車控管（依實際入款佔應收比例：>70%、30%-70%、<30%）</td>
+                    <td><span class="badge badge-sec">8、客戶體驗</span></td>
+                    <td>• >70%：部級<br>• 30~70%：處級<br>• <30%：總經理核決</td>
+                    <td>【注意】實收低於30%不能交車需壓牌，車證/牌照交回財會暫存。適用：新凱、星聯、尚鵬。</td>
+                </tr>
+                <tr>
+                    <td><b>9-1 ~ 9-2</b></td>
+                    <td>倉庫盤點計畫、年盤點報告、入庫驗收單及進退貨之 DMS 明細表</td>
+                    <td><span class="badge badge-sec">9、維修售服</span></td>
+                    <td>部級/處級主管 ➔ 總經理</td>
+                    <td>廠內庫存管理與 DMS 系統帳務一致</td>
+                </tr>
+                <tr>
+                    <td><b>9-3</b></td>
+                    <td>日常營運維修折扣 / 例外高風險事項（如免費、超折等）</td>
+                    <td><span class="badge badge-sec">9、維修售服</span></td>
+                    <td>部級/處級主管 ➔ 處級/總經理核決</td>
+                    <td>廠長日常授權與超折審核</td>
+                </tr>
+                <tr>
+                    <td><b>9-4</b></td>
+                    <td>客戶車損賠償</td>
+                    <td><span class="badge badge-sec">9、維修售服</span></td>
+                    <td>依事故責任及公共意外險理賠作業處理（自負額1萬）</td>
+                    <td>若涉及人員受傷、重大車損、訴訟、媒體曝光或商譽風險，提高至總經理或更高層級</td>
+                </tr>
+                <tr>
+                    <td><b>9-5</b></td>
+                    <td>零件領用及出貨</td>
+                    <td><span class="badge badge-sec">9、維修售服</span></td>
+                    <td>一級主管核准</td>
+                    <td>廠內零件出庫管控</td>
+                </tr>
+                <tr>
+                    <td><b>10-1 ~ 10-3</b></td>
+                    <td>系統帳號與權限異動、安裝監視設備權限、資料調閱或撈取(含郵件查詢)</td>
+                    <td><span class="badge badge-sec">10、資訊系統</span></td>
+                    <td>部級/處級主管 ➔ 總經理 / 資訊部門主管</td>
+                    <td>資安規範與資料調閱權限控管</td>
+                </tr>
+                <tr>
+                    <td><b>10-4</b></td>
+                    <td>系統流程及功能變更申請（含欄位增刪及新程式開發）內部/外部</td>
+                    <td><span class="badge badge-sec">10、資訊系統</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 / 董事長</td>
+                    <td>影響營運流程之系統變更</td>
+                </tr>
+                <tr>
+                    <td><b>10-5</b></td>
+                    <td>檔案共用區權限申請核定</td>
+                    <td><span class="badge badge-sec">10、資訊系統</span></td>
+                    <td>部級/處級主管核准</td>
+                    <td>內部檔案伺服器權限控管</td>
+                </tr>
+                <tr>
+                    <td><b>11-1 ~ 11-5</b></td>
+                    <td>財務會計制度建立、年度財務預測與決算、有價證券與權狀保管、增減資變更登記</td>
+                    <td><span class="badge badge-sec">11、財務會計</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 副董 ➔ 董事長</td>
+                    <td>集團財會處統籌與最高決策</td>
+                </tr>
+                <tr>
+                    <td><b>11-6 ~ 11-9</b></td>
+                    <td>會計帳冊登載、營所稅申報與退稅、各項傳票憑單審核、請款與費用憑證審核</td>
+                    <td><span class="badge badge-sec">11、財務會計</span></td>
+                    <td>部級/處級主管 ➔ 財務主管 / 總經理</td>
+                    <td>財會審核與憑證把關</td>
+                </tr>
+                <tr>
+                    <td><b>11-10</b></td>
+                    <td>一般暫借款申請（含同仁）及報支：10萬以下 vs 10萬以上</td>
+                    <td><span class="badge badge-sec">11、財務會計</span></td>
+                    <td>• 10萬以下：處級主管<br>• 10萬以上：總經理 ➔ 營運長</td>
+                    <td>限公務使用，依規定檢據核銷</td>
+                </tr>
+                <tr>
+                    <td><b>11-11</b></td>
+                    <td>對外及銀行借款之訂約、擔保及清償等事項</td>
+                    <td><span class="badge badge-sec">11、財務會計</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 副董 ➔ 董事長</td>
+                    <td>重大財務槓桿與授信事項</td>
+                </tr>
+                <tr>
+                    <td><b>11-12 ~ 11-16</b></td>
+                    <td>銷售折讓與應收帳務、現金票據保管、固定資產盤點、零用金額度與保管人核定</td>
+                    <td><span class="badge badge-sec">11、財務會計</span></td>
+                    <td>財會部門主管 ➔ 處級主管 ➔ 總經理</td>
+                    <td>內部控制與資產安全防線</td>
+                </tr>
+                <tr>
+                    <td><b>11-17 ~ 11-18</b></td>
+                    <td>網路銀行放行權限 & 銀行取款憑條、呆帳帳務處理</td>
+                    <td><span class="badge badge-sec">11、財務會計</span></td>
+                    <td>部級/處級主管 ➔ 總經理 ➔ 營運長 ➔ 董事長 / 財會主管</td>
+                    <td>資金調度與呆帳提列核決</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer>
+        新凱集團 Advancer Group 權限查詢系統 ｜ 檔案版本：DMC-F-001-V2.0
+    </footer>
+</div>
+
+<script>
+function filterTable() {
+    let input = document.getElementById('searchInput').value.toLowerCase();
+    let category = document.getElementById('categoryFilter').value.toLowerCase();
+    let level = document.getElementById('levelFilter').value;
+    
+    let table = document.getElementById('matrixTable');
+    let tr = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < tr.length; i++) {
+        let tdItem = tr[i].getElementsByTagName('td')[0];
+        let tdDesc = tr[i].getElementsByTagName('td')[1];
+        let tdCat = tr[i].getElementsByTagName('td')[2];
+        let tdAuth = tr[i].getElementsByTagName('td')[3];
+        let tdNotes = tr[i].getElementsByTagName('td')[4];
+        
+        if (tdItem && tdDesc && tdCat && tdAuth && tdNotes) {
+            let rowText = (tdItem.textContent + " " + tdDesc.textContent + " " + tdCat.textContent + " " + tdAuth.textContent + " " + tdNotes.textContent).toLowerCase();
+            
+            let matchesSearch = input === "" || rowText.indexOf(input) > -1;
+            let matchesCategory = category === "" || tdCat.textContent.toLowerCase().indexOf(category) > -1;
+            let matchesLevel = level === "" || tdAuth.textContent.indexOf(level) > -1;
+            
+            if (matchesSearch && matchesCategory && matchesLevel) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+</script>
+</body>
+</html>
