@@ -7,19 +7,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
-            --bg-body: #0b0f19;
+            --bg-body: #f4f6f9;
             --navbar-bg: #111827;
-            --card-bg: #1e293b;
-            --border-card: #334155;
-            --text-dark: #f8fafc;
-            --text-muted: #94a3b8;
-            --text-light: #64748b;
-            
-            --teal-primary: #0d9488;
-            --teal-hover: #0f766e;
+            --card-bg: #ffffff;
+            --border-card: #e5e7eb;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --text-light: #9ca3af;
             
             --btn-blue: #2563eb;
-            --alert-red: #ef4444;
+            --alert-red: #dc2626;
         }
 
         * {
@@ -40,45 +37,44 @@
         .navbar {
             background-color: var(--navbar-bg);
             color: #ffffff;
-            padding: 14px 20px;
+            padding: 12px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            border-bottom: 1px solid var(--border-card);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
         }
         .navbar-title {
-            font-size: 1.15rem;
-            font-weight: 800;
+            font-size: 1.05rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .navbar-sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
+            font-size: 0.7rem;
+            color: #94a3af;
             margin-top: 2px;
         }
         .status-badge {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 6px 12px;
-            border-radius: 20px;
+            background: #dcfce7;
+            color: #15803d;
+            padding: 5px 10px;
+            border-radius: 6px;
             font-size: 0.78rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
+        /* 分頁切換容器 */
         .mode-switcher-container {
             max-width: 1440px;
-            margin: 16px auto 0 auto;
-            padding: 0 16px;
+            margin: 12px auto 0 auto;
+            padding: 0 12px;
         }
         .dual-track-nav {
             display: flex;
@@ -89,12 +85,11 @@
         }
         .primary-modes {
             display: flex;
-            background: #1e293b;
-            padding: 5px;
-            border-radius: 12px;
-            gap: 6px;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+            gap: 4px;
             flex: 1;
-            border: 1px solid var(--border-card);
             overflow-x: auto;
             scrollbar-width: none;
         }
@@ -102,151 +97,144 @@
         
         .mode-btn {
             flex: 1;
-            padding: 10px 14px;
+            padding: 9px 12px;
             text-align: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
-            color: var(--text-muted);
+            color: #475569;
             background: transparent;
             border: none;
-            border-radius: 8px;
+            border-radius: 7px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             white-space: nowrap;
         }
         .mode-btn:hover {
-            color: #ffffff;
-            background: rgba(255,255,255,0.05);
+            color: #0f172a;
+            background: rgba(255,255,255,0.5);
         }
         .mode-btn.active {
-            background: var(--teal-primary);
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4);
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-weight: 800;
         }
 
         .main-container {
             max-width: 1440px;
-            margin: 16px auto 40px auto;
-            padding: 0 16px;
+            margin: 10px auto 30px auto;
+            padding: 0 12px;
         }
 
-        /* 頂部 KPI 卡片戰情列 */
+        /* 頂部 KPI 卡片區 */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 14px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .kpi-card {
             background: var(--card-bg);
-            padding: 16px 20px;
-            border-radius: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
             border: 1px solid var(--border-card);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 4px; height: 100%;
-            background: var(--teal-primary);
-        }
-
-        .kpi-title { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .kpi-value { font-size: 1.65rem; font-weight: 800; color: #38bdf8; margin-top: 6px; }
+        .kpi-title { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
+        .kpi-value { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-top: 4px; }
 
         /* 搜尋工具列 */
         .toolbar {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
         .search-box {
-            flex: 1;
-            max-width: 400px;
-            padding: 11px 16px;
-            background: var(--card-bg);
+            width: 100%;
+            max-width: 420px;
+            padding: 10px 14px;
+            background: #ffffff;
             border: 1px solid var(--border-card);
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 0.9rem;
-            color: #fff;
             outline: none;
-            transition: border-color 0.2s;
+            color: var(--text-dark);
         }
-        .search-box:focus { border-color: var(--teal-primary); }
+        .search-box:focus { border-color: var(--btn-blue); }
 
-        /* 強化版表格容器：支援完整左右卷軸 */
+        /* 表格容器：支援左右與上下卷軸 */
         .table-container {
             background: var(--card-bg);
-            border-radius: 12px;
-            overflow-x: auto; /* 確保左右卷軸出現 */
+            border-radius: 10px;
+            overflow-x: auto;
             overflow-y: auto;
             border: 1px solid var(--border-card);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             max-height: 72vh;
             -webkit-overflow-scrolling: touch;
         }
 
         table {
-            width: max-content; /* 讓表格依內容撐開，強制啟用左右卷軸 */
+            width: max-content;
             min-width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
         }
         th {
             background: #0f172a;
-            color: #f8fafc;
-            padding: 14px 18px;
+            color: #ffffff;
+            padding: 10px 14px;
             font-weight: 700;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             letter-spacing: 0.5px;
             position: sticky;
             top: 0;
             z-index: 10;
-            border-bottom: 2px solid var(--border-card);
             white-space: nowrap;
         }
         td {
-            padding: 12px 18px;
-            border-bottom: 1px solid var(--border-card);
-            color: #cbd5e1;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
             white-space: nowrap;
         }
-        tr:hover { background-color: rgba(51, 65, 85, 0.4); }
+        tr:hover { background-color: #f8fafc; }
 
         /* 狀態標籤徽章 */
         .badge {
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 3px 8px;
+            border-radius: 4px;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             display: inline-flex;
             align-items: center;
             gap: 4px;
             white-space: nowrap;
         }
-        .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge-yellow { background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-purple { background: rgba(139, 92, 246, 0.15); color: #ddd6fe; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .badge-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-yellow { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-purple { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
 
-        .loading-spinner { text-align: center; padding: 60px; color: var(--text-muted); font-size: 0.95rem; }
+        .loading-spinner { text-align: center; padding: 50px; color: var(--text-muted); font-size: 0.9rem; }
 
         @media (max-width: 768px) {
             .navbar { padding: 10px 14px; }
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
             .primary-modes { flex-direction: column; width: 100%; }
-            .mode-btn { width: 100%; justify-content: flex-start; padding: 10px 14px; }
+            .mode-btn { width: 100%; justify-content: flex-start; }
         }
     </style>
 </head>
@@ -254,7 +242,7 @@
 
     <div class="navbar">
         <div>
-            <div class="navbar-title"><span>📊</span> 尚鵬汽車 — 全自動採購與呆滯診斷 Web 戰情室</div>
+            <div class="navbar-title"><span>🚗</span> 尚鵬汽車 — 全自動採購與呆滯診斷 Web 戰情室</div>
             <div class="navbar-sub">EXECUTIVE DUAL-TRACK PROCUREMENT & DEAD STOCK DIAGNOSIS DASHBOARD</div>
         </div>
         <div class="status-badge"><span>●</span> Google 雲端即時連線</div>
@@ -276,19 +264,19 @@
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-title">叫貨到貨前置天數</div>
-                <div class="kpi-value" style="color:#38bdf8;">7 天</div>
+                <div class="kpi-value">7 天</div>
             </div>
-            <div class="kpi-card" style="border-left-color: #3b82f6;">
+            <div class="kpi-card">
                 <div class="kpi-title">全域預設安全緩衝</div>
-                <div class="kpi-value" style="color:#60a5fa;">5 個</div>
+                <div class="kpi-value">5 個</div>
             </div>
-            <div class="kpi-card" style="border-left-color: #ef4444;">
+            <div class="kpi-card">
                 <div class="kpi-title">🚨 嚴重缺料警示數</div>
-                <div class="kpi-value" id="kpi-alert-count" style="color:#f87171;">--</div>
+                <div class="kpi-value" id="kpi-alert-count" style="color:var(--alert-red);">--</div>
             </div>
-            <div class="kpi-card" style="border-left-color: #a855f7;">
+            <div class="kpi-card">
                 <div class="kpi-title">🧊 呆滯風險件數</div>
-                <div class="kpi-value" id="kpi-stagnant-count" style="color:#c084fc;">--</div>
+                <div class="kpi-value" id="kpi-stagnant-count" style="color:#7e22ce;">--</div>
             </div>
         </div>
 
@@ -314,7 +302,7 @@
             dash: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=924197170&single=true&output=csv",
             top100: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=992058063&single=true&output=csv",
             custom: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=2067466362&single=true&output=csv",
-            target: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXPpPPYN7Fw9cjO/pub?gid=1442502573&single=true&output=csv",
+            target: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=1442502573&single=true&output=csv",
             manual: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQe7p6Eh_TNUQMJjwaerFPf-V3ihBDJ2UKrzdPehSlXYi5CjQCCiWeTQ6co0QQR2pkMpPPYN7Fw9cjO/pub?gid=314474430&single=true&output=csv"
         };
 
@@ -356,9 +344,9 @@
                     return;
                 }
 
-                // 智慧定位標題行：尋找包含特定欄位名稱（如 "NO." 或 "料號"）的那一行
+                // 智慧定位標題行 (直接對應您現在乾淨的表頭)
                 let headerRowIdx = 0;
-                for (let i = 0; i < Math.min(15, data.length); i++) {
+                for (let i = 0; i < Math.min(10, data.length); i++) {
                     const rowStr = data[i].join(' ');
                     if (rowStr.includes("NO.") || rowStr.includes("料號") || rowStr.includes("零件名稱") || rowStr.includes("月份")) {
                         headerRowIdx = i;
@@ -369,7 +357,7 @@
                 const headers = data[headerRowIdx];
                 tableHeaders.innerHTML = headers.map(h => `<th>${h}</th>`).join('');
 
-                const rows = data.slice(headerRowIdx + 1);
+                const rows = data.slice(headerRowIdx + 1).filter(row => row.some(cell => cell !== ''));
                 currentData = rows;
                 renderRows(rows);
 
@@ -377,7 +365,7 @@
 
             } catch (error) {
                 console.error("Error loading CSV:", error);
-                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#f87171; padding:30px;">❌ 雲端數據讀取失敗，請確認網路連線或試算表發布狀態。</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#dc2626; padding:30px;">❌ 雲端數據讀取失敗，請確認網路連線或試算表發布狀態。</td></tr>';
             }
         }
 
@@ -419,7 +407,6 @@
         function switchTab(tabId, btn) {
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('search-input').value = ';';
             document.getElementById('search-input').value = '';
             fetchAndRenderCSV(tabId);
         }
