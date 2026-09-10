@@ -632,6 +632,7 @@
                     <button class="tab-btn" onclick="setCategoryFilter('HIGH_AMT', this)">&ge;5萬 <span class="tab-count" id="c-amt">0</span></button>
                     <button class="tab-btn" onclick="setCategoryFilter('HAS_NOTE', this)">☁️已備註 <span class="tab-count" id="c-has-note">0</span></button>
                     <button class="tab-btn" style="color:#b91c1c; background:#fff1f2;" onclick="setCategoryFilter('CLOSED_LIST', this)">🗄️已結案歷史 <span class="tab-count" id="c-closed">0</span></button>
+                    <button class="tab-btn" id="btnExcludeClaimApply" style="border-left: 2px solid #cbd5e1; margin-left: 4px;" onclick="toggleExcludeClaimApply(this)">🚫 排除索賠申請中</button>
                 </div>
 
                 <div class="filter-scroll-container" id="saFilterRow">
@@ -900,7 +901,7 @@
 
                 <div class="filter-scroll-container" id="m130SaFilterRow">
                     <span class="filter-label-chip">服務專員：</span>
-                    <button class="tab-btn active" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count" id="m130-sa-all">0</span></button>
+                    <button class="tab-btn active" onclick="setM130SaFilter('ALL', this)">全部專員 <span class="tab-count" id="m130-sa-all">${m130List.length}</span></button>
                 </div>
             </div>
         </div>
@@ -1000,6 +1001,7 @@
 
         let activeCategory = 'ALL';
         let activeSa = 'ALL';
+        let isExcludeClaimApply = false; // 排除狀態為「索賠申請中」開關
         let debounceTimers = {};
 
         let activeProjCategory = 'RESP_ALL';
@@ -2438,8 +2440,24 @@
 
         function setCategoryFilter(type, btn) {
             activeCategory = type;
-            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.parentElement.querySelectorAll('.tab-btn').forEach(b => {
+                if (b.id !== 'btnExcludeClaimApply') b.classList.remove('active');
+            });
             btn.classList.add('active');
+            triggerOptimizedRender();
+        }
+
+        function toggleExcludeClaimApply(btn) {
+            isExcludeClaimApply = !isExcludeClaimApply;
+            if (isExcludeClaimApply) {
+                btn.style.background = '#dc2626';
+                btn.style.color = '#ffffff';
+                btn.innerText = '✓ 已排除索賠申請中';
+            } else {
+                btn.style.background = '#f3f4f6';
+                btn.style.color = '#4b5563';
+                btn.innerText = '🚫 排除索賠申請中';
+            }
             triggerOptimizedRender();
         }
 
@@ -2490,6 +2508,12 @@
                         if (!isClosed) return false;
                     } else {
                         if (isClosed) return false;
+                    }
+
+                    // 嚴格依據工單「狀態」是否為「索賠申請中」過濾，完全不牽涉工單類別
+                    const orderStatus = (o['狀態'] || '').trim();
+                    if (isExcludeClaimApply && orderStatus.includes('索賠申請中')) {
+                        return false;
                     }
 
                     const days = parseInt(o['進廠天數'], 10) || 0;
